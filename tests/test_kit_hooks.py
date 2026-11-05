@@ -1,4 +1,4 @@
-"""Behaviour tests for the eleven kit hooks under `plugins/*/skills/*/assets/hooks/`.
+"""Behaviour tests for the twenty-one kit hooks under `plugins/*/skills/*/assets/hooks/`.
 
 `tests/test_plugin_shape.py` checks what a hook is allowed to look like; this file runs
 each one. The cases live in `tests/fixtures/kit_hooks.json` as data: a hook, a payload,
@@ -40,6 +40,16 @@ HOOK_FILES = {
     "mail": "email-template-unsubscribe",
     "ph": "placeholder-list",
     "game": "game-data-json",
+    "because": "decision-rule-because",
+    "unit": "exec-absolute-path",
+    "safety": "require-safety-comment",
+    "closed": "require-closed-object-schema",
+    "otelmem": "collector-memory-limiter",
+    "conn": "connection-ceilings",
+    "churn": "require-churn-evidence",
+    "mem": "require-memory-request",
+    "lock": "close-lock-date",
+    "dmap": "drift-map-ignore-reason",
 }
 
 # Everything a hook may call besides its parser. A tool a hook starts using that is not here
@@ -64,6 +74,8 @@ STUB_JSON = (
     "    return ''\n"
 )
 
+CHURN_HEADER = "Account,Dropdown,Primary code,Key evidence\n"
+
 SCRATCH_FILES = {
     "json.py": STUB_JSON,
     "tfplan": "plan",
@@ -87,6 +99,305 @@ SCRATCH_FILES = {
     "other/invalid.json": "{",
     "-x/data/invalid.json": "{",
     "-x/data/valid.json": "{}",
+    # because: decision-rule-because
+    "interviews/bad.md": "- If the batch ran late, check the lock\n\nplain\n",
+    "interviews/billing/deep/bad.md": "- If the batch ran late, check the lock\n\nplain\n",
+    "interviews/-n.md": "If x, y\n",
+    "interviews/second-bad.md": "- If a, b because c\n- If d, e\n",
+    "interviews/wrapped-bad.md": "If a, b\ncontinues\n\nbecause later\n",
+    "interviews/wrapped-good.md": (
+        "- If the batch ran late, check the lock first\n  because stalls start there\n"
+    ),
+    "interviews/good.md": "- If a, b because c\n",
+    "interviews/capital.md": "If a, b. Because c\n",
+    "interviews/no-rule.md": "Walk me through it\n",
+    "interviews/lower-if.md": "if x then y\n",
+    "interviews/iffy.md": "Iffy result\nIf\n",
+    "interviews/note.txt": "If x, y\n",
+    "interviews/dir.md/.keep": "",
+    "notes/decision-rules-a.md": "If x, y\n",
+    "notes/other.md": "If x, y\n",
+    # unit: exec-absolute-path
+    "units/good.service": (
+        "[Unit]\nDescription=x\n[Service]\nExecStart=/usr/bin/app --flag\n"
+        "ExecStartPre=-/usr/bin/true\nRestart=on-failure\nRestartSec=5\n"
+    ),
+    "units/relative.service": "[Service]\nExecStart=./server\n",
+    "units/relative-dir.service": "[Service]\nExecStart=bin/run --x\n",
+    "units/bare.service": "[Service]\nExecStart=server --x\n",
+    "units/specifier.service": "[Service]\nExecStart=%h/bin/app\n",
+    "units/app.service.d/override.conf": ("[Service]\nExecStart=\nExecStart=/opt/app/bin/app\n"),
+    "units/bad.service.d/override.conf": "[Service]\nExecStart=\nExecStart=-@./app\n",
+    "units/prefix-bad.service": "[Service]\nExecStartPre=!!./prep\n",
+    "units/continued.service": "[Service]\nExecStart=\\\n  ../bin/app \\\n  --x\n",
+    "units/continued-ok.service": ("[Service]\nExecStart=\\\n  /usr/bin/app \\\n  ./arg\n"),
+    "units/comment.service": (
+        "[Service]\n# ExecStart=./old\n; ExecStart=bin/old\nExecStart=/usr/bin/app\n"
+    ),
+    "units/crlf.service": "[Service]\r\nExecStart=./x\r\n",
+    "units/no-exec.service": "[Unit]\nDescription=x\n",
+    "units/stop-bad.service": "[Service]\nExecStart=/usr/bin/app\nExecStop=./stop\n",
+    "units/quoted-bad.service": '[Service]\nExecStart="./app" x\n',
+    "units/mid-line.service": (
+        "[Service]\nEnvironment=ExecStart=./x\nDescription=ExecStart=bin/x\n"
+    ),
+    "units/relative.txt": "[Service]\nExecStart=./server\n",
+    "units/empty.service": "",
+    "units/dir.service/.keep": "",
+    "-x/units/bad.service": "[Service]\nExecStart=./server\n",
+    "-x/units/good.service": "[Service]\nExecStart=/usr/bin/app\n",
+    # safety: require-safety-comment
+    "rust/block-ok.rs": (
+        "fn f() {\n    // SAFETY: p is non-null, checked above.\n    let a = unsafe { *p };\n}\n"
+    ),
+    "rust/block-bare.rs": "fn f() {\n    let a = unsafe { *p };\n}\n",
+    "rust/block-second-bare.rs": (
+        "fn f() {\n    // SAFETY: p is non-null.\n    let a = unsafe { *p };\n"
+        "    let b = unsafe { *q };\n}\n"
+    ),
+    "rust/fn-bare.rs": "pub unsafe fn f() {}\n",
+    "rust/fn-doc.rs": (
+        "/// Reads the cell.\n///\n/// # Safety\n/// The caller must hold the lock.\n"
+        "#[inline]\npub unsafe fn f() {}\n"
+    ),
+    "rust/fn-comment.rs": "// SAFETY: only called from init.\nunsafe fn f() {}\n",
+    "rust/impl-bare.rs": "unsafe impl Send for X {}\n",
+    "rust/impl-ok.rs": (
+        "// SAFETY: X owns its pointer and never aliases it.\n"
+        "// Sync follows because all access is under the mutex.\n"
+        "unsafe impl Sync for X {}\n"
+    ),
+    "rust/impl-doc-only.rs": (
+        "/// # Safety\n/// Documented like a function.\nunsafe impl Send for X {}\n"
+    ),
+    "rust/trait-bare.rs": "pub unsafe trait Zeroable {}\n",
+    "rust/trait-doc.rs": (
+        "/// # Safety\n/// Implementers must be valid when all-zero.\n"
+        "pub unsafe trait Zeroable {}\n"
+    ),
+    "rust/blank-between.rs": "// SAFETY: ok\n\nlet a = unsafe { 1 };\n",
+    "rust/code-between.rs": "// SAFETY: ok\nlet x = 1;\nlet a = unsafe { 1 };\n",
+    "rust/same-line.rs": "let a = unsafe { 1 }; // SAFETY: constant is in range\n",
+    "rust/crlf.rs": "// SAFETY: ok\r\nlet a = unsafe { 1 };\r\n",
+    "rust/extern-block-bare.rs": ('unsafe extern "C" {\n    fn abs(x: i32) -> i32;\n}\n'),
+    "rust/extern-fn-bare.rs": 'pub unsafe extern "C" fn cb() {}\n',
+    "rust/no-sites.rs": (
+        "#![forbid(unsafe_code)]\n#[allow(unsafe_op_in_unsafe_fn)]\n"
+        "#[unsafe(no_mangle)]\ntype F = unsafe fn(i32);\nlet unsafe_code = 1;\n"
+        'let s = "unsafe { not code }";\n// unsafe { in a comment }\n'
+        "/// unsafe fn in docs\n"
+    ),
+    "rust/no-unsafe.rs": "fn main() {}\n",
+    "rust/not-rust.txt": "unsafe { x }\n",
+    "-x/unsafe.rs": "unsafe { x }\n",
+    "rust/dir.rs/.keep": "",
+    # closed: require-closed-object-schema
+    "schemas/closed.json": (
+        '{"type":"object","properties":{"category":{"type":"string","enum":["a","other"]},"tags":{"type":"array","items":{"type":"object","properties":{"k":{"type":"string"}},"required":["k"],"additionalProperties":false}}},"required":["category","tags"],"additionalProperties":false}'
+    ),
+    "schemas/open.json": (
+        '{"type":"object","properties":{"a":{"type":"string"}},"required":["a"]}'
+    ),
+    "schemas/nested-open.json": (
+        '{"type":"object","properties":{"items":{"type":"array","items":{"type":"object","properties":{"k":{"type":"string"}}}}},"additionalProperties":false}'
+    ),
+    "schemas/anyof-open.json": (
+        '{"type":"object","properties":{"a":{"anyOf":[{"type":"object","properties":{}},{"type":"null"}]}},"additionalProperties":false}'
+    ),
+    "schemas/nullable-open.json": '{"type":["object","null"],"properties":{}}',
+    "schemas/map-open.json": ('{"type":"object","additionalProperties":{"type":"string"}}'),
+    "schemas/envelope-open.json": (
+        '{"name":"t","strict":true,"schema":{"type":"object","properties":{"a":{"type":"string"}},"additionalProperties":true}}'
+    ),
+    "schemas/tricky-closed.json": (
+        '{"type":"object","properties":{"type":{"type":"string","enum":["object"]},"properties":{"type":"string"}},"additionalProperties":false,"examples":[{"type":"object","properties":{}}],"default":{"type":"object"}}'
+    ),
+    "schemas/array.json": "[1, 2]",
+    "schemas/invalid.json": '{"type":"object","properties":{"a":',
+    "schemas/two.json": "{} {}",
+    "schemas/empty.json": "",
+    "schemas/open.txt": "{",
+    "schemas/dir.json/.keep": "",
+    "other/open-schema.json": '{"type":"object","properties":{}}',
+    "nested/schemas/deep/open.json": '{"type":"object","properties":{}}',
+    "schemas/many-open.json": json.dumps(
+        {
+            "type": "object",
+            "properties": {f"p{i}": {"type": "object", "properties": {}} for i in range(4000)},
+            "additionalProperties": False,
+        }
+    ),
+    # otelmem: collector-memory-limiter
+    "otel-collector-good.yaml": (
+        "service:\n  pipelines:\n    traces:\n      receivers: [otlp]\n"
+        "      processors: [memory_limiter, batch]\n      exporters: [debug]\n"
+        "    metrics:\n      receivers: [otlp]\n      processors:\n"
+        "        - memory_limiter/main\n        - batch\n      exporters: [debug]\n"
+    ),
+    "otelcol/bad.yml": (
+        "processors:\n  memory_limiter:\n    limit_percentage: 80\n  batch:\nservice:\n"
+        "  pipelines:\n    traces:\n      receivers: [otlp]\n      processors:\n"
+        "        - batch\n      exporters: [debug]\n"
+    ),
+    "otel-collector-flow-bad.yaml": (
+        "service:\n  pipelines:\n    logs:\n      receivers: [otlp]\n"
+        "      processors: [batch, resource]\n      exporters: [debug]\n"
+    ),
+    "otel-collector-second-bad.yaml": (
+        "service:\n  pipelines:\n    traces:\n"
+        "      processors: [memory_limiter, batch]\n    metrics:\n"
+        "      processors: [batch]\n"
+    ),
+    "otel-collector-comment-bad.yaml": (
+        "service:\n  pipelines:\n    traces:\n      processors: [batch] # memory_limiter later\n"
+    ),
+    "otel-collector-crlf.yaml": ("pipelines:\r\n  t:\r\n    processors:\r\n      - batch\r\n"),
+    "otel-collector-multiline.yaml": (
+        "service:\n  pipelines:\n    traces:\n      processors: [batch,\n        memory_limiter]\n"
+    ),
+    "otel-collector-empty.yaml": (
+        "service:\n  pipelines:\n    traces:\n      receivers: [otlp]\n"
+        "      processors: []\n    metrics:\n      receivers: [otlp]\n"
+    ),
+    "otel-collector-nopipes.yaml": "receivers:\n  otlp:\nprocessors:\n  batch:\n",
+    "config/otel-bad.yaml": ("service:\n  pipelines:\n    traces:\n      processors: [batch]\n"),
+    # conn: connection-ceilings
+    "sysctl.conf": "net.ipv4.tcp_tw_recycle = 1\n",
+    "sysctl.d/conn-nocomment.conf": "net.netfilter.nf_conntrack_max = 262144\n",
+    "sysctl.d/conn-port-nocomment.conf": ("net.ipv4.ip_local_port_range = 1024 65000\n"),
+    "sysctl.d/conn-recycle.conf": ("# kept for old clients, 2016\nnet.ipv4.tcp_tw_recycle = 1\n"),
+    "sysctl.d/conn-recycle-slash.conf": "-net/ipv4/tcp_tw_recycle=1\n",
+    "sysctl.d/conn-blank.conf": (
+        "# nf_conntrack_count peaked at 61000 of 65536\n\nnet.netfilter.nf_conntrack_max = 262144\n"
+    ),
+    "sysctl.d/conn-words.conf": (
+        "# raise it for the new cluster\nnet.netfilter.nf_conntrack_max = 262144\n"
+    ),
+    "sysctl.d/conn-ok.conf": (
+        "# nf_conntrack_count peaked at 61000 of 65536 on 2026-05-01\n"
+        "net.netfilter.nf_conntrack_max = 262144\n"
+    ),
+    "sysctl.d/conn-other.conf": "vm.swappiness = 10\nnet.core.somaxconn = 4096\n",
+    "sysctl.d/conn-commented.conf": (
+        "# net.ipv4.tcp_tw_recycle = 1\n; net.ipv4.tcp_tw_recycle = 1\n"
+    ),
+    "sysctl.d/conn-nocomment.txt": "net.netfilter.nf_conntrack_max = 262144\n",
+    "other/conn-nocomment.conf": "net.netfilter.nf_conntrack_max = 262144\n",
+    "sysctl.dist/conn-nocomment.conf": "net.netfilter.nf_conntrack_max = 262144\n",
+    "-x/sysctl.d/conn-nocomment.conf": "net.netfilter.nf_conntrack_max = 262144\n",
+    # churn: require-churn-evidence
+    "churn/blank.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "churn/na.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability, N/A \n"
+    ),
+    "churn/short.csv": ("Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability\n"),
+    "churn/titled.csv": (
+        "Q3 sample\nAccount,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "churn/bom.csv": "\ufeffAccount,PRIMARY CODE,key evidence\n1,Usage declined,\n",
+    "churn/open.csv": (
+        'Account,Dropdown,Primary code,Key evidence\n1,Price,Usage declined,"open\n'
+        "2,Price,Champion left,x\n"
+    ),
+    "churn/swapped.csv": "Key evidence,Primary code\n,Champion left\n",
+    "churn/quoted-comma.csv": (
+        'Account,Dropdown,Primary code,Key evidence\n"Acme, Inc",Price,Champion left,\n'
+    ),
+    "churn/good.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n"
+        '1,Price,Missing capability,"ticket 12: ""no SSO"""\n'
+    ),
+    "churn/multiline.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n"
+        '1,Price,Missing capability,"line one\n, line two"\n'
+    ),
+    "churn/uncoded.csv": ("Account,Dropdown,Primary code,Key evidence\n1,Price,,\n2,Price,   ,\n"),
+    "churn/plain.csv": "a,b\n1,\n",
+    "churn/one-column.csv": "Account,Primary code\n1,Champion left\n",
+    "notes/blank.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "churns/blank.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "churn/blank.txt": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "churn/dir.csv/.keep": "",
+    "-x/churn/blank.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "reports/q3/churn/2026/blank.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
+    "churn/oversize.csv": CHURN_HEADER + "1,Price,Missing capability,x\n" * 45000,
+    # mem: require-memory-request
+    "jobs/good.sbatch": ("#!/bin/bash\n#SBATCH --job-name=x\n#SBATCH --mem=4G\necho hi\n"),
+    "jobs/nomem.sbatch": ("#!/bin/bash\n#SBATCH --job-name=x\n#SBATCH --time=1:00:00\necho hi\n"),
+    "slurm/nomem.sh": "#!/bin/bash\n#SBATCH --cpus-per-task=4\n",
+    "ops/slurm/sub/nomem.sh": "#SBATCH --time=1\n",
+    "-x/jobs/nomem.sbatch": "#SBATCH --time=1\n",
+    "jobs/jobname.sbatch": "#SBATCH --job-name=--memory\n",
+    "jobs/partition.sbatch": "#SBATCH -p gpu\n",
+    "jobs/tab.sbatch": "#SBATCH\t--time=1\n",
+    "jobs/crlf.sbatch": "#SBATCH --time=1\r\n#SBATCH --nodes=1\r\n",
+    "jobs/body.sbatch": "#SBATCH --time=1\nsrun --mem=4G ./a.out\n",
+    "jobs/memx.sbatch": "#SBATCH --memx=4G\n",
+    "jobs/nospace.sbatch": "#SBATCH--mem=4G\n",
+    "jobs/bind.sbatch": "#SBATCH --mem-bind=local\n#SBATCH --memory=3\n",
+    "jobs/commented.sbatch": "##SBATCH --mem=4G\n#SBATCH --time=1\n",
+    "slurm/sub/cpu.sh": "#SBATCH --mem-per-cpu 2G\n",
+    "jobs/gpu.sbatch": "#SBATCH --mem-per-gpu=16G",
+    "jobs/late-mem.sbatch": "#SBATCH --time=1\n#SBATCH --nodes=2\n#SBATCH --mem=0\n",
+    "slurm/nodirective.sh": "echo hi\n",
+    "myslurm/nomem.sh": "#SBATCH --time=1\n",
+    "jobs/nomem.sh": "#SBATCH --time=1\n",
+    "jobs/dir.sbatch/.keep": "",
+    # lock: close-lock-date
+    "books/2026-09-close.md": "# Close\nPeriod locked: yes, 2026-10-03\n",
+    "books/bad-close.md": "# Close\nPeriod locked: yes\n",
+    "books/bad-true-close.md": "# Close\n**Period locked:** true\n",
+    "books/close-undated.md": "Period locked: yes, date\n",
+    "books/close-placeholder.md": ("Period locked: [yes, YYYY-MM-DD]\nPeriod locked: yes/no\n"),
+    "books/close-no.md": "Period locked: no\n",
+    "books/close-written-date.md": (
+        "Period locked: yes, 3 Oct 2026\nperiod locked: yes (Oct 3, 2026)\n"
+        "Period locked: yes 03/10/2026\n"
+    ),
+    "books/close-second-line.md": ("Period locked: yes, 2026-10-03\nPeriod locked: yes\n"),
+    "books/notes.md": "Period locked: yes\n",
+    "books/close.csv": "Period locked: yes\n",
+    "books/Month-CLOSE.MD": "Period locked: yes\n",
+    "books/dir-close.md/.keep": "",
+    "-x/close.md": "Period locked: yes\n",
+    # dmap: drift-map-ignore-reason
+    "dm/pass/drift-map.yaml": (
+        "docs_root: docs/\nignore:\n  - id: timeout\n"
+        "    reason: generic; mapped as storage.timeout\n  - id: name\n"
+        '    reason: "too generic"\n  - id: x # why\n    reason: >\n      folded text\n'
+        "  - {id: y, reason: z}\n"
+    ),
+    "dm/nextline/drift-map.yaml": ("ignore:\n  - id: a\n    reason:\n      generic key\n"),
+    "dm/crlf/drift-map.yaml": "ignore:\r\n  - id: a\r\n    reason: generic\r\n",
+    "dm/noignore/drift-map.yaml": ("docs_root: docs/\npaths:\n  - glob: a\n    pages: [b]\n"),
+    "dm/emptylist/drift-map.yaml": "ignore: []\n",
+    "dm/othersection/drift-map.yaml": (
+        "ignore:\n  - id: timeout\n    reason: generic\npaths:\n  - glob: src/**\n"
+        "    pages:\n      - docs/a.md\n"
+    ),
+    "dm/noreason/drift-map.yaml": ("ignore:\n  - id: timeout\n    reason: generic\n  - id: name\n"),
+    "dm/noreason/notes.yaml": "ignore:\n  - id: name\n",
+    "dm/noreason/drift-map.yml": "ignore:\n  - id: name\n",
+    "dm/empty/drift-map.yaml": ("ignore:\n  - id: a\n    reason:\n  - id: b\n    reason: ok\n"),
+    "dm/quoted/drift-map.yaml": 'ignore:\n  - id: a\n    reason: ""\n',
+    "dm/null/drift-map.yaml": "ignore:\n  - id: a\n    reason: null\n",
+    "dm/comment/drift-map.yaml": "ignore:\n  - id: a\n    reason: # todo\n",
+    "dm/flow/drift-map.yaml": "ignore:\n  - {id: a, reason: ok}\n  - {id: b}\n",
+    "dm/zero/drift-map.yaml": "ignore:\n- id: a\n- id: b\n  reason: ok\n",
+    "dm/oversize/drift-map.yaml": "ignore:\n" + "a" * 1_100_000,
+    "dm/dir/drift-map.yaml/.keep": "",
 }
 
 
@@ -447,6 +758,19 @@ def test_openocd_erase_address_is_refused_as_a_range_not_a_whole_device(bins, sc
 # Worst-case inputs of about 2 MB, built here because they are too large for the table. Each
 # is (name, builder, expected exit, files the working directory must hold).
 MB = 1_000_000
+# A schema of thousands of small objects, closed and open, for the closed-object hook.
+_CLOSED_OBJECT = '"p{}":{{"type":"object","properties":{{}},"additionalProperties":false}}'
+_OPEN_OBJECT = '"p{}":{{"type":"object","properties":{{}}}}'
+CLOSED_BIG = (
+    '{"type":"object","properties":{'
+    + ",".join(_CLOSED_OBJECT.format(i) for i in range(8000))
+    + '},"additionalProperties":false}'
+)
+OPEN_BIG = (
+    '{"type":"object","properties":{'
+    + ",".join(_OPEN_OBJECT.format(i) for i in range(8000))
+    + '},"additionalProperties":false}'
+)
 BIG = {
     "tf": [
         # A command made of continuation lines is joined into one line; joining by appending to a
@@ -800,6 +1124,480 @@ BIG = {
             {"applications/big-end.md": "x " * MB + "[TK: a]\n"},
         ),
     ],
+    # The hooks below read the written file from disk (like game and ph), so each row names the
+    # file the test must write into the working directory first.
+    "because": [
+        (
+            "many-rules-without-because",
+            lambda: {"file_path": "interviews/big-bad.md"},
+            2,
+            {"interviews/big-bad.md": "If a, b\n" * 100000},
+        ),
+        (
+            "many-wrapped-rules-without-because",
+            lambda: {"file_path": "interviews/big-wrapped.md"},
+            2,
+            {"interviews/big-wrapped.md": "If a\ncont\n" * 90000},
+        ),
+        (
+            "one-long-rule-line-with-because",
+            lambda: {"file_path": "interviews/big-long-ok.md"},
+            0,
+            {"interviews/big-long-ok.md": "If x, y because " + "z" * 900000},
+        ),
+        (
+            "one-long-rule-line-without-because",
+            lambda: {"file_path": "interviews/big-long-bad.md"},
+            2,
+            {"interviews/big-long-bad.md": "If x, y " + "z" * 900000},
+        ),
+        (
+            "long-space-run-before-rule",
+            lambda: {"file_path": "interviews/big-spaces.md"},
+            2,
+            {"interviews/big-spaces.md": " " * 900000 + "If x"},
+        ),
+        (
+            "no-rule-lines",
+            lambda: {"file_path": "interviews/big-none.md"},
+            0,
+            {"interviews/big-none.md": "We looked at the lock.\n" * 40000},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "interviews/big-over.md"},
+            2,
+            {"interviews/big-over.md": "x" * 1048577},
+        ),
+    ],
+    "unit": [
+        (
+            "whitespace-line-then-absolute",
+            lambda: {"file_path": "timing/ws.service"},
+            0,
+            {"timing/ws.service": "[Service]\n" + " " * 524288 + "~\nExecStart=/usr/bin/a\n"},
+        ),
+        (
+            "prefix-run",
+            lambda: {"file_path": "timing/prefix.service"},
+            0,
+            {"timing/prefix.service": "[Service]\nExecStart=" + "-@" * 262144 + "\n"},
+        ),
+        (
+            "continuation-lines",
+            lambda: {"file_path": "timing/cont.service"},
+            0,
+            {"timing/cont.service": "[Service]\n" + "ExecStart=\\\n" * 43000},
+        ),
+        (
+            "huge-absolute-word",
+            lambda: {"file_path": "timing/word.service"},
+            0,
+            {"timing/word.service": "[Service]\nExecStart=/" + "a" * 524288 + "\n"},
+        ),
+        (
+            "huge-relative-word",
+            lambda: {"file_path": "timing/rel.service"},
+            2,
+            {"timing/rel.service": "[Service]\nExecStart=." + "/" * 524288 + " x\n"},
+        ),
+        (
+            "many-relative-lines",
+            lambda: {"file_path": "timing/many.service"},
+            2,
+            {"timing/many.service": "[Service]\n" + "ExecStart=./x\n" * 40000},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "timing/over.service"},
+            2,
+            {"timing/over.service": "[Service]\n" + "#" * 1_200_000 + "\n"},
+        ),
+    ],
+    "safety": [
+        (
+            "many-bare-sites",
+            lambda: {"file_path": "timing/many-bare.rs"},
+            2,
+            {"timing/many-bare.rs": "let a = unsafe { 1 };\n" * 40000},
+        ),
+        (
+            "many-contracted-sites",
+            lambda: {"file_path": "timing/many-ok.rs"},
+            0,
+            {"timing/many-ok.rs": "// SAFETY: ok\nlet a = unsafe { 1 };\n" * 26000},
+        ),
+        (
+            "one-line-of-unsafe-words",
+            lambda: {"file_path": "timing/words.rs"},
+            0,
+            {"timing/words.rs": "unsafe " * 140000},
+        ),
+        (
+            "one-line-of-glued-unsafe",
+            lambda: {"file_path": "timing/glued.rs"},
+            0,
+            {"timing/glued.rs": "unsafe" * 160000 + " {"},
+        ),
+        (
+            "quote-pairs-then-site",
+            lambda: {"file_path": "timing/quotes.rs"},
+            2,
+            {"timing/quotes.rs": '"a' * 300000 + " unsafe { }"},
+        ),
+        (
+            "unterminated-quote-then-site",
+            lambda: {"file_path": "timing/open-quote.rs"},
+            2,
+            {"timing/open-quote.rs": '"' + "x" * 900000 + " unsafe { }"},
+        ),
+        (
+            "space-run-then-site",
+            lambda: {"file_path": "timing/spaces.rs"},
+            2,
+            {"timing/spaces.rs": " " * 900000 + "unsafe {}"},
+        ),
+        (
+            "site-on-the-last-line",
+            lambda: {"file_path": "timing/last.rs"},
+            2,
+            {"timing/last.rs": "x = 1;\n" * 140000 + "unsafe { }\n"},
+        ),
+        (
+            "many-lint-names",
+            lambda: {"file_path": "timing/lints.rs"},
+            0,
+            {"timing/lints.rs": "#[allow(unsafe_code)]\nfn unsafe_op() {}\n" * 24000},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "timing/over.rs"},
+            2,
+            {"timing/over.rs": "// SAFETY: ok\nlet a = unsafe { 1 };\n" * 32000},
+        ),
+    ],
+    "closed": [
+        (
+            "many-closed-objects",
+            lambda: {"file_path": "schemas/big-closed.json"},
+            0,
+            {"schemas/big-closed.json": CLOSED_BIG},
+        ),
+        (
+            "many-open-objects-capped-report",
+            lambda: {"file_path": "schemas/big-open.json"},
+            2,
+            {"schemas/big-open.json": OPEN_BIG},
+        ),
+        (
+            "one-huge-property-name",
+            lambda: {"file_path": "schemas/big-name.json"},
+            2,
+            {
+                "schemas/big-name.json": '{"type":"object","properties":{"'
+                + "k" * 900000
+                + '":{"type":"object","properties":{}}},"additionalProperties":false}'
+            },
+        ),
+        (
+            "huge-allof-of-closed-objects",
+            lambda: {"file_path": "schemas/big-allof.json"},
+            0,
+            {
+                "schemas/big-allof.json": '{"allOf":['
+                + ",".join(
+                    ['{"type":"object","properties":{},"additionalProperties":false}'] * 15000
+                )
+                + "]}"
+            },
+        ),
+        (
+            "over-one-mebibyte-is-refused",
+            lambda: {"file_path": "schemas/big-over.json"},
+            2,
+            {"schemas/big-over.json": '{"description":"' + "x" * 1100000 + '"}'},
+        ),
+    ],
+    "otelmem": [
+        (
+            "many-pipelines-without-limiter",
+            lambda: {"file_path": "otel-collector-big-pipes.yaml"},
+            2,
+            {
+                "otel-collector-big-pipes.yaml": "service:\n  pipelines:\n"
+                + "    p:\n      processors: [batch]\n" * 20000
+            },
+        ),
+        (
+            "long-flow-list-with-limiter-at-the-end",
+            lambda: {"file_path": "otel-collector-big-flow.yaml"},
+            0,
+            {
+                "otel-collector-big-flow.yaml": "pipelines:\n  t:\n    processors: ["
+                + "a, " * 200000
+                + "memory_limiter]\n"
+            },
+        ),
+        (
+            "many-comment-lines",
+            lambda: {"file_path": "otel-collector-big-comments.yaml"},
+            0,
+            {
+                "otel-collector-big-comments.yaml": (
+                    "service:\n  pipelines:\n    t:\n      processors: [memory_limiter]\n"
+                    + "      # c\n" * 80000
+                )
+            },
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "otel-collector-big-refused.yaml"},
+            2,
+            {"otel-collector-big-refused.yaml": "x" * (MB + 100000)},
+        ),
+    ],
+    "conn": [
+        (
+            "many-evidenced-ceilings",
+            lambda: {"file_path": "sysctl.d/big-ok.conf"},
+            0,
+            {"sysctl.d/big-ok.conf": "# peak 1\nnet.netfilter.nf_conntrack_max = 262144\n" * 14000},
+        ),
+        (
+            "many-uncommented-ceilings",
+            lambda: {"file_path": "sysctl.d/big-bad.conf"},
+            2,
+            {"sysctl.d/big-bad.conf": "net.netfilter.nf_conntrack_max = 1\n" * 25000},
+        ),
+        (
+            "space-run-before-equals",
+            lambda: {"file_path": "sysctl.d/big-spaces-eq.conf"},
+            2,
+            {"sysctl.d/big-spaces-eq.conf": "net.ipv4.tcp_tw_recycle" + " " * 900000 + "=1\n"},
+        ),
+        (
+            "space-run-without-equals",
+            lambda: {"file_path": "sysctl.d/big-spaces.conf"},
+            0,
+            {"sysctl.d/big-spaces.conf": "net.netfilter.nf_conntrack_max" + " " * 900000 + "x\n"},
+        ),
+        (
+            "long-comment-line-then-key",
+            lambda: {"file_path": "sysctl.d/big-comment.conf"},
+            0,
+            {"sysctl.d/big-comment.conf": "#" * 900000 + "9\nnet.nf_conntrack_max=1\n"},
+        ),
+        (
+            "violation-at-the-end",
+            lambda: {"file_path": "sysctl.d/big-end.conf"},
+            2,
+            {"sysctl.d/big-end.conf": "vm.x=1\n" * 100000 + "net.ipv4.tcp_tw_recycle=1\n"},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "sysctl.d/big-over.conf"},
+            2,
+            {"sysctl.d/big-over.conf": "# 1\n" * 300000},
+        ),
+    ],
+    "churn": [
+        (
+            "many-valid-rows",
+            lambda: {"file_path": "churn/big-rows.csv"},
+            0,
+            {
+                "churn/big-rows.csv": CHURN_HEADER
+                + '1,Price,Champion left,"ticket 1: quote"\n' * 20000
+            },
+        ),
+        (
+            "one-long-evidence-cell",
+            lambda: {"file_path": "churn/big-cell.csv"},
+            0,
+            {"churn/big-cell.csv": CHURN_HEADER + "1,Price,Champion left," + "x" * 900000 + "\n"},
+        ),
+        (
+            "one-long-blank-evidence-cell",
+            lambda: {"file_path": "churn/big-blank.csv"},
+            2,
+            {"churn/big-blank.csv": CHURN_HEADER + "1,Price,Champion left," + " " * 900000 + "\n"},
+        ),
+        (
+            "blank-row-at-the-end",
+            lambda: {"file_path": "churn/big-end.csv"},
+            2,
+            {
+                "churn/big-end.csv": CHURN_HEADER
+                + '1,Price,Champion left,"quote"\n' * 28000
+                + "2,Price,Champion left,\n"
+            },
+        ),
+        (
+            "many-blank-rows",
+            lambda: {"file_path": "churn/big-many-blank.csv"},
+            2,
+            {"churn/big-many-blank.csv": CHURN_HEADER + "1,Price,Champion left,\n" * 40000},
+        ),
+        (
+            "one-line-of-commas",
+            lambda: {"file_path": "churn/big-commas.csv"},
+            0,
+            {"churn/big-commas.csv": CHURN_HEADER + "," * 900000 + "\n"},
+        ),
+        (
+            "doubled-quotes-in-one-cell",
+            lambda: {"file_path": "churn/big-quotes.csv"},
+            0,
+            {
+                "churn/big-quotes.csv": CHURN_HEADER
+                + '1,Price,Champion left,"'
+                + '""' * 450000
+                + '"\n'
+            },
+        ),
+        (
+            "unclosed-quote-near-the-start",
+            lambda: {"file_path": "churn/big-open.csv"},
+            2,
+            {"churn/big-open.csv": CHURN_HEADER + '1,Price,Champion left,"' + "x\n" * 400000},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "churn/big-over.csv"},
+            2,
+            {"churn/big-over.csv": CHURN_HEADER + "x" * (1024 * 1024)},
+        ),
+    ],
+    "mem": [
+        # The sizes sit below 1 MiB except the refusal row, which is deliberately above.
+        (
+            "directive-after-long-prefix",
+            lambda: {"file_path": "jobs/big-late.sbatch"},
+            2,
+            {"jobs/big-late.sbatch": "x " * 400000 + "\n#SBATCH --time=1\n"},
+        ),
+        (
+            "many-directives-memory-last",
+            lambda: {"file_path": "jobs/big-many.sbatch"},
+            0,
+            {"jobs/big-many.sbatch": "#SBATCH --time=1\n" * 30000 + "#SBATCH --mem=1G\n"},
+        ),
+        (
+            "many-directives-no-memory",
+            lambda: {"file_path": "jobs/big-nomem.sbatch"},
+            2,
+            {"jobs/big-nomem.sbatch": "#SBATCH --time=1\n" * 50000},
+        ),
+        (
+            "near-miss-run",
+            lambda: {"file_path": "jobs/big-near.sbatch"},
+            2,
+            {"jobs/big-near.sbatch": "#SBATCH " + "--mem-" * 90000 + "\n"},
+        ),
+        (
+            "one-long-line-memory-at-the-end",
+            lambda: {"file_path": "jobs/big-line.sbatch"},
+            0,
+            {"jobs/big-line.sbatch": "#SBATCH --time=1 " + "y" * 700000 + " --mem=1G\n"},
+        ),
+        (
+            "oversize-refusal",
+            lambda: {"file_path": "jobs/big-over.sbatch"},
+            2,
+            {"jobs/big-over.sbatch": "#SBATCH --mem=1G\n" + "y" * 1_100_000},
+        ),
+    ],
+    "lock": [
+        (
+            "half-mib-dated-lines",
+            lambda: {"file_path": "books/big-dated-close.md"},
+            0,
+            {"books/big-dated-close.md": "Period locked: yes, 2026-10-03\n" * 20000},
+        ),
+        (
+            "many-undated-lines",
+            lambda: {"file_path": "books/big-undated-close.md"},
+            2,
+            {"books/big-undated-close.md": "Period locked: yes\n" * 50000},
+        ),
+        (
+            "one-long-lock-line",
+            lambda: {"file_path": "books/big-line-close.md"},
+            2,
+            {"books/big-line-close.md": "Period locked: yes " * 50000 + "\n"},
+        ),
+        (
+            "digit-run-after-lock",
+            lambda: {"file_path": "books/big-digits-close.md"},
+            2,
+            {"books/big-digits-close.md": "Period locked: yes " + "1" * 900000 + "\n"},
+        ),
+        (
+            "month-word-run",
+            lambda: {"file_path": "books/big-months-close.md"},
+            2,
+            {"books/big-months-close.md": "Period locked: yes " + "jan" * 300000 + "\n"},
+        ),
+        (
+            "no-lock-line",
+            lambda: {"file_path": "books/big-none-close.md"},
+            0,
+            {"books/big-none-close.md": "x " * 500000},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "books/big-over-close.md"},
+            2,
+            {"books/big-over-close.md": "x" * 1048577},
+        ),
+    ],
+    "dmap": [
+        (
+            "many-entries-with-reasons",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            0,
+            {"timing/drift-map.yaml": "ignore:\n" + "  - id: a\n    reason: r\n" * 30000},
+        ),
+        (
+            "many-entries-no-reason",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            2,
+            {"timing/drift-map.yaml": "ignore:\n" + "  - id: a\n" * 90000},
+        ),
+        (
+            "one-long-id-line",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            0,
+            {"timing/drift-map.yaml": "ignore:\n  - id: " + "x" * 900000 + "\n    reason: ok\n"},
+        ),
+        (
+            "space-run-after-reason-key",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            2,
+            {"timing/drift-map.yaml": "ignore:\n  - id: a\n    reason:" + " " * 900000 + "\n"},
+        ),
+        (
+            "comment-run-after-entries",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            0,
+            {"timing/drift-map.yaml": "ignore:\n  - id: a\n    reason: ok\n" + "# " * 400000},
+        ),
+        (
+            "ignore-lookalike-words",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            0,
+            {"timing/drift-map.yaml": "ignore " * 140000},
+        ),
+        (
+            "deep-block-scalar",
+            lambda: {"file_path": "timing/drift-map.yaml"},
+            0,
+            {
+                "timing/drift-map.yaml": "ignore:\n  - id: a\n    reason: |\n"
+                + "      text\n" * 80000
+            },
+        ),
+    ],
 }
 
 # A match on the first line of a multi-line input, followed by more than a pipe buffer of further
@@ -874,6 +1672,45 @@ EARLY = {
             {"applications/big-first.md": "[TK: a]\n" + LINES},
         )
     ],
+    "otelmem": [
+        (
+            "pipelines-first-line",
+            lambda: {"file_path": "otel-collector-big-first.yaml"},
+            2,
+            {
+                "otel-collector-big-first.yaml": "pipelines:\n  t:\n    processors: [batch]\n"
+                + LINES
+            },
+        )
+    ],
+    "conn": [
+        (
+            "violation-first-line",
+            lambda: {"file_path": "sysctl.d/early.conf"},
+            2,
+            {"sysctl.d/early.conf": "net.ipv4.tcp_tw_recycle=1\n" + LINES},
+        )
+    ],
+    "churn": [
+        (
+            "blank-first-row",
+            lambda: {"file_path": "churn/early.csv"},
+            2,
+            {
+                "churn/early.csv": CHURN_HEADER
+                + "1,Price,Champion left,\n"
+                + '2,Price,Champion left,"q"\n' * 20000
+            },
+        )
+    ],
+    "mem": [
+        (
+            "memory-first-line",
+            lambda: {"file_path": "jobs/big-first.sbatch"},
+            0,
+            {"jobs/big-first.sbatch": "#SBATCH --mem=1G\n" + LINES},
+        )
+    ],
 }
 for _key, _items in EARLY.items():
     BIG[_key] = BIG[_key] + _items
@@ -914,8 +1751,8 @@ def test_a_large_bare_marker_is_judged_not_refused(name, mode, bins, scratch):
 # grep) and larger than the 64 KiB bash keeps in a pipe for a here-string, so the here-string goes
 # through a temporary file. With the file-size limit at 1 KiB that write fails, the redirection
 # fails with status 1, and grep never runs. A hook that read that status as "no match" would allow
-# the command; each must refuse with exit 2 instead. placeholder-list reads a file and has no
-# here-string.
+# the command; each must refuse with exit 2 instead. The hooks that read a file and have no
+# here-string (see FILE_ONLY) have no such write to fail.
 HUGE = 100_000
 NO_SCAN = {
     "tf": lambda: {"command": "terraform plan " + "x" * HUGE},
@@ -927,11 +1764,29 @@ NO_SCAN = {
     "retry": lambda: {"file_path": "a.go", "content": "x = 1\n" * 20000},
     "gen": lambda: {"file_path": "src/generated/v.c", "content": "x = 1\n" * 20000},
     "mail": lambda: {"file_path": "emails/marketing/x.html", "content": "x = 1\n" * 20000},
+    # The closed-object hook reads the file but pipes its findings through a here-string; this
+    # schema has enough open objects that the findings outgrow the 1 KiB write limit.
+    "closed": lambda: {"file_path": "schemas/many-open.json"},
+}
+
+
+FILE_ONLY = {
+    "ph",
+    "game",
+    "because",
+    "unit",
+    "safety",
+    "otelmem",
+    "conn",
+    "churn",
+    "mem",
+    "lock",
+    "dmap",
 }
 
 
 def test_no_scan_case_for_every_hook_with_a_here_string():
-    assert set(NO_SCAN) == set(HOOK_FILES) - {"ph", "game"}
+    assert set(NO_SCAN) == set(HOOK_FILES) - FILE_ONLY
 
 
 @pytest.mark.parametrize("mode", MODES)
