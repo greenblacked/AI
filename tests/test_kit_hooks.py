@@ -310,6 +310,8 @@ BIG = {
         ("rm-and-huge-token", lambda: {"command": "rm " + "x" * (2 * MB) + " App.dSYM"}, 2, {}),
         ("multibyte-no-artifact", lambda: {"command": "echo " + "é" * MB}, 0, {}),
         ("rm-no-artifact", lambda: {"command": "rm " + "x" * (2 * MB)}, 0, {}),
+        ("escape-and-brace-runs", lambda: {"command": "echo $'\\x41'{a,b} " * 100000}, 0, {}),
+        ("escape-and-near-dsym-runs", lambda: {"command": "echo $'\\x41'dsy " * 100000}, 0, {}),
     ],
     "erase": [
         ("openocd-words", lambda: {"command": "openocd é " * 200000}, 0, {}),

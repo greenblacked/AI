@@ -2,7 +2,8 @@
 # Refuse a command that deletes a dSYM bundle, an R8 mapping.txt or a .symbols archive. Deterministic: standard tools only, no network, no secrets.
 # It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
 # before matching, and refuses a command that names a symbol artifact in a spelling it cannot read
-# ($'..' escapes, brace expansion, a variable or substitution as the command) rather than guessing.
+# ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right
+# after a separator or after sudo, exec, command, env and similar wrappers, not after other wrappers) rather than guessing.
 # A script file the command runs and an interpreter one-liner (python3 -c 'os.unlink(...)') are out
 # of scope: the hook cannot see what they do.
 set -Eeuo pipefail
@@ -72,14 +73,14 @@ export LC_ALL=C
 # spaces. What cannot be normalised is refused instead, when the command also names a symbol
 # artifact: a $'..' string with a backslash (hex and octal escapes, $'r\x6d'), a brace expansion
 # with a comma or `..` outside quotes (build/App.{app,dSYM}), and a variable, a command
-# substitution or a backtick where the command word goes ($t -rf App.dSYM). A variable that is
+# substitution or a backtick where the command word goes (right after a separator, a group opener, then, do or else, or one of the wrappers sudo, command, exec, env, xargs, nohup, time, busybox and builtin, with any NAME=value assignments between; a command run through another wrapper is not read) ($t -rf App.dSYM). A variable that is
 # only the start of a path ($HOME/bin/tidy) is read as the path it ends in. Indirection through a
 # script file and an interpreter one-liner (python3 -c 'os.unlink(...)') are out of scope: this
 # hook sees only the command text, and it refuses only the deleting verbs listed below (rm,
 # unlink, find -delete, shred -u, truncate to size zero).
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 normalise() {
-  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
@@ -88,9 +89,47 @@ unreadable() {
   if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
   outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
   if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
-  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|e[n]v|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
+# looks_like_artifact ORIGINAL: succeeds when an artifact name is only there once a brace list or a
+# $'..' escape inside the name is taken apart: App.{d,}SYM, App.d$'\x53'YM, mapping.t$'\x78't. The
+# braces and commas are deleted, which joins the pieces of a list, and each hex, octal or unicode
+# escape becomes one control character (SOH, which a command does not otherwise hold) that stands
+# for one letter; the three names are then matched with that character allowed at every position
+# but one, which keeps at least one letter of the name, so a run of escapes alone is not a name.
+# The result only widens what unreadable() is asked about, so a command like cp a.{c,h} dir, whose
+# letters do not come near a name, is untouched.
+wild() {
+  local word=$1 p i c out alts=""
+  for ((p = 0; p < ${#word}; p++)); do
+    out=""
+    for ((i = 0; i < ${#word}; i++)); do
+      c="${word:i:1}"
+      if [ "$i" -eq "$p" ]; then
+        case "$c" in .) out+="[.]" ;; *) out+="$c" ;; esac
+      else
+        case "$c" in .) out+="([.]|${soh})" ;; *) out+="($c|${soh})" ;; esac
+      fi
+    done
+    alts+="${alts:+|}$out"
+  done
+  printf '%s' "$alts"
+}
+soh=$'\001'
+looks_like_artifact() {
+  local loose
+  loose="$(printf '%s\n' "$1" |
+    sed -E 's/\\(x[0-9A-Fa-f]{1,2}|[0-7]{1,3}|u[0-9A-Fa-f]{1,4}|U[0-9A-Fa-f]{1,8})/'"$soh"'/g; s/[{},]//g' |
+    normalise | tr '\n\r' '  ')"
+  hits "$loose" -iE "$(wild dsym)|$(wild mapping.txt)|$(wild .symbols)"
+}
+# normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
+# so the command would run unjudged; refuse instead, because a missing tool is not a reason to allow.
+if [ -n "$command" ] && ! command -v awk >/dev/null 2>&1; then
+  echo "blocked: awk is not installed, so this hook cannot read the command and did not judge it. Install awk (any POSIX awk), or run the command yourself." >&2
+  exit 2
+fi
 plain="$(printf '%s\n' "$command" | normalise)"
 plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
 
@@ -101,6 +140,8 @@ named=0
 if hits "$plain_flat" -E '\.dSYM|mapping\.txt|\.symbols'; then
   named=1
 elif hits "$plain_flat" -iE 'dsym|mapping[.{,]|[.,{]symbols'; then
+  named=2
+elif looks_like_artifact "$command"; then
   named=2
 else
   exit 0

@@ -702,5 +702,19 @@
   {"hook": "tf", "name": "variable-as-binary-after-env", "payload": {"tool_input": {"command": "env $T destroy -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "variable-as-binary-after-env-assignment", "payload": {"tool_input": {"command": "env TF_LOG=1 $T apply tfplan"}}, "exit": 2},
   {"hook": "tf", "name": "variable-as-binary-after-sudo-env", "payload": {"tool_input": {"command": "sudo env $T apply -auto-approve"}}, "exit": 2},
-  {"hook": "tf", "name": "env-assignment-then-plain-binary", "payload": {"tool_input": {"command": "env TF_LOG=1 terraform plan"}}, "exit": 0}
+  {"hook": "tf", "name": "env-assignment-then-plain-binary", "payload": {"tool_input": {"command": "env TF_LOG=1 terraform plan"}}, "exit": 0},
+  {"hook": "sym", "name": "variable-as-verb-after-env", "payload": {"tool_input": {"command": "env $v -rf App.dSYM"}}, "exit": 2},
+  {"hook": "sym", "name": "env-then-plain-verb-no-artifact", "payload": {"tool_input": {"command": "env LANG=C ls build"}}, "exit": 0},
+  {"hook": "sym", "name": "rm-brace-inside-dsym-extension", "payload": {"tool_input": {"command": "rm -rf App.{d,}SYM"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-brace-inside-dsym-extension-second-letter", "payload": {"tool_input": {"command": "rm -rf App.d{S,}YM"}}, "exit": 2},
+  {"hook": "sym", "name": "ls-brace-inside-dsym-extension", "payload": {"tool_input": {"command": "ls App.{d,}SYM"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-ansi-c-escape-inside-dsym", "payload": {"tool_input": {"command": "rm -rf App.d$'\\x53'YM"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-ansi-c-escape-first-letter-of-dsym", "payload": {"tool_input": {"command": "rm -rf App.$'\\x64'SYM"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-ansi-c-octal-escape-inside-dsym", "payload": {"tool_input": {"command": "rm -rf App.dS$'\\131'M"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-ansi-c-escape-inside-mapping-txt", "payload": {"tool_input": {"command": "rm build/mapping.t$'\\x78't"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-ansi-c-escape-inside-symbols-extension", "payload": {"tool_input": {"command": "rm build/app.$'\\x73'ymbols"}}, "exit": 2},
+  {"hook": "sym", "name": "brace-list-with-s-y-m-letters-no-artifact", "payload": {"tool_input": {"command": "cp a.{s,y}m dir"}}, "exit": 0},
+  {"hook": "sym", "name": "ansi-c-escape-no-artifact", "payload": {"tool_input": {"command": "echo $'\\x41'.txt"}}, "exit": 0},
+  {"hook": "sym", "name": "ansi-c-escape-near-dot-no-artifact", "payload": {"tool_input": {"command": "echo a.$'\\x62'c"}}, "exit": 0},
+  {"hook": "sym", "name": "ansi-c-escapes-in-a-row-no-artifact", "payload": {"tool_input": {"command": "echo $'\\x41\\x42\\x43\\x44'"}}, "exit": 0}
 ]
