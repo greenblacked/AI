@@ -29,7 +29,7 @@ def run_hook(path_dir: Path, target: Path) -> subprocess.CompletedProcess[str]:
     env = {"PATH": str(path_dir), "LC_ALL": "C"}
     bash = shutil.which("bash")
     assert bash is not None
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603 - fixed argv and the repository's own hook, test only
         [bash, str(HOOK)], input=payload, text=True, capture_output=True, env=env, check=False
     )
 
@@ -69,4 +69,3 @@ def test_invalid_file_is_reported(mode_dir: Path, tmp_path: Path) -> None:
 def test_invalid_file_with_a_bom_is_still_reported(mode_dir: Path, tmp_path: Path) -> None:
     result = run_hook(mode_dir, data_file(tmp_path, BOM + b'{"a": '))
     assert result.returncode == 2
-
