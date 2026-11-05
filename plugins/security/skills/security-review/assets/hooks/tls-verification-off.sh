@@ -12,15 +12,17 @@
 # verify_ssl, ssl_verify, strict-ssl or rejectunauthorized to false, no, off or 0, is a
 # finding. The words may be joined by a dash, an underscore or nothing, and case is ignored,
 # so insecureSkipVerify, tlsSkipVerify, sslverify (yum, git) and rejectUnauthorized (Node)
-# are read too. A value may be quoted. The hook exits 2 and prints path:line and a fixed message for up to ten findings,
-# never text from the file. A line carrying the word "tls-exception" is allowed: that is how a recorded exception says so.
+# are read too. A value may be quoted. The hook exits 2 and prints path:line and a fixed message
+# for up to ten findings, never text from the file. A line carrying the word "tls-exception" is
+# allowed: that is how a recorded exception says so.
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the
 #     model, which can fix the file; the hook cannot undo anything.
 #   - Config files only. A skip written in code (Python verify=False, JavaScript
-#     rejectUnauthorized in a JavaScript call, a Go client option), a command-line flag, GIT_SSL_NO_VERIFY, or an
-#     extensionless client config file is not seen. Terraform (.tf) is left out on purpose.
+#     rejectUnauthorized in a JavaScript call, a Go client option), a command-line flag,
+#     GIT_SSL_NO_VERIFY, or an extensionless client config file is not seen. Terraform (.tf) is
+#     left out on purpose.
 #   - A bare "verify: false" or "insecure: true" is not matched: the key names no TLS, and it
 #     would flag every unrelated setting that carries those words. Look for them in review.
 #   - A line is read alone: a key and its value on different lines, a value built from a
