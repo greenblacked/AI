@@ -12,12 +12,15 @@
 # of: github.head_ref, or a github.event field for a pull request title, body, head ref, label,
 # head repository default branch or head repository description; an issue title or body; a comment,
 # review or review comment body; a discussion title or body; the message, author name or author
-# email of the head commit or of any commit in a push (commits[N] or commits[*]); the name of a
-# page in a wiki event; a workflow run head branch, display title or head commit message. The
-# expression is compared in lower case, because GitHub reads property names without regard to
-# case, so github.event.Pull_Request.TITLE is the same field. Comment lines outside a block are skipped. A line inside a block is
-# judged even when it is a shell comment, because the substitution happens before any shell sees it.
-# A finding exits 2 and names path:line with a fixed message for up to 20 lines, never text from the file; any other file, or none, is allowed.
+# email of the head commit; the same three of any commit in a push, written with an index
+# (commits[N]) or with the object filter (commits.*, as in join(github.event.commits.*.message,
+# ' ')); the name of a page in a wiki event, in either form; a workflow run head branch, display
+# title or head commit message. The expression is compared in lower case, because GitHub reads
+# property names without regard to case, so github.event.Pull_Request.TITLE is the same field.
+# Comment lines outside a block are skipped. A line inside a block is judged even when it is a
+# shell comment, because the substitution happens before any shell sees it. A finding exits 2 and
+# names path:line with a fixed message for up to 20 lines, never text from the file; any other
+# file, or none, is allowed.
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the model, which
@@ -25,6 +28,9 @@
 #   - Indirection is invisible: a value carried through inputs, a step output, a matrix entry or an
 #     env: variable that is later expanded again. So are toJSON, bracket spellings of github.event,
 #     and fields this list does not name. GitLab CI is not read.
+#   - A list field is read as GitHub documents it, by index (commits[N]) or by object filter
+#     (commits.*). Text between the brackets is not interpreted, so any bracket spelling with
+#     the right property after it is flagged; that is not a claim about which spellings parse.
 #   - An expression is read on its own line. One that spans lines is not seen, and one that reduces
 #     to a boolean, such as a comparison of the title, is flagged although it carries no text.
 #   - A key called run or script outside a step is read as a step; it is flagged only if it
@@ -163,8 +169,10 @@ verdict="$(
       list = list " github.event.head_commit.author.email"
       list = list " github.event.workflow_run.head_branch github.event.workflow_run.display_title"
       list = list " github.event.workflow_run.head_commit.message"
+      list = list " github.event.commits.*.message github.event.commits.*.author.name"
+      list = list " github.event.commits.*.author.email github.event.pages.*.page_name"
       nf = split(list, F, " ")
-      # An entry that carries an index: the text before the bracket and the text after it.
+      # An entry written with an index: the text before the bracket and the text after it.
       nw = 0
       wl = "commits[|.message commits[|.author.name commits[|.author.email pages[|.page_name"
       n = split(wl, T, " ")

@@ -581,6 +581,14 @@ SCRATCH_FILES = {
     ".github/workflows/commit-email-env.yml": WF_STEPS
     + "      - env:\n          E: ${{ github.event.commits[0].author.email }}\n"
     + '        run: echo "$E"\n',
+    ".github/workflows/commits-filter-message.yml": WF_STEPS
+    + "      - run: echo ${{ join(github.event.commits.*.message, ' ') }}\n",
+    ".github/workflows/commits-filter-email.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits.*.author.email }}\n",
+    ".github/workflows/pages-filter-name.yml": WF_STEPS
+    + "      - run: echo ${{ join(github.event.pages.*.page_name) }}\n",
+    ".github/workflows/commits-filter-id.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits.*.id }}\n",
     # css: flag-viewport-width-css
     "css/bad.css": ".hero {\n  width: 100vw;\n}\n",
     "css/bad-min.css": ".a {\n  min-width: 100dvw !important;\n}\n",
