@@ -1,4 +1,4 @@
-"""Behaviour tests for the twenty-one kit hooks under `plugins/*/skills/*/assets/hooks/`.
+"""Behaviour tests for the twenty-nine kit hooks under `plugins/*/skills/*/assets/hooks/`.
 
 `tests/test_plugin_shape.py` checks what a hook is allowed to look like; this file runs
 each one. The cases live in `tests/fixtures/kit_hooks.json` as data: a hook, a payload,
@@ -50,6 +50,14 @@ HOOK_FILES = {
     "mem": "require-memory-request",
     "lock": "close-lock-date",
     "dmap": "drift-map-ignore-reason",
+    "sleep": "no-fixed-sleep-in-tests",
+    "wfrun": "flag-untrusted-field-in-run",
+    "css": "flag-viewport-width-css",
+    "slice": "slice-waiver-placement",
+    "adr": "require-considered-options",
+    "rbk": "runbook-stamp",
+    "wkrev": "weekly-review-shape",
+    "tlsoff": "tls-verification-off",
 }
 
 # Everything a hook may call besides its parser. A tool a hook starts using that is not here
@@ -73,6 +81,13 @@ STUB_JSON = (
     "def dumps(v):\n"
     "    return ''\n"
 )
+
+# The real verification-record template, so the rbk rows judge the file the kit ships.
+RBK_RECORD = (
+    ROOT / "plugins/operations/skills/runbook/assets/templates/runbook-verification-record.md"
+).read_text("utf-8")
+
+WF_STEPS = "jobs:\n  a:\n    steps:\n"
 
 CHURN_HEADER = "Account,Dropdown,Primary code,Key evidence\n"
 
@@ -408,6 +423,369 @@ SCRATCH_FILES = {
     "dm/zero/drift-map.yaml": "ignore:\n- id: a\n- id: b\n  reason: ok\n",
     "dm/oversize/drift-map.yaml": "ignore:\n" + "a" * 1_100_000,
     "dm/dir/drift-map.yaml/.keep": "",
+    # sleep: no-fixed-sleep-in-tests (every path under sl/ so no other hook's scratch file collides)
+    "sl/web/x.test.js": "await sleep(5)\n",
+    "sl/web/y.spec.ts": "await   sleep(5);\n",
+    "sl/suite/foo_test.py": "time.sleep(1)\n",
+    "sl/suite/test_crlf.py": "x = 1\r\ntime.sleep(1)\r\n",
+    "sl/suite/test_tab.py": "def t():\n\ttime.sleep(1)\n",
+    "sl/src/CapTest.java": "Thread.Sleep(5);\n",
+    "sl/suite/test_many.py": "time.sleep(1)\n" * 8,
+    "sl/src/main.go": "time.Sleep(1)\n",
+    "sl/pkg/block_test.go": "/* time.Sleep(1) */\n",
+    "sl/suite/test_bad.py": "import time\n\n\ndef test_x():\n    time.sleep(2)\n",
+    "sl/pkg/bad_test.go": "package p\n\nfunc TestX(t *testing.T) {\n\ttime.Sleep(time.Second)\n}\n",
+    "sl/src/BadTest.java": (
+        "class BadTest {\n  void t() throws Exception { Thread.sleep(500); }\n}\n"
+    ),
+    "sl/web/app.test.ts": "it('x', async () => {\n  await sleep(100);\n});\n",
+    "sl/tests/helper.py": "import time\ntime.sleep(1)\n",
+    "sl/suite/test_late.py": "# time.sleep(9)\n\n    # time.sleep(9)\nx = 1\ntime.sleep(1)\n",
+    "sl/suite/test_inline.py": "x = 1; time.sleep(1)\n",
+    "-sl/suite/test_dash.py": "time.sleep(1)\n",
+    "sl/suite/test_comment.py": "# time.sleep(1)\nx = 1\n",
+    "sl/pkg/ok_test.go": "// time.Sleep(1)\n/*\n * Thread.sleep(1)\n */\n",
+    "sl/suite/test_marked.py": "time.sleep(0.1)  # sleep-ok: backoff under test\n",
+    "sl/suite/test_clean.py": "def test_x():\n    assert 1 == 1\n",
+    "sl/suite/test_word.py": "# we do not sleep here\nname = 'sleeper'\n",
+    "sl/src/app.py": "import time\ntime.sleep(1)\n",
+    "sl/suite/test_data/x.py": "time.sleep(1)\n",
+    "sl/tests/README.md": "Do not call time.sleep(1).\n",
+    "sl/suite/test_bare.py": "from time import sleep\nsleep(1)\n",
+    "sl/suite/test_dir.py/.keep": "",
+    # wfrun: flag-untrusted-field-in-run
+    ".github/workflows/title-in-run.yml": (
+        "on: pull_request_target\n"
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - name: t\n"
+        "        run: |\n"
+        '          echo "${{ github.event.pull_request.title }}"\n'
+    ),
+    ".github/workflows/head-ref-inline.yml": (
+        "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
+    ),
+    ".github/workflows/comment-in-script.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - uses: actions/github-script@v7\n"
+        "        with:\n"
+        "          script: |\n"
+        "            const t = '${{ github.event.comment.body }}';\n"
+    ),
+    ".github/workflows/head-commit.yaml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - name: m\n"
+        "        run: >-\n"
+        "          echo ${{ github.event.head_commit.message }}\n"
+    ),
+    ".github/workflows/crlf-bad.yml": (
+        "jobs:\r\n"
+        "  a:\r\n"
+        "    steps:\r\n"
+        "      - run: |\r\n"
+        "          echo ${{ github.event.issue.title }}\r\n"
+    ),
+    ".github/workflows/shell-comment-in-run.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - run: |\n"
+        "          # ${{ github.event.pull_request.body }}\n"
+        "          true\n"
+    ),
+    ".github/workflows/no-spaces.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - run: |\n"
+        "          echo ${{github.event.pull_request.head.ref}}\n"
+    ),
+    ".github/workflows/second-step-bad.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - run: echo ${{ github.sha }}\n"
+        "      - run: |\n"
+        "          echo ok\n"
+        "          git checkout ${{ github.event.pull_request.head.label }} x\n"
+    ),
+    "-x/.github/workflows/bad.yml": (
+        "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
+    ),
+    ".github/workflows/env-carried.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - name: t\n"
+        "        env:\n"
+        "          T: ${{ github.event.pull_request.title }}\n"
+        "        run: |\n"
+        '          echo "$T"\n'
+    ),
+    ".github/workflows/safe-expression.yml": (
+        "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.sha }} ${{ github.run_id }}\n"
+    ),
+    ".github/workflows/comment-outside-block.yml": (
+        "jobs:\n  a:\n    steps:\n      # run: echo ${{ github.head_ref }}\n      - run: echo ok\n"
+    ),
+    ".github/workflows/condition-not-block.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    if: ${{ github.event.pull_request.title != '' }}\n"
+        "    steps:\n"
+        "      - run: |\n"
+        "          echo ok\n"
+        "        name: ${{ github.head_ref }}\n"
+    ),
+    ".github/workflows/with-not-script.yml": (
+        "jobs:\n"
+        "  a:\n"
+        "    steps:\n"
+        "      - uses: actions/checkout@v4\n"
+        "        with:\n"
+        "          ref: ${{ github.head_ref }}\n"
+    ),
+    ".github/workflows/no-expression.yml": ("jobs:\n  a:\n    steps:\n      - run: echo hi\n"),
+    ".github/workflows/sub/nested.yml": (
+        "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
+    ),
+    "other/title-in-run.yml": (
+        "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
+    ),
+    ".github/workflows/title-in-run.txt": (
+        "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
+    ),
+    ".github/workflows/dir.yml/.keep": "",
+    ".github/workflows/mixed-case.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.Pull_Request.TITLE }}\n",
+    ".github/workflows/commit-email.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits[0].author.email }}\n",
+    ".github/workflows/commit-name.yml": WF_STEPS
+    + '      - run: |\n          echo "${{ github.event.commits[*].author.name }}"\n',
+    ".github/workflows/head-email.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.head_commit.author.EMAIL }}\n",
+    ".github/workflows/commit-message.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits[1].message }}\n",
+    ".github/workflows/page-name.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.pages[0].page_name }}\n",
+    ".github/workflows/repo-description.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.pull_request.head.repo.description }}\n",
+    ".github/workflows/commit-id.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits[0].id }}"
+    + " ${{ github.event.commits[0].author.username }}\n",
+    ".github/workflows/commit-email-env.yml": WF_STEPS
+    + "      - env:\n          E: ${{ github.event.commits[0].author.email }}\n"
+    + '        run: echo "$E"\n',
+    ".github/workflows/commits-filter-message.yml": WF_STEPS
+    + "      - run: echo ${{ join(github.event.commits.*.message, ' ') }}\n",
+    ".github/workflows/commits-filter-email.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits.*.author.email }}\n",
+    ".github/workflows/pages-filter-name.yml": WF_STEPS
+    + "      - run: echo ${{ join(github.event.pages.*.page_name) }}\n",
+    ".github/workflows/commits-filter-id.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits.*.id }}\n",
+    # css: flag-viewport-width-css
+    "css/bad.css": ".hero {\n  width: 100vw;\n}\n",
+    "css/bad-min.css": ".a {\n  min-width: 100dvw !important;\n}\n",
+    "css/bad-max.css": ".a { max-width:100svw }\n",
+    "css/bad-minified.css": ".a{color:red}.b{border-width:2px;width:100vw}.c{top:0}\n",
+    "-x/css/bad.css": ".a{width:100vw}\n",
+    "css/bad-upper.css": ".A { WIDTH: 100VW; }\r\n",
+    "css/bad-late.css": ".a{width:100%}\n.b{line-width:100vw}\n.c{\n  width: 100vw;\n}\n",
+    "css/oversize.css": ".a{color:red}\n" * 81000,
+    "css/ok.css": ".a{width:100%}\n.b{max-width:60rem}\n",
+    "css/ok-calc.css": (
+        ".a{width:calc(100vw - 2rem)}\n.b{line-width:100vw}\n"
+        ".c{width:min(100vw,60rem)}\n.d{width:100vw-ish}\n"
+    ),
+    "css/bleed.css": ".band{width:100vw;margin-left:calc(50% - 50vw)}\n",
+    "css/notes.txt": ".a{width:100vw}\n",
+    "css/dir.css/keep.txt": "x\n",
+    # slice: slice-waiver-placement
+    "docs/slices/w-bad/plan.md": (
+        "First question: which step can be shown working first?\n\n# Plan: w\n"
+        "\n## Waiver\nReason: x\n"
+    ),
+    "docs/slices/w-bad/frame.md": "x\n## Waiver\nReason: x\n",
+    "docs/slices/w-bad/inspect.md": "x\n## Waiver\n",
+    "docs/slices/w-bad/yield.md": "x\n\n\n## Waiver\n",
+    "docs/slices/w-crlf/plan.md": "x\r\n## Waiver\r\n",
+    "docs/slices/w-trail/plan.md": "x\n## Waiver \t\n",
+    "docs/slices/-x/plan.md": "## Waiver\n",
+    "docs/slices/w-second/plan.md": "## Waiverish\n## Waiver\n",
+    "docs/slices/w-ok/decision.md": "x\n## Waiver\nReason: x\n",
+    "docs/slices/w-ok/launch.md": "x\n## Waiver\nReason: x\n",
+    "docs/slices/w-ok/plan.md": "First question: x\n\n## Steps\n\n1. a\n",
+    "docs/slices/w-h3/plan.md": "### Waiver\n",
+    "docs/slices/w-lookalike/plan.md": "## Waived\n## Waivers\n## waiver\n  ## Waiver\n",
+    "docs/slices/w-ok/notes.md": "## Waiver\nReason: x\n",
+    "docs/slices/w-ok/deep/plan.md": "## Waiver\nReason: x\n",
+    "mydocs/slices/w-ok/plan.md": "## Waiver\nReason: x\n",
+    "docs/slices/w-dir/plan.md/.keep": "",
+    "docs/slices/w-empty/plan.md": "",
+    # adr: require-considered-options
+    "docs/decisions/0003-one.md": "## Considered Options\n\n* only one\n\n## Decision Outcome\n",
+    "docs/decisions/0004-none.md": "# T\n\n## Context and Problem Statement\nx\n",
+    "docs/decisions/0007-table.md": "## Considered Options\n| a | b |\n",
+    "docs/decisions/0008-empty.md": "",
+    "docs/decisions/sub/0012-nested-one.md": "## Considered Options\n- a\n## Other\n* b\n* c\n",
+    "docs/adr/ADR-0013-one.md": "## Considered Options\n1. a\n",
+    "docs/decisions/0014-indented.md": "## Considered Options\n  * a\n  * b\n",
+    "docs/decisions/0015-crlf-one.md": "## Considered Options\r\n* a\r\n",
+    "-x/docs/decisions/0016-one.md": "## Considered Options\n* a\n",
+    "docs/decisions/0001-good.md": "## Considered Options\n\n* a\n* b\n\n## Decision Outcome\n",
+    "docs/decisions/0002-numbered.md": "## Considered Options\n1. a\n2. b\n",
+    "docs/adr/0005-crlf.md": "## Considered Options\r\n- a\r\n- b\r\n",
+    "docs/decisions/0006-subheading.md": "## Considered Options\n* a\n### Notes\n* b\n",
+    "docs/decisions/README.md": "## Considered Options\n",
+    "mydocs/decisions/0009-one.md": "## Considered Options\n* a\n",
+    "docs/decisions/notes.md": "# Notes\n",
+    "docs/decisions/0017-dir.md/.keep": "",
+    # rbk: runbook-stamp
+    "runbooks/good.md": (
+        "# Runbook: checkout errors\n\n"
+        "**Owner:** platform-oncall · **Last verified:** 2026-03-14 by oncall during a game day\n"
+    ),
+    "runbooks/two-line.md": (
+        "# Runbook: queue\n\n**Owner:** sre rota\n"
+        "**Last verified:** 2026-03-14 by sre during a drill\n"
+    ),
+    "runbooks/colon-outside.md": "# Runbook\n**Owner**: sre\n**Last verified**: 2026-03-14\n",
+    "ops/db-runbook.md": "# Runbook\n- Owner: dba rota\n- Last verified: 2026-03-14\n",
+    "runbooks/crlf.md": "# Runbook\r\nOwner: sre\r\nLast verified: 2026-03-14\r\n",
+    "runbooks/-n.md": "Owner: sre\nLast verified: 2026-03-14\n",
+    "runbooks/placeholder.md": (
+        "# Runbook\n**Owner:** [team or rota]\n**Last verified:** [YYYY-MM-DD] by [rota]\n"
+    ),
+    "runbooks/no-owner.md": "# Runbook\nLast verified: 2026-03-14\n",
+    "runbooks/no-date.md": "# Runbook\nOwner: sre\n",
+    "runbooks/bad-month.md": "# Runbook\nOwner: sre\nLast verified: 2026-13-01\n",
+    "runbooks/future.md": "# Runbook\nOwner: sre\nLast verified: 2999-01-01\n",
+    "runbooks/fenced.md": "# Runbook\n```\nOwner: sre\nLast verified: 2026-03-14\n```\n",
+    "runbooks/late-stamp.md": "x\n" * 45 + "Owner: sre\nLast verified: 2026-03-14\n",
+    "runbooks/co-owner.md": "Co-Owner: sre\nLast verified: 2026-03-14\n",
+    "runbooks/long-date.md": "Owner: sre\nLast verified: 2026-03-145\n",
+    "runbooks/owner-empty.md": "Owner:\nLast verified: 2026-03-14\n",
+    "runbooks/empty.md": "",
+    "-x/runbooks/bad.md": "# Runbook\n",
+    "runbooks/README.md": "# Runbooks\n",
+    "runbooks/index.md": "# Index\n",
+    "ops-notes/other.md": "# Notes\n",
+    "myrunbooks/bad.md": "# Notes\n",
+    "runbooks/notes.txt": "# Notes\n",
+    "runbooks/dir.md/.keep": "",
+    "runbook-verification-record.md": RBK_RECORD,
+    "runbooks/verifications/2026-03-14-checkout.md": RBK_RECORD,
+    "runbooks/2026-03-14-checkout.md": RBK_RECORD,
+    "runbooks/db-verification-record.md": "# Notes\n",
+    "runbooks/late-heading.md": "# Runbook\n\n# Runbook verification record\n",
+    "runbooks/spaced-heading.md": "#  Runbook verification record\n",
+    "runbooks/mixed-space-heading.md": "# \tRunbook   verification \t record  \n",
+    # wkrev: weekly-review-shape
+    "wk/reviews/two.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n2. b\n\n"
+        "## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/six.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n1. item\n2. item\n3. item\n"
+        "4. item\n5. item\n6. item\n\n## Consciously not doing\n"
+        "- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/2026/six-bullets.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n- a\n- a\n- a\n- a\n- a\n"
+        "- a\n\n## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/no-not-doing.md": "# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n2. b\n3. c\n",
+    "wk/reviews/no-commitments.md": (
+        "# Week of 5 Jan\n\n## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/empty-commitments.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n\n## Consciously not doing\n"
+        "- x - y - 2026-12-01\n"
+    ),
+    "-wk/reviews/bad.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n\n"
+        "## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "reviews/root-bad.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n\n"
+        "## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/after-section.md": (
+        "# Week of 5 Jan\n## Commitments\n1. a\n2. b\n"
+        "## Consciously not doing\n- x - y - 2026-12-01\n- p\n- q\n- r\n"
+    ),
+    "wk/reviews/five.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n1. item\n2. item\n3. item\n"
+        "4. item\n5. item\n\n## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/crlf.md": (
+        "# Week of 5 Jan\r\n## Commitments\r\n- a\r\n- b\r\n- c\r\n"
+        "## Consciously not doing\r\n- x\r\n"
+    ),
+    "wk/reviews/blank-first.md": (
+        "\n\n# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n2. b\n3. c\n\n"
+        "## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/month.md": "# Month review\n## Commitments\n- a\n",
+    "wk/reviews/notes.md": "Notes\n## Commitments\n- a\n",
+    "wk/myreviews/six.md": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n- a\n- a\n- a\n- a\n- a\n"
+        "- a\n\n## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/six.txt": (
+        "# Week of 5 Jan\n\n## Commitments (3-5)\n- a\n- a\n- a\n- a\n- a\n"
+        "- a\n\n## Consciously not doing\n- x - y - 2026-12-01\n"
+    ),
+    "wk/reviews/dir.md/.keep": "",
+    # tlsoff: tls-verification-off
+    "cfg/kube.yaml": (
+        "clusters:\n- cluster:\n    server: https://k.example\n    insecure-skip-tls-verify: true\n"
+    ),
+    "cfg/client.json": '{"a": {"insecure_skip_verify": "true"}}\n',
+    "cfg/app.ini": "[x]\nverify_ssl = false # temporary\n",
+    "cfg/play.yml": "- uri:\n    validate_certs: no\n",
+    "cfg/crlf.conf": "ssl_verify=0\r\n",
+    "cfg/oversize.json": "x" * (1024 * 1024 + 1),
+    "cfg/commented.yaml": (
+        "# insecure-skip-tls-verify: true\n; verify_ssl = false\n// ssl_verify: false\n"
+    ),
+    "cfg/good.yaml": (
+        "insecure-skip-tls-verify: false\nverify_ssl: true\n"
+        "my_ssl_verify: false2\nnot_skip_tls_verify_x: 1\n"
+    ),
+    "cfg/exception.yaml": "validate_certs: false # tls-exception TLS-12\n",
+    "sl/suite/test_token.py": (
+        "import time\n\n\ndef test_x():\n    time.sleep(2)  # FAKE-TOKEN-0000\n"
+    ),
+    ".github/workflows/token-in-run.yml": WF_STEPS
+    + "      - run: echo ${{ github.head_ref }} FAKE-TOKEN-0000\n",
+    "css/token.css": ".hero { width: 100vw; } /* FAKE-TOKEN-0000 */\n",
+    "cfg/token.yaml": "insecure-skip-tls-verify: true # FAKE-TOKEN-0000\n",
+    "cfg/kube.txt": "insecure-skip-tls-verify: true\n",
+    "cfg/camel-insecure.json": '{"insecureSkipVerify": true}\n',
+    "cfg/camel-insecure-tls.yaml": "insecureSkipTLSVerify: true\n",
+    "cfg/camel-skip-tls.yaml": "skipTLSVerify: yes\n",
+    "cfg/camel-tls-skip.yaml": "tlsSkipVerify: true\n",
+    "cfg/vault.conf": 'tls_skip_verify = "true"\n',
+    "cfg/skip-verify-underscore.yaml": "skip_verify: true\n",
+    "cfg/skip-verify-dash.yaml": "skip-verify: yes\n",
+    "cfg/skip-verify-joined.ini": "skipverify = 1\n",
+    "cfg/skip-verify-false.yaml": "skip_verify: false\n",
+    "cfg/yum.conf": "[main]\nsslverify=0\n",
+    "cfg/gitconfig.ini": "[http]\n\tsslVerify = false\n",
+    "cfg/npm.ini": "strict-ssl=false\n",
+    "cfg/node.json": '{"rejectUnauthorized": false}\n',
+    "cfg/verify-true.ini": "verify_ssl: true\n",
+    "cfg/yum-ok.conf": "[main]\nsslverify=1\n",
+    "cfg/npm-ok.ini": "strict-ssl=true\n",
+    "cfg/node-ok.json": '{"rejectUnauthorized": true}\n',
+    "cfg/bare-verify.yaml": "verify: false\ninsecure: true\n",
 }
 
 
@@ -628,12 +1006,41 @@ def test_extra_tools_stay_with_the_hook_that_needs_them(bins):
 def test_hook_verdict(case, mode, bins, scratch):
     done = run_hook(case["hook"], _stdin(case), mode, bins, scratch, timeout=30)
     assert done.returncode == case["exit"], done.stderr.decode("utf-8", "replace")[:300]
+    # Content the model did not write must not reach the feedback channel: a finding names
+    # path:line and a fixed message, never the matched text.
+    if "no_echo" in case:
+        assert case["no_echo"].encode() not in done.stderr
     if case["exit"] == 2:
         assert (
             done.stderr.startswith(b"blocked")
             or b"placeholder" in done.stderr.lower()
             or b"invalid JSON" in done.stderr
         )
+
+
+def _wild_cpu(scratch, mode, bins, repeats):
+    rel = ".github/workflows/grow.yml"
+    target = scratch / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "      - run: echo ${{ github.sha " + WILD_PREFIX * repeats + "\n", encoding="utf-8"
+    )
+    stdin = json.dumps({"tool_input": {"file_path": rel}}).encode("utf-8")
+    done, spent = run_hook_timed("wfrun", stdin, mode, bins, scratch)
+    assert done.returncode == 0, done.stderr.decode("utf-8", "replace")[:300]
+    return spent
+
+
+@pytest.mark.parametrize("mode", MODES)
+def test_the_wildcard_scan_grows_linearly(mode, bins, scratch):
+    """A repeated index-form prefix with no closing bracket is the worst case for the scan. It
+    stays inside CPU_BUDGET even when quadratic, so the budget row cannot tell the two apart;
+    comparing a quarter of the input with the whole can (linear is about 4, quadratic 16)."""
+    if mode not in bins:
+        pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
+    small = _wild_cpu(scratch, mode, bins, 12000)
+    large = _wild_cpu(scratch, mode, bins, 48000)
+    assert large / max(small, 0.05) < GROWTH_LIMIT, (small, large)
 
 
 # Without awk the normalising hooks cannot read the command. Left alone they would exit 127,
@@ -781,6 +1188,9 @@ OPEN_BIG = (
     + ",".join(_OPEN_OBJECT.format(i) for i in range(8000))
     + '},"additionalProperties":false}'
 )
+# The text the index-form entries of flag-untrusted-field-in-run look for before a bracket.
+WILD_PREFIX = "github.event.commits["
+
 BIG = {
     "tf": [
         # A command made of continuation lines is joined into one line; joining by appending to a
@@ -1608,6 +2018,280 @@ BIG = {
             },
         ),
     ],
+    "sleep": [
+        (
+            "sleep-after-padding",
+            lambda: {"file_path": "sl/tests/big-late.py"},
+            2,
+            {"sl/tests/big-late.py": "x = 1\n" * 80000 + "time.sleep(1)\n"},
+        ),
+        (
+            "many-findings",
+            lambda: {"file_path": "sl/tests/big-many.py"},
+            2,
+            {"sl/tests/big-many.py": "time.sleep(1)\n" * 40000},
+        ),
+        (
+            "near-miss-run",
+            lambda: {"file_path": "sl/tests/big-near.py"},
+            0,
+            {"sl/tests/big-near.py": "time.sleep" * 50000 + "\n"},
+        ),
+        (
+            "one-long-line-sleep-at-the-end",
+            lambda: {"file_path": "sl/tests/big-line.py"},
+            2,
+            {"sl/tests/big-line.py": "x" * 700000 + " time.sleep(1)\n"},
+        ),
+        (
+            "one-long-line-clean",
+            lambda: {"file_path": "sl/tests/big-clean.py"},
+            0,
+            {"sl/tests/big-clean.py": "x" * 700000 + " sleep\n"},
+        ),
+        (
+            "oversize-refusal",
+            lambda: {"file_path": "sl/tests/big-over.py"},
+            2,
+            {"sl/tests/big-over.py": "x = 1\n" + "y" * 1_100_000},
+        ),
+    ],
+    "wfrun": [
+        # Sizes sit below 1 MiB except the refusal row, which is deliberately above.
+        (
+            "sink-after-many-block-lines",
+            lambda: {"file_path": ".github/workflows/big-late.yml"},
+            2,
+            {
+                ".github/workflows/big-late.yml": "      - run: |\n"
+                + "          echo padding ${{ github.sha }}\n" * 24000
+                + "          echo ${{ github.head_ref }}\n"
+            },
+        ),
+        (
+            "many-safe-expressions-on-one-line",
+            lambda: {"file_path": ".github/workflows/big-safe.yml"},
+            0,
+            {
+                ".github/workflows/big-safe.yml": "      - run: echo "
+                + "${{ github.sha }} " * 30000
+                + "\n"
+            },
+        ),
+        (
+            "many-unsafe-expressions-on-one-line",
+            lambda: {"file_path": ".github/workflows/big-unsafe.yml"},
+            2,
+            {
+                ".github/workflows/big-unsafe.yml": "      - run: echo "
+                + "${{ github.head_ref }} " * 24000
+                + "\n"
+            },
+        ),
+        (
+            "long-run-of-list-dashes",
+            lambda: {"file_path": ".github/workflows/big-dashes.yml"},
+            0,
+            {".github/workflows/big-dashes.yml": "- " * 300000 + "run: echo ${{ github.sha }}\n"},
+        ),
+        (
+            "many-keys-before-the-block",
+            lambda: {"file_path": ".github/workflows/big-keys.yml"},
+            2,
+            {
+                ".github/workflows/big-keys.yml": "a: ${{ github.sha }}\n" * 30000
+                + "      - run: |\n          echo ${{ github.event.issue.title }}\n"
+            },
+        ),
+        (
+            "wildcard-prefix-repeated-without-a-bracket",
+            lambda: {"file_path": ".github/workflows/big-wild.yml"},
+            0,
+            {
+                ".github/workflows/big-wild.yml": "      - run: echo ${{ github.sha "
+                + WILD_PREFIX * 48000
+                + "\n"
+            },
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": ".github/workflows/big-over.yml"},
+            2,
+            {".github/workflows/big-over.yml": "x" * (1024 * 1024 + 1)},
+        ),
+    ],
+    "css": [
+        (
+            "width-after-long-clean-prefix",
+            lambda: {"file_path": "css/big-late.css"},
+            2,
+            {"css/big-late.css": ".a{color:red}\n" * 45000 + ".b{width:100vw}\n"},
+        ),
+        (
+            "many-near-misses-one-line",
+            lambda: {"file_path": "css/big-near.css"},
+            0,
+            {"css/big-near.css": "border-width:100vw;" * 45000 + "\n"},
+        ),
+        (
+            "full-bleed-last",
+            lambda: {"file_path": "css/big-bleed.css"},
+            0,
+            {
+                "css/big-bleed.css": ".b{width:100vw}\n" * 40000
+                + ".c{margin-left:calc(50% - 50vw)}\n"
+            },
+        ),
+    ],
+    "slice": [
+        (
+            "waiver-at-end-of-large-file",
+            lambda: {"file_path": "docs/slices/w-big/plan.md"},
+            2,
+            {"docs/slices/w-big/plan.md": "x " * 400000 + "\n## Waiver\n"},
+        ),
+        (
+            "many-near-misses-then-waiver",
+            lambda: {"file_path": "docs/slices/w-big/yield.md"},
+            2,
+            {"docs/slices/w-big/yield.md": "## Waived\n" * 60000 + "## Waiver\n"},
+        ),
+        (
+            "large-file-no-waiver",
+            lambda: {"file_path": "docs/slices/w-big/frame.md"},
+            0,
+            {"docs/slices/w-big/frame.md": "echo padding line here\n" * 40000},
+        ),
+        (
+            "refused-over-1-mib",
+            lambda: {"file_path": "docs/slices/w-big/inspect.md"},
+            2,
+            {"docs/slices/w-big/inspect.md": "a" * (1048576 + 1)},
+        ),
+    ],
+    "adr": [
+        (
+            "heading-after-long-prefix",
+            lambda: {"file_path": "docs/decisions/0100-big-late.md"},
+            2,
+            {"docs/decisions/0100-big-late.md": "x " * 400000 + "\n## Considered Options\n* a\n"},
+        ),
+        (
+            "many-items",
+            lambda: {"file_path": "docs/decisions/0101-big-many.md"},
+            0,
+            {"docs/decisions/0101-big-many.md": "## Considered Options\n" + "* x\n" * 150000},
+        ),
+        (
+            "long-digit-run-is-not-an-item",
+            lambda: {"file_path": "docs/decisions/0103-big-digits.md"},
+            2,
+            {"docs/decisions/0103-big-digits.md": "## Considered Options\n" + "9" * 500000 + "\n"},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "docs/decisions/0104-big-over.md"},
+            2,
+            {"docs/decisions/0104-big-over.md": "x" * (1024 * 1024) + "\n## Considered Options\n"},
+        ),
+    ],
+    "rbk": [
+        (
+            "stamp-after-long-first-line",
+            lambda: {"file_path": "runbooks/big-a.md"},
+            0,
+            {"runbooks/big-a.md": "x " * 400000 + "\nOwner: sre\nLast verified: 2026-03-14\n"},
+        ),
+        (
+            "no-stamp-long-line",
+            lambda: {"file_path": "runbooks/big-b.md"},
+            2,
+            {"runbooks/big-b.md": "x " * 400000 + "\n"},
+        ),
+        (
+            "no-stamp-many-lines",
+            lambda: {"file_path": "runbooks/big-c.md"},
+            2,
+            {"runbooks/big-c.md": "x\n" * 300000},
+        ),
+        (
+            "stamp-then-large-body",
+            lambda: {"file_path": "runbooks/big-d.md"},
+            0,
+            {"runbooks/big-d.md": "Owner: sre\nLast verified: 2026-03-14\n" + "step\n" * 100000},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "runbooks/big-e.md"},
+            2,
+            {"runbooks/big-e.md": "x" * (1024 * 1024 + 10)},
+        ),
+    ],
+    "wkrev": [
+        # Sizes sit below 1 MiB except the refusal row, which is deliberately above.
+        (
+            "commitments-after-long-prefix",
+            lambda: {"file_path": "wk/reviews/big-prefix.md"},
+            0,
+            {
+                "wk/reviews/big-prefix.md": "# Week of 5 Jan\n"
+                + "padding line here\n" * 30000
+                + "## Commitments\n1. a\n2. b\n3. c\n## Consciously not doing\n- x\n"
+            },
+        ),
+        (
+            "many-items-in-commitments",
+            lambda: {"file_path": "wk/reviews/big-items.md"},
+            2,
+            {
+                "wk/reviews/big-items.md": "# Week of 5 Jan\n## Commitments\n"
+                + "- item\n" * 80000
+                + "## Consciously not doing\n- x\n"
+            },
+        ),
+        (
+            "one-long-item-line",
+            lambda: {"file_path": "wk/reviews/big-line.md"},
+            0,
+            {
+                "wk/reviews/big-line.md": "# Week of 5 Jan\n## Commitments\n- "
+                + "x" * 600000
+                + "\n- b\n- c\n## Consciously not doing\n- x\n"
+            },
+        ),
+        (
+            "oversized-refusal",
+            lambda: {"file_path": "wk/reviews/big-over.md"},
+            2,
+            {"wk/reviews/big-over.md": "# Week of 5 Jan\n" + "x" * (1024 * 1024)},
+        ),
+    ],
+    "tlsoff": [
+        (
+            "minified-one-line-late-key",
+            lambda: {"file_path": "cfg/big-min.json"},
+            2,
+            {"cfg/big-min.json": '{"a":' + '1,"b":' * 150000 + '"ssl_verify":false}'},
+        ),
+        (
+            "many-findings",
+            lambda: {"file_path": "cfg/big-many.yaml"},
+            2,
+            {"cfg/big-many.yaml": "ssl_verify: false\n" * 55000},
+        ),
+        (
+            "many-near-misses",
+            lambda: {"file_path": "cfg/big-near.yaml"},
+            0,
+            {"cfg/big-near.yaml": "ssl_verify: truex " * 55000 + "\n"},
+        ),
+        (
+            "over-limit-refused",
+            lambda: {"file_path": "cfg/big-over.json"},
+            2,
+            {"cfg/big-over.json": "x" * (1024 * 1024 + 1)},
+        ),
+    ],
 }
 
 # A match on the first line of a multi-line input, followed by more than a pipe buffer of further
@@ -1721,6 +2405,14 @@ EARLY = {
             {"jobs/big-first.sbatch": "#SBATCH --mem=1G\n" + LINES},
         )
     ],
+    "adr": [
+        (
+            "padding-then-one-option",
+            lambda: {"file_path": "docs/decisions/0102-big-pad.md"},
+            2,
+            {"docs/decisions/0102-big-pad.md": LINES + "## Considered Options\n* a\n"},
+        ),
+    ],
 }
 for _key, _items in EARLY.items():
     BIG[_key] = BIG[_key] + _items
@@ -1792,6 +2484,14 @@ FILE_ONLY = {
     "mem",
     "lock",
     "dmap",
+    "sleep",
+    "wfrun",
+    "css",
+    "slice",
+    "adr",
+    "rbk",
+    "wkrev",
+    "tlsoff",
 }
 
 
@@ -1832,7 +2532,10 @@ def test_a_large_payload_stays_within_its_cpu_budget(
     key, name, build, want, files, mode, bins, scratch
 ):
     for rel, text in files.items():
-        (scratch / rel).write_text(text, encoding="utf-8")
+        target = scratch / rel
+        # A kit hook's timing file may sit in a directory no scratch file created.
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
     tool_input = build()
     stdin = json.dumps({"tool_input": tool_input}, ensure_ascii=False).encode("utf-8")
     done, spent = run_hook_timed(key, stdin, mode, bins, scratch)
