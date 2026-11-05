@@ -119,7 +119,8 @@ esac
 # long line. The regexes are anchored or single-class, so each is linear. A code fence hides
 # the stamp inside it, which is how a template shows one. awk prints a last line, @@done, so
 # that an awk that did not run (killed, or the redirection failed) is told from one that
-# found nothing wrong. A record found by its first heading prints only that last line. A finding is "line:message"; no text from the file is repeated.
+# found nothing wrong. A record found by its first heading prints only that last line. A
+# finding is "line:message"; no text from the file is repeated.
 rc=0
 verdict="$(
   awk -v lim="$limit" '

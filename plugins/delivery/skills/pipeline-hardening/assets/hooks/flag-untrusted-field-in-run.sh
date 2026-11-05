@@ -29,8 +29,9 @@
 #     env: variable that is later expanded again. So are toJSON, bracket spellings of github.event,
 #     and fields this list does not name. GitLab CI is not read.
 #   - A list field is read as GitHub documents it, by index (commits[N]) or by object filter
-#     (commits.*). Text between the brackets is not interpreted, so any bracket spelling with
+#     (commits.*). Text between the brackets is not interpreted, so a single bracket pair with
 #     the right property after it is flagged; that is not a claim about which spellings parse.
+#     Spaces around the dots, a second bracket pair, and github.event['commits'] are not seen.
 #   - An expression is read on its own line. One that spans lines is not seen, and one that reduces
 #     to a boolean, such as a comparison of the title, is flagged although it carries no text.
 #   - A key called run or script outside a step is read as a step; it is flagged only if it
