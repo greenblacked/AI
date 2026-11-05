@@ -57,6 +57,7 @@ hits() {
 
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
+[ -n "$command" ] || exit 0
 # Matched without regard to case, since SQL keywords and function names are not case-sensitive.
 #
 # The command is a shell line carrying SQL, so the shell can split the function name where a text

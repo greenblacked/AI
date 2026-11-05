@@ -269,6 +269,22 @@ def test_a_missing_awk_refuses(key, command, mode, noawk_bins, scratch):
     assert b"awk" in done.stderr
 
 
+# A call with no command to judge (a tool other than Bash, or a null command) must not fail for
+# want of awk: the guard above is for a command that would run unjudged, and there is none.
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("key", NORMALISING)
+@pytest.mark.parametrize(
+    "payload",
+    [{"tool_input": {"command": None}}, {"tool_input": {}}, {}, {"tool_input": {"command": ""}}],
+    ids=["null-command", "no-command", "no-tool-input", "empty-command"],
+)
+def test_no_command_is_allowed_without_awk(key, payload, mode, noawk_bins, scratch):
+    if mode not in noawk_bins:
+        pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
+    done = run_hook(key, json.dumps(payload).encode("utf-8"), mode, noawk_bins, scratch, timeout=30)
+    assert done.returncode == 0, done.stderr.decode("utf-8", "replace")[:300]
+
+
 def _function_body(path, name):
     text = path.read_text("utf-8")
     start = text.index(f"\n{name}() {{\n") + 1

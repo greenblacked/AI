@@ -56,6 +56,7 @@ hits() {
 
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
+[ -n "$command" ] || exit 0
 # Lower-cased once so every pattern below is case-insensitive without a grep flag. A J-Link
 # script argument is dropped first: its file name (erase_all.jlink, no_erase.txt) says nothing
 # about what the command line does, and the script's content is not visible here. The argument
