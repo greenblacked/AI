@@ -482,6 +482,29 @@ BIG = {
             {},
         ),
         ("erase-at-the-end", lambda: {"command": "a " * MB + "&& st-flash erase"}, 2, {}),
+        # redir() once rescanned the whole line for every descriptor copy, so the cost grew with
+        # the square of the token count. The line reaches the J-Link scan (no probe pattern fires
+        # first) and the erase is written to a file J-Link then reads, so the answer is 2.
+        (
+            "descriptor-copies-128k",
+            lambda: {
+                "command": "echo erase "
+                + ">&1 " * 32000
+                + "> c.jlink; JLinkExe -CommandFile c.jlink"
+            },
+            2,
+            {},
+        ),
+        (
+            "descriptor-copies-512k",
+            lambda: {
+                "command": "echo erase "
+                + ">&1 " * 128000
+                + "> c.jlink; JLinkExe -CommandFile c.jlink"
+            },
+            2,
+            {},
+        ),
         # Every heredoc, and every echo, writes `erase` to its own file and thousands of other
         # lines name J-Link, so comparing each file with each J-Link line is quadratic in the
         # input. The last row names the very last file, so the answer is found only at the end.

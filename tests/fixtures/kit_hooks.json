@@ -826,5 +826,12 @@
   {"hook": "erase", "name": "here-string-redirect-to-name-starting-with-digit", "payload": {"tool_input": {"command": "cat <<< erase >&1c.jlink; JLinkExe -CommandFile 1c.jlink"}}, "exit": 2},
   {"hook": "erase", "name": "printf-redirect-to-digit-dash-name", "payload": {"tool_input": {"command": "printf 'erase\\n' >&1-name.jlink; JLinkExe -CommandFile 1-name.jlink"}}, "exit": 2},
   {"hook": "erase", "name": "redirect-to-digit-name-then-newline", "payload": {"tool_input": {"command": "echo erase >&1c.jlink\nJLinkExe -CommandFile 1c.jlink"}}, "exit": 2},
-  {"hook": "erase", "name": "copy-to-stdout-then-an-argument-is-no-file", "payload": {"tool_input": {"command": "echo erase >&1 c.jlink; JLinkExe -CommandFile flash.jlink"}}, "exit": 0}
+  {"hook": "erase", "name": "copy-to-stdout-then-an-argument-is-no-file", "payload": {"tool_input": {"command": "echo erase >&1 c.jlink; JLinkExe -CommandFile flash.jlink"}}, "exit": 0},
+  {"hook": "erase", "name": "copy-then-carriage-return-name-is-a-file", "payload": {"tool_input": {"command": "echo erase >&1\rc.jlink; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "copy-dash-then-carriage-return-name-is-a-file", "payload": {"tool_input": {"command": "echo erase >&1-\rc.jlink; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "carriage-return-name-then-newline", "payload": {"tool_input": {"command": "echo erase >&1\rc.jlink\nJLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-to-command-substitution-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase > \"$(date +%s).log\"; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-to-backtick-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase > `date`.log; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-to-tee-substitution-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase | tee $(date +%s).log; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "done-to-command-substitution-name-has-no-erase", "payload": {"tool_input": {"command": "echo done > \"$(date +%s).log\"; JLinkExe -CommandFile flash.jlink"}}, "exit": 0}
 ]

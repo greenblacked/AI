@@ -106,6 +106,10 @@ unreadable() {
   cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|e[n]v|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
+refuse_unreadable() {
+  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names a debug probe or an erase. Write the command plainly, with the tool and its erase option spelled out." >&2
+  exit 2
+}
 # normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
 # so the command would run unjudged; refuse instead, because a missing tool is not a reason to allow.
 if [ -n "$command" ] && ! command -v awk >/dev/null 2>&1; then
@@ -117,8 +121,7 @@ plain="$(printf '%s\n' "$plain_ns" | sed -E "$scrub")"
 plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
 if hits "$plain_flat" -E 'nrfjprog|jlink|pyocd|openocd|st-flash|esptool|stm32_programmer_cli|erase|recover' &&
   unreadable "$lower" "$plain"; then
-  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names a debug probe or an erase. Write the command plainly, with the tool and its erase option spelled out." >&2
-  exit 2
+  refuse_unreadable
 fi
 
 sp='[[:space:]]'
@@ -220,17 +223,37 @@ esc_pair=$'\002'
 jl_scan() {
   LC_ALL=C awk '
     function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t\r;&|)"\047<>]|\\n|$)/ }
-    function redir(s,   out, r) {
+    function redir(s,   n, k, rest, tok, r, m) {
       # >&N and >&N- copy a descriptor only when the digits or dash are the whole word; >&1c.jlink
-      # writes stdout and stderr to a file called 1c.jlink, so that text stays.
-      out = ""
-      while (match(s, /[0-9]*>&[0-9]+-?/)) {
-        r = substr(s, RSTART + RLENGTH, 1)
-        if (r == "" || r ~ /[ \t\r;&|()<>]/) out = out substr(s, 1, RSTART - 1) " "
-        else out = out substr(s, 1, RSTART + RLENGTH - 1)
-        s = substr(s, RSTART + RLENGTH)
+      # writes stdout and stderr to a file called 1c.jlink, so that text stays. A carriage return
+      # is no word end: bash reads >&1<CR>c.jlink as a file called 1<CR>c.jlink.
+      # One pass over the pieces between `>&` marks, then a pairwise join: building the result by
+      # appending to a growing string, or rescanning the whole line per token, takes time that
+      # grows with the square of the number of descriptor copies on one line.
+      n = split(s, rp, />&/)
+      if (n > 1) {
+        ro[1] = rp[1]
+        for (k = 2; k <= n; k++) {
+          rest = rp[k]
+          if (match(rest, /^[0-9]+-?/)) {
+            tok = RLENGTH
+            r = substr(rest, tok + 1, 1)
+            if (r == "" || r ~ /[ \t;&|()<>]/) {
+              sub(/[0-9]+$/, "", ro[k - 1])
+              ro[k] = " " substr(rest, tok + 1)
+              continue
+            }
+          }
+          ro[k] = ">&" rest
+        }
+        m = n
+        while (m > 1) {
+          r = 0
+          for (k = 1; k <= m; k += 2) ro[++r] = (k < m) ? ro[k] ro[k + 1] : ro[k]
+          m = r
+        }
+        s = ro[1]
       }
-      s = out s
       gsub(/>&/, ">", s)
       gsub(/&>/, ">", s)
       gsub(/>\|/, ">", s)
@@ -247,10 +270,12 @@ jl_scan() {
       nt = 0
       n = split(s, parts, />>?[ \t]*/)
       for (k = 2; k <= n; k++) {
+        if (parts[k] ~ /^[^ \t;&|<>]*(\$\(|`)/) unread = 1
         if (match(parts[k], /^[^ \t;&|<>()]+/)) { f = substr(parts[k], 1, RLENGTH); gsub(/["\047\\]/, "", f); if (f != "") tfs[++nt] = f }
       }
       n = split(s, parts, /tee[ \t]+(-a[ \t]+)?/)
       for (k = 2; k <= n; k++) {
+        if (parts[k] ~ /^[^ \t;&|<>]*(\$\(|`)/) unread = 1
         if (match(parts[k], /^[^ \t;&|<>()]+/)) { f = substr(parts[k], 1, RLENGTH); gsub(/["\047\\]/, "", f); if (f != "") tfs[++nt] = f }
       }
     }
@@ -259,6 +284,9 @@ jl_scan() {
       b = f
       sub(/^.*\//, "", b)
       if (b != "") files[b] = 1
+      # The J-Link tokens below are split at a carriage return, which bash does not do, so the part
+      # after one is a name too (fails closed).
+      if (index(f, "\r")) { b = f; sub(/^.*\r/, "", b); if (b != "") files[b] = 1 }
     }
     function scan(text,   n, k, seg, own, m) {
       text = redir(text)
@@ -288,6 +316,8 @@ jl_scan() {
     }
     {
       line = $0
+      if (has_erase(line)) any_erase = 1
+      if (line ~ /nrfjprog|jlink|pyocd|openocd|st-flash|esptool|stm32_programmer_cli/) any_probe = 1
       if (inbody) {
         t = line
         if (delim != "") {
@@ -344,7 +374,7 @@ jl_scan() {
           if (b != "" && b in files) { hit = 1; break }
         }
       }
-      print hit ? "hit" : "none"
+      print hit ? "hit" : (unread && any_erase && any_probe) ? "unreadable" : "none"
     }
   ' <<<"$1"
 }
@@ -361,6 +391,7 @@ if [ "$hit" -eq 0 ]; then
         break
         ;;
       none) ;;
+      unreadable) refuse_unreadable ;;
       *)
         echo "blocked: could not scan the command for a J-Link heredoc (awk gave no answer), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
         exit 2
