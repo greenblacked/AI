@@ -224,3 +224,35 @@ Produce the runbook itself in this shape. `references/template.md` has the full 
 
 - `references/template.md` — read when writing a new runbook: the complete fill-in skeleton with every section, plus a worked example for a checkout error-rate page showing the level of specificity the commands and the decision table need.
 - `references/maintenance.md` — read when a runbook already exists: how to verify one during a game day rather than by reading it, the review cadence and the ownership record, what to do when a runbook fails mid-incident, and when to delete one outright.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep a project's runbooks trustworthy. Install
+them when the project keeps runbooks in its own repository:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/runbook-documents.md` loads when a file under a `runbooks/`
+  directory or named like a runbook is read or edited, and asks for the user-terms meaning
+  line, a read-only first check, mitigations ordered least destructive first with their undo,
+  a decision table, and an owner and last-verified date at the top.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/runbook-stamp.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/runbook-stamp.sh`, reports a written runbook whose first
+  40 lines carry no `Owner:` value, or no `Last verified:` with a real date that is not in the
+  future. It runs after the write, so it feeds the finding back for the next edit and does not
+  stop the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/runbook-verification-record.md` is the record of one
+  verification, drill, walkthrough or real incident, which is what the Last verified date
+  stands for; see `references/maintenance.md`.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/runbook-documents.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/runbook-stamp.sh" .claude/hooks/
+chmod +x .claude/hooks/runbook-stamp.sh
+```
+
+Then merge the `hooks` block of `runbook-stamp.json` into `.claude/settings.json`, adding to
+an existing `hooks` block rather than replacing it. Read the script first; it runs with your
+permissions on every matching write. Copy the template to wherever the project keeps its
+verification records.
