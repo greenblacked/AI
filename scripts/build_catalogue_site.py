@@ -293,10 +293,11 @@ MENU_ICON = (
 
 
 def _menu(current: str) -> str:
-    """The section links behind a disclosure, for a header too narrow to show them.
+    """The section links in a left-edge drawer, for a header too narrow to show them.
 
     A details element opens and closes with Enter or Space and needs no script, so the
-    menu works when the page script has not run. Hidden from 64rem up, where the same
+    menu works when the page script has not run; the script only adds Escape and closing
+    on a link. Hidden from 64rem up, where the same
     links are in the bar itself.
     """
     sections = "".join(_link(text, href, current) for text, href in PAGES)
