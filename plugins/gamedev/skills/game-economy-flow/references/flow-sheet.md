@@ -79,7 +79,7 @@ The same data as one file, convenient when the sheet is generated from game data
 Net per hour for an archetype and stock is the sum of its `source` rows minus the sum of its `sink` rows, taking the rows for the band the player is in: a row marked `all` applies in every band, and a row with a named band applies only there. Never add rows across different bands, or the result describes a player who is in all of them at once; compute one net per band and report each. Then:
 
 - Time-to-cap, in hours of play, is `cap / net`, when net is positive and a cap exists. Divide by `hours_per_week / 7` to get calendar days.
-- Time-to-afford is `price / net` with the same conversion when there is no decay, and the time-to-cap formula with the price in place of the cap when there is. A non-positive net means never, and so does a price at or above `net / decay_rate_per_hour`.
+- Time-to-afford is `price / net` with the same conversion when there is no decay, and the time-to-cap formula with the price in place of the cap when there is. A non-positive net means never, and so does a price above the stock's cap, which the player can never hold, or at or above `net / decay_rate_per_hour`.
 - Where decay applies, the game loses `decay_rate_per_hour` times the held stock each hour, so net falls as the stock grows and the stock settles at `net / decay_rate_per_hour`. If that is below the cap, the cap is never reached; if not, time-to-cap is `-ln(1 - cap * rate / net) / rate` hours. Decay is a fraction in every form here: do not mix it with a flat loss per hour.
 - The share wasted at the cap is the inflow that arrives after the cap is reached, over total inflow across a stated play span.
 
@@ -112,7 +112,8 @@ for arch, a in sheet["archetypes"].items():
             for p in sheet.get("purchases", []):
                 if p["stock"] == stock:
                     price = p["price"]
-                    if net <= 0 or (rate and price >= net / rate):
+                    # A price above the cap can never be held, whatever the inflow.
+                    if net <= 0 or (cap and price > cap) or (rate and price >= net / rate):
                         line += f"  {p['item']} never"
                     else:
                         h = -math.log(1 - price * rate / net) / rate if rate else price / net

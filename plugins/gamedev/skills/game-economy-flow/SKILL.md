@@ -61,7 +61,7 @@ Run the sheet with each archetype's hours and check the band holds for all three
 
 ### 6. Compute time-to-cap and time-to-afford
 
-For each capped stock, time-to-cap is the cap divided by net inflow per hour, converted to calendar time with the archetype's weekly hours. For each important purchase, time-to-afford is price divided by net inflow. Both are in `references/flow-sheet.md` with the script that computes them from the sheet.
+For each capped stock, time-to-cap is the cap divided by net inflow per hour, converted to calendar time with the archetype's weekly hours. For each important purchase, time-to-afford is price divided by net inflow, and a price above the stock's cap is never affordable, which is a progression blocker to fix before launch. Both are in `references/flow-sheet.md` with the script that computes them from the sheet.
 
 Compare the results with the intent written in the design: "a first weapon in about six hours of play" is a claim the number must meet. A cap that is hit in under a session wastes the rewards after it; a cap that is never reached is not a cap. Report the number in hours of play and in calendar days for each archetype.
 
