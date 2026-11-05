@@ -40,6 +40,14 @@ scrubbed="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]' |
 sp='[[:space:]]'
 bs='[\\]'
 word_end="(${sp}|\$|[;&|])"
+# A J-Link command can reach the tool on stdin, so `erase` is also matched as a word wherever it
+# starts: after a space, a quote, a literal \n (printf 'r\nerase\nq\n') or a real newline.
+# The newlines become spaces for this view only, so that a heredoc or a quoted multi-line
+# printf is one command, while the patterns above keep the lines apart. `erased` and
+# `erase_log` are not the word.
+flat="$(printf '%s' "$scrubbed" | tr '\n' ' ')"
+stdin_erase="(^|${sp}|[\"']|${bs}n)erase((${bs}n|[\"']|${sp})[^|;&]*)?${sp}*(;|\|)[^;&]*jlink"
+heredoc_erase="jlink(exe|\.exe)?[^|;&]*<<[^|;&]*(${sp}|[\"']|${bs}n)erase${word_end}"
 # The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
 # and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
 # reads as "no match" and would allow a large command.
@@ -48,12 +56,12 @@ if grep -Eq \
   -e "nrfjprog[^|;&]*--(eraseall|recover|rbp|rdp)" \
   -e "esptool[^|;&]*[[:space:]_.-]erase[_-]flash" \
   -e "jlink(exe|\.exe)?[^|;&]*${sp}erase${word_end}" \
-  -e "(^|${sp})[\"']?erase(${bs}n[^|;&]*)?[\"']?${sp}*(;|\|)[^;&]*jlink" \
   -e "pyocd[^|;&]*${sp}erase(${sp}[^|;&]*)?${sp}(--chip|--mass|-c)(${sp}|\$|[;&|=])" \
   -e "stm32_programmer_cli[^|;&]*(-e|--erase)${sp}+all" \
   -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)" \
   -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))" \
-  <<<"$scrubbed"; then
+  <<<"$scrubbed" ||
+  grep -Eq -e "$stdin_erase" -e "$heredoc_erase" <<<"$flat"; then
   echo "blocked: whole-device erase or readout-protection write. Dump flash and option bytes first (for example 'st-flash read dump.bin 0x08000000 <size>' or 'nrfjprog --readcode dump.hex'), keep the dump, then ask for the erase explicitly." >&2
   exit 2
 fi
