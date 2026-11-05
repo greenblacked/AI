@@ -72,8 +72,13 @@ hits() {
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 # A line continues only when it ends in an odd number of backslashes: `\\` is an escaped backslash and the
 # command ends there. The run is counted from the end, so a long run costs time in its own length only.
+# A line that would join and has a # at the start of a word (after the line start, a space or a shell
+# operator, quoted or not) is uncertain: bash does not join a comment line and does join a quoted
+# # such as 'a # b', and the hook does not track quotes. For such a command the output holds both
+# readings, one after the other, joined and then unjoined, so a rule that refuses either one
+# refuses the command. Lines without such a # keep the single joined reading.
 normalise() {
-  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { printf "%s", substr($0, 1, n - 1); cont = 1; next } print; cont = 0 } END { if (cont) print "" }' |
+  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { body = substr($0, 1, n - 1); printf "%s", body; cont = 1; if ($0 ~ /(^|[ \t\r;&|()<>`])#/) { unc = 1; b[++m] = body "\n" } else b[++m] = body; next } print; b[++m] = $0 "\n"; cont = 0 } END { if (cont) { print ""; b[++m] = "\n" } if (unc) for (i = 1; i <= m; i++) printf "%s", b[i] }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # join_lines: the first step of normalise on its own, for the segment split at the end. A
@@ -81,7 +86,7 @@ normalise() {
 # on the next line belongs to the same command; split on the raw text, `terraform destroy \` and
 # `-auto-approve` would be two segments and the second would never be read as an argument.
 join_lines() {
-  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { printf "%s", substr($0, 1, n - 1); cont = 1; next } print; cont = 0 } END { if (cont) print "" }'
+  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { body = substr($0, 1, n - 1); printf "%s", body; cont = 1; if ($0 ~ /(^|[ \t\r;&|()<>`])#/) { unc = 1; b[++m] = body "\n" } else b[++m] = body; next } print; b[++m] = $0 "\n"; cont = 0 } END { if (cont) { print ""; b[++m] = "\n" } if (unc) for (i = 1; i <= m; i++) printf "%s", b[i] }'
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
 unreadable() {

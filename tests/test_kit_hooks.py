@@ -318,6 +318,42 @@ def test_the_normalise_function_is_the_same_in_every_hook_that_has_one():
     assert "LC_ALL=C awk" in bodies["tf"]
 
 
+def _awk_program(body):
+    return body.split("awk '")[1].split("'")[0]
+
+
+def test_the_terraform_hook_joins_lines_with_the_same_program_as_normalise():
+    path = _hook_path("tf")
+    assert _awk_program(_function_body(path, "join_lines")) == _awk_program(
+        _function_body(path, "normalise")
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # No # at the start of a word: one joined reading, as before.
+        ("terraform plan \\\n-out=tfplan\n", "terraform plan -out=tfplan\n"),
+        ("a\\\\\nb\n", "a\nb\n"),
+        # A comment line ending in a backslash is not joined by bash, a quoted # is: both readings.
+        ("#\\\nx\n", "#x\n#\nx\n"),
+        ("echo 'a # b' \\\nls\n", "echo a # b ls\necho a # b \nls\n"),
+        ("echo hi;#x\\\nrm\n", "echo hi;#xrm\necho hi;#x\nrm\n"),
+        # The # inside a word is no comment, so the join stays certain.
+        ("a#b \\\nc\n", "a#b c\n"),
+    ],
+)
+def test_normalise_reads_both_ways_only_where_a_hash_makes_the_join_uncertain(text, expected):
+    body = _function_body(_hook_path("tf"), "normalise")
+    done = subprocess.run(  # noqa: S603
+        [_path_for("bash"), "-c", body + 'printf "%s" "$1" | normalise', "bash", text],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert done.stdout == expected
+
+
 def test_openocd_erase_address_is_refused_as_a_range_not_a_whole_device(bins, scratch):
     command = "openocd -c 'flash erase_address 0x08000000 0x100000'"
     stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")

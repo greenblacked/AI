@@ -88,8 +88,13 @@ scrubbed="$(printf '%s' "$lower" | sed -E "$scrub")"
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 # A line continues only when it ends in an odd number of backslashes: `\\` is an escaped backslash and the
 # command ends there. The run is counted from the end, so a long run costs time in its own length only.
+# A line that would join and has a # at the start of a word (after the line start, a space or a shell
+# operator, quoted or not) is uncertain: bash does not join a comment line and does join a quoted
+# # such as 'a # b', and the hook does not track quotes. For such a command the output holds both
+# readings, one after the other, joined and then unjoined, so a rule that refuses either one
+# refuses the command. Lines without such a # keep the single joined reading.
 normalise() {
-  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { printf "%s", substr($0, 1, n - 1); cont = 1; next } print; cont = 0 } END { if (cont) print "" }' |
+  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { body = substr($0, 1, n - 1); printf "%s", body; cont = 1; if ($0 ~ /(^|[ \t\r;&|()<>`])#/) { unc = 1; b[++m] = body "\n" } else b[++m] = body; next } print; b[++m] = $0 "\n"; cont = 0 } END { if (cont) { print ""; b[++m] = "\n" } if (unc) for (i = 1; i <= m; i++) printf "%s", b[i] }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
@@ -202,7 +207,9 @@ fi
 # c.jlink, echo erase | tee c.jlink) counts the same way: when a command that names J-Link names
 # that file, joined by ; or && or only by a line break. The redirect may touch the word (echo
 # erase>c.jlink), follow a descriptor copy (echo erase 2>&1 > c.jlink), be written >| or &>, or
-# follow a here-string (cat <<< erase > c.jlink); an escaped \> is an argument, not a redirect.
+# follow a here-string (cat <<< erase > c.jlink). An escaped \> that touches the word
+# (erase\>c.jlink) is an argument, not a redirect; a spaced \> (erase \> c.jlink) is still read as a
+# redirect, which fails closed.
 # Names are compared as whole words, a path
 # by its last component, so a file called a is not found in every command. Each J-Link command
 # is looked at once, with the file names it redirects its own output to taken out, and each
@@ -213,8 +220,17 @@ esc_pair=$'\002'
 jl_scan() {
   LC_ALL=C awk '
     function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t\r;&|)"\047<>]|\\n|$)/ }
-    function redir(s) {
-      gsub(/[0-9]*>&[0-9]+-?/, " ", s)
+    function redir(s,   out, r) {
+      # >&N and >&N- copy a descriptor only when the digits or dash are the whole word; >&1c.jlink
+      # writes stdout and stderr to a file called 1c.jlink, so that text stays.
+      out = ""
+      while (match(s, /[0-9]*>&[0-9]+-?/)) {
+        r = substr(s, RSTART + RLENGTH, 1)
+        if (r == "" || r ~ /[ \t\r;&|()<>]/) out = out substr(s, 1, RSTART - 1) " "
+        else out = out substr(s, 1, RSTART + RLENGTH - 1)
+        s = substr(s, RSTART + RLENGTH)
+      }
+      s = out s
       gsub(/>&/, ">", s)
       gsub(/&>/, ">", s)
       gsub(/>\|/, ">", s)
