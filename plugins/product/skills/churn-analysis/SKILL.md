@@ -55,6 +55,8 @@ Build retention by acquisition month (logo and revenue), and cut by segment: pla
 
 Take the churned accounts in the period (all of them if under about 100, otherwise a sample stratified by segment and revenue). For each, read the cancellation notes, the support tickets and success-team notes from the last 90 days, and the usage trend over those 90 days. Assign one primary reason and, if needed, one secondary, from a fixed codebook of about ten codes. Record the dropdown answer alongside, without letting it decide.
 
+When the sample is too bulky to read inline, hand the notes, tickets and the codebook to the `cancellation-note-reader` subagent, which returns one code per account with the quoted deciding line and logo and revenue totals per code; spot-check its quotes and run the second-coder check yourself.
+
 Have a second person code a sample of 20 or so accounts independently and compare. Where you disagree often on a code, its definition is ambiguous; tighten it and recode. `references/churn-codebook.md` has the codebook, the evidence that distinguishes each code, and the coding sheet. Read it before coding the first account.
 
 ### 5. Size the reasons
@@ -91,6 +93,25 @@ Discard the score, or rebuild it, if the median lead time is under 30 days: by t
 **A health score that predicts last week.** Red the week before cancellation is a churn report. Lead time is the whole point.
 
 **Leakage in the back-test.** A score built with data that only existed after the decision (an exit survey, a closed renewal opportunity) will look excellent and work for nobody.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep coded reasons honest in a project that runs churn analyses repeatedly. Install them when the team keeps coding sheets as CSV files under a `churn/` directory:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/churn-coding.md` loads when a CSV under a `churn/` directory is read or edited and asks that every coded reason carry quoted evidence and that the dropdown never decide the code.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/require-churn-evidence.json`, with its script `${CLAUDE_SKILL_DIR}/assets/hooks/require-churn-evidence.sh`, runs after a write and reports every row of a coding sheet that has a primary code and an empty key-evidence cell. It finds the sheet by its header, which must hold both `Primary code` and `Key evidence`.
+- `${CLAUDE_SKILL_DIR}/assets/templates/churn-readout.md` is the readout to fill in for one period, matching What to hand back.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/churn-coding.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/require-churn-evidence.sh" .claude/hooks/
+chmod +x .claude/hooks/require-churn-evidence.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/require-churn-evidence.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the script first; it runs with your permissions on every matching tool call.
 
 ## Reference files
 

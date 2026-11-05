@@ -91,6 +91,34 @@ Over a fixed window, take the merged changes that touched mapped code and report
 
 **Reporting only the touch rate.** A high rate achieved through overrides is the problem, relabelled.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep the map honest in a project. Install them
+when the project commits a `drift-map.yaml`:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/drift-map.md` loads when a drift map is read or edited and
+  asks for a reason on every ignore entry, distinctive identifiers, a historical list and no
+  dangling pages.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/drift-map-ignore-reason.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/drift-map-ignore-reason.sh`, reports a written
+  `drift-map.yaml` whose ignore entries lack a reason. It runs after the write, so it feeds the
+  finding back rather than stopping the edit.
+- `${CLAUDE_SKILL_DIR}/assets/templates/unmapped-page-review.md` is the table to fill in for
+  step 6: each unmapped page with its decision, owner and next review date.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/drift-map.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/drift-map-ignore-reason.sh" .claude/hooks/
+chmod +x .claude/hooks/drift-map-ignore-reason.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/drift-map-ignore-reason.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/drift-map.md` — read when building or reviewing the map: the file format, how to extract each kind of identifier from its source of truth, the distinctiveness and historical-page rules, and the scheduled regeneration.

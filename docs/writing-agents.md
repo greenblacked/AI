@@ -2,10 +2,8 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the 30 this repository ships today, five with `coding`, seven with
-`operations`, five with `security`, six with `family`, two with `manager`, two with
-`personal`, and one each with `design`, `gamedev` and `delivery` — and in `.claude/agents/`
-for the four that serve work on this repository rather than shipping to anyone,
+one of the agents this repository ships — and in `.claude/agents/`
+for the ones that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
 tool allowlist, invoked by the main agent and returning a result to it.
@@ -266,7 +264,7 @@ procedure, for that reason.
 
 A plugin-shipped subagent is free to follow the same shape — a stated input, a first-line
 verdict, fixed headings — and a new one should. This is not a call to migrate the
-30 that ship today; none of them are rewritten by this.
+ones that ship today; none of them are rewritten by this.
 
 ## Failure modes
 
@@ -294,9 +292,8 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). 30 ship: five with
-`coding`, seven with `operations`, five with `security`, six with `family`, two with
-`manager`, two with `personal`, and one each with `design`, `gamedev` and `delivery`.
+[`marketplace.json`](../.claude-plugin/marketplace.json). The README lists every one that
+ships, by plugin, and `make catalogue` keeps that list in step with the tree.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle

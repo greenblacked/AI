@@ -1,0 +1,22 @@
+[
+  {"query": "here's failures.jsonl, 9,000 replies that failed our ticket schema, group them by failure class and give me counts", "should_trigger": true},
+  {"query": "the extraction job logged raw replies that didn't validate against schema v3. which kinds of failure are most common and what does one look like", "should_trigger": true},
+  {"query": "I've got a 40MB dump of model outputs that failed pydantic validation, tell me what classes of failure there are without pasting them all", "should_trigger": true},
+  {"query": "before I touch the schema, read this file of rejected replies and tell me if it's mostly fenced JSON, missing fields or bad enum values", "should_trigger": true},
+  {"query": "our repair loop gave up on 3% of calls last week, here are the final raw replies, classify what went wrong in each with a count", "should_trigger": true},
+  {"query": "read validation_errors.log and split truncated replies from real schema mismatches, with the schema version for each", "should_trigger": true},
+  {"query": "the model keeps returning enum values in the wrong case, check this failure file and tell me how many of the failures are case-only", "should_trigger": true},
+  {"query": "summarise these json_schema validation errors by class, one quoted example each, I don't want the whole file in the chat", "should_trigger": true},
+  {"query": "after we shipped schema v5 failures went up, read the failure log and say which classes grew and which version they belong to", "should_trigger": true},
+  {"query": "here is a pasted log of replies the validator rejected, count how many were refusals, how many truncated and how many extra properties", "should_trigger": true},
+  {"query": "how do I make the model return valid JSON reliably", "should_trigger": false, "expected": "structured-output"},
+  {"query": "should I use JSON mode or strict tool use for my classifier output", "should_trigger": false, "expected": "structured-output"},
+  {"query": "design the retry loop that feeds the validation error back to the model", "should_trigger": false, "expected": "structured-output"},
+  {"query": "write the JSON schema for extracting an invoice total and due date from the model", "should_trigger": false, "expected": "structured-output"},
+  {"query": "here is the LLM gateway export, where is the money going by feature and model", "should_trigger": false, "expected": "llm-trace-reader"},
+  {"query": "we are moving from one model version to the next, what breaks in our prompts and schemas", "should_trigger": false, "expected": "model-migration"},
+  {"query": "pull the invoice fields out of these scanned PDFs", "should_trigger": false, "expected": "document-extraction"},
+  {"query": "score whether the agent answers are good enough to ship", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "the nightly pipeline went red after the deploy, here is the run, which of the five triage classes is it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "make the endpoint that returns the model result paginated", "should_trigger": false, "expected": "api-design"}
+]

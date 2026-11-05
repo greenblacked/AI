@@ -1,0 +1,22 @@
+[
+  {"query": "here's a 40k-row export from our docs site search, give me the zero-result clusters with counts and one example query each", "should_trigger": true},
+  {"query": "read ./exports/search-2026-10.csv and tell me which reformulation chains end with no click, grouped by what the reader wanted", "should_trigger": true},
+  {"query": "the algolia docsearch analytics download is huge, summarise searches without results into clusters and rank them by volume", "should_trigger": true},
+  {"query": "i have a month of docs search events as json lines with session id and result count, pull out the twice-reformulated sessions and cluster them", "should_trigger": true},
+  {"query": "don't paste the log at me, just return the top failing query clusters from this docs search export with counts", "should_trigger": true},
+  {"query": "what's our zero-result rate and twice-reformulated rate in this search export, and which intents drive them", "should_trigger": true},
+  {"query": "go through the GA4 site search export for the docs and give me clusters of queries that returned nothing", "should_trigger": true},
+  {"query": "read this search log and show me the chains where someone tried three phrasings and finally clicked, with the page they ended on", "should_trigger": true},
+  {"query": "here is the self-hosted docs search log, 200k rows, count the failing queries by intent and give a representative query for each", "should_trigger": true},
+  {"query": "summarise the no-result searches from our help-centre docs export, clustered by intent, before we decide what to fix", "should_trigger": true},
+  {"query": "we already have the clusters, now decide whether each gets a synonym, a rename or a new page", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "how should the synonym list for our docs search be structured and deployed", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "people can't find the token docs, what should we change", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "which docs pages does this pull request make false", "should_trigger": false, "expected": "docs-drift-detection"},
+  {"query": "restructure our docs sidebar and category labels so readers find things", "should_trigger": false, "expected": "information-architecture"},
+  {"query": "find keywords and write a content brief for our marketing blog from the search results page", "should_trigger": false, "expected": "content-brief-from-serp"},
+  {"query": "evaluate recall and precision of our docs question-answering retrieval", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "tune the ranking of our product search so exact title matches win", "should_trigger": false, "expected": "search-relevance-tuning"},
+  {"query": "write the missing page for the account deletion cluster", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "read this DMARC report directory and classify the senders", "should_trigger": false, "expected": "dmarc-report-reader"}
+]

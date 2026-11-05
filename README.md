@@ -9,7 +9,7 @@
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-527 agent skills, 41 subagents, eleven slash commands and eleven project kits, in
+527 agent skills, 51 subagents, eleven slash commands and 21 project kits, in
 twenty-nine plugins you install separately.
 
 [![Skills](https://img.shields.io/badge/skills-527-7c3aed)](#plugins)
@@ -78,24 +78,24 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 0 |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills, 1 subagent | 1 |
 | [`design`](#design) | Usability, accessibility and design systems | 16 skills, 1 subagent, 1 command | 0 |
-| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills | 0 |
+| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills, 1 subagent | 1 |
 | [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills, 1 subagent | 1 |
-| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills | 0 |
+| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills, 1 subagent | 1 |
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills, 1 subagent | 1 |
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills, 1 subagent | 1 |
-| [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills | 0 |
-| [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills | 0 |
+| [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills, 1 subagent | 1 |
+| [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills, 1 subagent | 1 |
 | [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills, 1 subagent | 1 |
 | [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills, 1 subagent | 1 |
-| [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills | 0 |
+| [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills, 1 subagent | 1 |
 | [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills, 1 subagent | 1 |
-| [`languages`](#languages) | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C and C++, Rust | 20 skills | 0 |
-| [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 21 skills | 0 |
+| [`languages`](#languages) | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C and C++, Rust | 20 skills, 1 subagent | 1 |
+| [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 21 skills, 1 subagent | 1 |
 | [`databases`](#databases) | Database engineering: PostgreSQL and MySQL internals, locks, vacuum, failover, partitioning, search, vectors, ClickHouse, Redis, SQLite | 20 skills, 1 subagent | 1 |
-| [`observability`](#observability) | Observability engineering: tracing and sampling, metrics and cardinality, log cost, collector pipelines, profiling, alerting, dashboards | 20 skills | 0 |
+| [`observability`](#observability) | Observability engineering: tracing and sampling, metrics and cardinality, log cost, collector pipelines, profiling, alerting, dashboards | 20 skills, 1 subagent | 1 |
 | [`embedded`](#embedded) | Embedded and IoT: firmware updates, fleet rollouts, provisioning, faults, watchdogs, power, memory, flash, buses, BLE, MQTT | 20 skills, 1 subagent | 1 |
-| [`learning`](#learning) | Learning and teaching: ramp-up, study plans, workshops, mentoring, tacit knowledge, training evaluation, reading research | 16 skills | 0 |
-| [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills | 0 |
+| [`learning`](#learning) | Learning and teaching: ramp-up, study plans, workshops, mentoring, tacit knowledge, training evaluation, reading research | 16 skills, 1 subagent | 1 |
+| [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills, 1 subagent | 1 |
 | [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills, 1 subagent | 1 |
 
 Each plugin is a self-contained directory under `plugins/` with its own manifest, so
@@ -814,11 +814,15 @@ Building features on language models, and the checks that keep them honest.
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `schema-failure-reader` | A file of raw model replies that failed schema validation | Each failure class with its count, the schema version and one quoted example |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `structured-output` | `output-schemas` | `require-closed-object-schema` | `schema-change-record` |
 
 ### Data
 
@@ -896,11 +900,15 @@ Documentation as something that can be tested: tutorials run from a clean machin
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `docs-search-log-reader` | A docs site-search export of many queries | Zero-result and reformulated-query clusters, each with its count, a representative query and the page clicked at the end of a chain |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `docs-drift-detection` | `drift-map` | `drift-map-ignore-reason` | `unmapped-page-review` |
 
 ### Assurance
 
@@ -1025,11 +1033,15 @@ Product management and go-to-market run on evidence: interviews about what peopl
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `cancellation-note-reader` | Exported cancellation notes, tickets and success-team notes for a sample of churned accounts | One primary code per account from the caller's codebook, the quoted line that decided it, and logo and revenue totals per code |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `churn-analysis` | `churn-coding` | `require-churn-evidence` | `churn-readout` |
 
 ### Platform
 
@@ -1069,11 +1081,15 @@ Cloud and platform engineering for the situations that recur and hurt: an overlo
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `connection-table-reader` | A saved conntrack dump, socket listing or NAT port-allocation export | Connection counts per destination IP and port against the relevant limit, with the dominant destination and source |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `connection-exhaustion-hunt` | `connection-ceilings` | `connection-ceilings` | `connection-ceiling-register` |
 
 ### IaC
 
@@ -1178,11 +1194,15 @@ Running a freelance practice or a small services business: pricing and quoting, 
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `receivables-reader` | A period's invoice register and payment exports | Each invoice as paid, part-paid or unpaid, totals per currency and unmatched receipts |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `monthly-bookkeeping-close` | `books-exports` | `close-lock-date` | `month-close-checklist` |
 
 ### Backend
 
@@ -1260,11 +1280,15 @@ The failures that belong to one runtime or toolchain: Python imports, wheels, me
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `stack-dump-reader` | Stack dumps from one stall, crash or race: JVM thread dumps, Go goroutine dumps, sanitizer reports, dotnet-stack output, gdb backtraces | The frames that stayed put across captures, the decisive line and one named cause |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `rust-unsafe-review` | `unsafe-blocks-need-contracts` | `require-safety-comment` | `unsafe-site-ledger` |
 
 ### Linux
 
@@ -1303,11 +1327,15 @@ Keeping a Linux host up and reachable: units that will not start, boots that fai
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `journal-reader` | A saved host journal or dmesg dump too large to read inline | The one decisive line for the unit, boot or kernel event named, with its line number and a one-sentence reading |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `systemd-unit-failure` | `systemd-units` | `exec-absolute-path` | `unit-failure-report` |
 
 ### Databases
 
@@ -1391,11 +1419,15 @@ Telemetry that answers the question during an incident and costs what it should:
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `collector-metrics-reader` | One saved OpenTelemetry collector self-telemetry dump | The furthest-downstream unclean pipeline stage with the decisive series and a six-stage table |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `otel-collector-pipeline-review` | `collector-config` | `collector-memory-limiter` | `collector-review-record` |
 
 ### Embedded
 
@@ -1475,11 +1507,15 @@ Getting good at something, and helping others do the same: ramping up on an unfa
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `interview-transcript-reader` | Recorded expert-interview transcripts | Decision-rule candidates, each with the verbatim transcript line that supports it, and what the expert never said |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `tacit-knowledge-elicitation` | `decision-rules` | `decision-rule-because` | `decision-rule-sheet` |
 
 ### Research
 
@@ -1516,11 +1552,15 @@ Engineering for research code and data: environments that reproduce, NaNs and fl
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `slurm-log-reader` | A failed Slurm job's saved sacct rows and its stderr and stdout across an array or MPI run | The State class, the step row that decided it and the decisive log line, with the first failing index or rank |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `slurm-job-failure-triage` | `slurm-batch-scripts` | `require-memory-request` | `failed-job-record` |
 
 ### Growth
 

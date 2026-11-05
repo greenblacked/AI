@@ -79,6 +79,34 @@ Run `cargo geiger` to count unsafe in your crate and its dependencies, and recor
 
 **Unwinding into C.** Since Rust 1.81 a panic that escapes an `extern "C"` function aborts the process; before that it was undefined behaviour. `extern "C-unwind"` is the ABI that permits unwinding across the boundary. Catch the panic at the edge either way, unless the foreign caller is built to unwind.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` make the discipline stick in a Rust project.
+Install them when the crate has more than a handful of `unsafe` sites or reviews them often:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/unsafe-blocks-need-contracts.md` loads when a `.rs` file is
+  read or edited and asks for a `// SAFETY:` comment or a `# Safety` section at every site.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/require-safety-comment.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/require-safety-comment.sh`, reports a written `.rs` file in
+  which an unsafe block, function, impl or trait has no contract above it. It runs after the
+  write, so it prompts a fix and cannot undo the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/unsafe-site-ledger.md` is the ledger to fill in for one
+  review, one row per site with its contract, verdict and the Miri or sanitizer run, matching
+  the Output format.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/unsafe-blocks-need-contracts.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/require-safety-comment.sh" .claude/hooks/
+chmod +x .claude/hooks/require-safety-comment.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/require-safety-comment.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/safety-contracts.md` — read at step 3: what each unsafe operation requires and a contract template.

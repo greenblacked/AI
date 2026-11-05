@@ -1,0 +1,22 @@
+[
+  {"query": "here is the saved scrape from the gateway collector's port 8888, which stage is the furthest-downstream one that's unclean?", "should_trigger": true},
+  {"query": "metrics-gateway-2.txt is a 4MB otelcol_ dump from the trace tier. don't paste it back, just tell me whether it's the queue, enqueue failures or send failures", "should_trigger": true},
+  {"query": "read this collector self-telemetry file and tell me if the receiver refusals are the cause or just the symptom of something later in the pipeline", "should_trigger": true},
+  {"query": "attached: otelcol_exporter_queue_size and queue_capacity for all 12 replicas, which replica is pinned and what does the send_failed counter say", "should_trigger": true},
+  {"query": "i saved the prometheus text from the otel agent daemonset pod, go through receiver, processor, batch, queue and sends in order and give me the deciding series", "should_trigger": true},
+  {"query": "this dump has otelcol_processor_incoming_items and outgoing_items, is the memory limiter refusing anything and by how much", "should_trigger": true},
+  {"query": "two scrapes of the collector 5 minutes apart are in /tmp/scrapes, compare the exporter enqueue failed counters and tell me the stage that's actually dropping data", "should_trigger": true},
+  {"query": "pull the one unclean stage out of this collector metrics export for the logs pipeline, I only need the series name and value", "should_trigger": true},
+  {"query": "the collector's own metrics file is huge, read it and say whether the destination is slow or the limiter is too tight, with the numbers", "should_trigger": true},
+  {"query": "go through the otelcol_ counters in this scrape per exporter and list which exporters have send failures and which are clean", "should_trigger": true},
+  {"query": "our collector queue is full and spans go missing at peak, how do I diagnose and mitigate it", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "what should we do first when the exporter queue is at capacity: raise num_consumers, add replicas or shed load", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "review our collector config before production, is the processor order right and is memory_limiter set against the container limit", "should_trigger": false, "expected": "otel-collector-pipeline-review"},
+  {"query": "should we run an agent daemonset plus a gateway deployment or a single collector tier", "should_trigger": false, "expected": "otel-collector-pipeline-review"},
+  {"query": "size decision_wait and num_traces for the tail sampling processor on the gateway", "should_trigger": false, "expected": "tail-sampling-tuning"},
+  {"query": "a metric graph has gaps since Tuesday, walk from the target to the panel and find the first break", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "a label exploded our metric cardinality and the series count is climbing right now, stop it", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "we are mid-incident with the collector down, who should be incident commander and how do we communicate", "should_trigger": false, "expected": "incident-response"},
+  {"query": "here is a CI log from a failed build, which triage class is it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "write the alert rules for collector queue saturation with sensible thresholds and a for duration", "should_trigger": false, "expected": "alert-design"}
+]
