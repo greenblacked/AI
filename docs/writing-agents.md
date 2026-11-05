@@ -293,7 +293,9 @@ inline.
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
 [`marketplace.json`](../.claude-plugin/marketplace.json). The README lists every one that
-ships, by plugin, and `make catalogue` keeps that list in step with the tree.
+ships, by plugin, and `make catalogue` keeps that list in step with the tree. Each
+plugin's chapter opens with its subagents, ahead of its skills, with a sentence per agent
+on what to hand it and what it returns.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle

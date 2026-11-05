@@ -248,18 +248,18 @@ README = """# Mini
 
 ### Engineering
 
+#### Subagents
+
+| Subagent | Reads |
+| --- | --- |
+| `reader` | Things |
+
 #### Skills
 
 | Skill | What it does |
 | --- | --- |
 | [`alpha`](plugins/engineering/skills/alpha/SKILL.md) | First. |
 | [`beta`](plugins/engineering/skills/beta/SKILL.md) | Second. |
-
-#### Subagents
-
-| Subagent | Reads |
-| --- | --- |
-| `reader` | Things |
 
 #### Project kit
 

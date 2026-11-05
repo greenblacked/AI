@@ -621,7 +621,9 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
    ```
 
    `make catalogue` fails on a new skill twice over, both deliberately: it has no README
-   row yet, and it has pushed its plugin past the listing ceiling. Add the row, then
+   row yet, and it has pushed its plugin past the listing ceiling. Add the row to the
+   `#### Skills` table in the plugin's README chapter (the chapter lists subagents first,
+   then skills, any commands and the project kit), then
    either raise the ceiling with `scripts/check_listing_budget.py --update` and say why,
    or split the plugin.
 

@@ -26,7 +26,7 @@ twenty-nine plugins you install separately.
 
 ## In one minute
 
-- **What it is:** a Claude Code plugin marketplace of procedures (skills), subagents with no editing tools, slash commands and project kits. An agent loads a skill when its description matches your task, and the skill supplies the ordering, the checks and the evidence to collect. It is a procedure library, not an application.
+- **What it is:** a Claude Code plugin marketplace. Most subagents do the bulky reading (a log, an export, a dump) in their own context, so you get a short report back instead of the bytes; a few produce a stage artefact or review a draft. None has editing tools. Skills are the procedures: an agent loads one when its description matches your task, and it supplies the ordering, the checks and the evidence to collect. Project kits drop a rule, an opt-in hook and a template into your project. Slash commands run only when you invoke them. It is a procedure library, not an application.
 - **Who it is for:** anyone who works with a coding agent and wants it to follow a specific order and gate rather than generic advice. The plugins cover engineering, operations, security, data, product, design, management, and personal and career work.
 - **How it is built:** CI gates every pull request, and every change except a Dependabot patch or minor update is also judged by a reviewer agent with no editing tools. Skills are scanned by two skill scanners (Cisco's skill-scanner and NVIDIA's SkillSpector). Releases move through `dev`, `stage` and `main`. [How quality is enforced](#how-quality-is-enforced) has the detail.
 - **Where to start:** [install](#install) a plugin or two, or browse [ai.szolotov.com](https://ai.szolotov.com), which has a page for every plugin and skill. Using Codex, ChatGPT, Grok or another tool: [other tools](#other-tools).
@@ -99,7 +99,10 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills, 1 subagent | 1 |
 
 Each plugin is a self-contained directory under `plugins/` with its own manifest, so
-installing one does not pull in another's files.
+installing one does not pull in another's files. Inside a plugin the parts fit together in
+one order: its subagents read the bulky evidence for you, its skills are the procedures you
+then follow, its commands run only when you call them, and its project kit puts a rule, an
+opt-in hook and a template into your own project.
 
 ## How I work with agents
 
@@ -110,11 +113,14 @@ paraphrase. The verify loop is separate: it settles a single claim against prima
 [`/ship`](.claude/commands/ship.md) runs the build loop and
 [`/verify`](.claude/commands/verify.md) the verify loop.
 
+The survey stage runs two agents side by side: `explorer` beside `investigator` when the
+change rests on an outside claim, otherwise two `explorer`s on disjoint questions.
+
 ```mermaid
 flowchart LR
   subgraph build["Build loop: /ship"]
     EX["explorer: survey what exists"] --> IM["implementer: write it, run the gates"]
-    IV["investigator: only if the change rests on an outside claim"] --> IM
+    IV["investigator: if the change rests on an outside claim, else a second explorer on a disjoint question"] --> IM
     IM --> RV["reviewer: judge on a fresh context"]
     IM -.->|"security trigger"| SR["security-reviewer"]
     RV -->|"FIX"| IM
@@ -150,7 +156,7 @@ review here has already caught, which the writing and judging stages read first.
 
 The same idea runs a whole development workflow in the [`family`](#family) plugin: FAMILY
 takes one slice of work through Frame, Architect, Make, Inspect, Launch and Yield, each
-stage with one gate, one artifact and one handoff, for a solo developer, a developer, a
+stage with one gate, one artefact and one handoff, for a solo developer, a developer, a
 QA engineer or a team. It ships the `family-workflow` skill, a skill for each of the four
 profiles and a subagent per stage with no editing tools, and it is drawn stage by stage on
 the [website](https://ai.szolotov.com/family/).
@@ -267,14 +273,37 @@ healthy pods during someone else's outage. The gate is the skill.
 
 ## Plugins
 
-Each plugin is a chapter: its skills, the subagents (no editing tools) that keep bulky
-evidence out of the main context, any slash commands, and its project kit. Commands
-declare `disable-model-invocation: true`, so they run only when invoked explicitly, which
-makes them the right shape for work that takes an argument.
+Each plugin is a chapter, laid out in the order you meet the parts. The subagents come
+first. Most are evidence readers: each reads bulky evidence in its own context and hands
+back a short report, so the evidence never enters the main context. Some produce a stage
+artefact or review a draft instead. None has editing tools. The skills are the procedures
+an agent follows once a description matches. Any slash commands come next; they declare
+`disable-model-invocation: true`, so they run only when invoked explicitly, which makes
+them the right shape for work that takes an argument. The project kit comes last: a rule,
+an opt-in hook and a template to drop into your own project.
 
 ### Coding
 
 Reading, reviewing, testing and changing code.
+
+Hand a diff to `change-impact-reader`; it returns a bounded inventory of what the change
+can affect, with file and line evidence. Hand a drafted `SKILL.md` to `skill-reviewer`; it
+returns a review against this repository's rules.
+
+Three more read bulky history instead of the files. Hand run artefacts to
+`agent-run-trace-reader` for an evidence ledger by task and attempt, hundreds of CI test
+reports to `test-history-reader` for a flake-rate ledger, and exported review comments to
+`review-comment-miner` for recurring clusters.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `skill-reviewer` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
+| `change-impact-reader` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
+| `agent-run-trace-reader` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
+| `test-history-reader` | Hundreds of JUnit, pytest or go test reports across many CI runs | A flake-rate ledger with a denominator, co-failure clusters and a quarantine order by CI time and retries burned |
+| `review-comment-miner` | A pile of exported PR review comments or postmortem action items | Recurring clusters with an independent-instance count, a quoted example and candidate destinations |
 
 #### Skills
 
@@ -315,16 +344,6 @@ Reading, reviewing, testing and changing code.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `skill-reviewer` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
-| `change-impact-reader` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
-| `agent-run-trace-reader` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
-| `test-history-reader` | Hundreds of JUnit, pytest or go test reports across many CI runs | A flake-rate ledger with a denominator, co-failure clusters and a quarantine order by CI time and retries burned |
-| `review-comment-miner` | A pile of exported PR review comments or postmortem action items | Recurring clusters with an independent-instance count, a quoted example and candidate destinations |
-
 #### Commands
 
 | Command | What it does |
@@ -340,6 +359,23 @@ Reading, reviewing, testing and changing code.
 ### Family
 
 One development workflow, from a vague request to a measured outcome, run by a solo developer, a developer, a QA engineer or a whole team, light or full per slice.
+
+Hand each stage's input to its agent and it returns that stage's artefact: a vague request
+to `framer` for a frame, a frame to `architect` for the approach, a frame and architecture
+to `maker` for a change plan, a change to `inspector` for what holds and what fails, an
+inspected change to `launcher` for a launch plan, and a slice's outcome to `yielder` for a
+retro.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `framer` | A vague request and any known constraints | A frame: problem, users, success criterion, smallest slice, out of scope |
+| `architect` | A frame and the surrounding architecture | The approach, boundaries, interfaces, failure modes and the hard-to-reverse decision |
+| `maker` | A frame, an architecture note and the files a change touches | An ordered, file-level change plan with a proof per step, or the divergence from it |
+| `inspector` | A change, its frame and the commands to run | What holds and what fails against the frame, with evidence, and what was not assessed |
+| `launcher` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
+| `yielder` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
 
 #### Skills
 
@@ -362,17 +398,6 @@ One development workflow, from a vague request to a measured outcome, run by a s
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `framer` | A vague request and any known constraints | A frame: problem, users, success criterion, smallest slice, out of scope |
-| `architect` | A frame and the surrounding architecture | The approach, boundaries, interfaces, failure modes and the hard-to-reverse decision |
-| `maker` | A frame, an architecture note and the files a change touches | An ordered, file-level change plan with a proof per step, or the divergence from it |
-| `inspector` | A change, its frame and the commands to run | What holds and what fails against the frame, with evidence, and what was not assessed |
-| `launcher` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
-| `yielder` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
-
 #### Commands
 
 | Command | What it does |
@@ -389,6 +414,20 @@ One development workflow, from a vague request to a measured outcome, run by a s
 
 Making games, and shipping them. [`docs/gamedev.md`](docs/gamedev.md) is the route
 through this plugin's skills by production scale and game type.
+
+Hand a profiler capture or frame trace to `frame-capture-reader`; it returns whether the
+frame is CPU-bound or GPU-bound, with the evidence.
+
+Hand gameplay scripts to `tuning-literal-reader`; it returns the numeric literals that
+behave like tuning values, each classed move-to-data, structural constant or unsure, with
+file and line.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `frame-capture-reader` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
+| `tuning-literal-reader` | Gameplay scripts | Numeric literals that behave like tuning values, classed move-to-data, structural or unsure, with file and line, and per-frame arithmetic missing a delta-time factor |
 
 #### Skills
 
@@ -439,13 +478,6 @@ through this plugin's skills by production scale and game type.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `frame-capture-reader` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
-| `tuning-literal-reader` | Gameplay scripts | Numeric literals that behave like tuning values, classed move-to-data, structural or unsure, with file and line, and per-frame arithmetic missing a delta-time factor |
-
 #### Commands
 
 | Command | What it does |
@@ -462,6 +494,39 @@ through this plugin's skills by production scale and game type.
 ### Operations
 
 Keeping a running system alive.
+
+Hand a failing CI run to `ci-log-reader`; it returns a classification and the log line
+that decided it.
+
+Hand traces and logs for a slow or failing request path to `telemetry-reader`; it returns
+the critical path with per-span durations, or says the telemetry cannot answer.
+
+Hand a captured Kubernetes bundle to `k8s-evidence-reader`; it returns a bounded evidence
+report, without contacting the cluster.
+
+Hand a cloud billing export to `cost-analyst`; it returns the top movers and the cause of
+each.
+
+Hand raw triage notes and scrollback to `incident-scribe`; it returns a blameless
+postmortem draft.
+
+Hand a quarter or more of pager or alert history to `page-history-reader`; it returns
+per-rule fires, human actions kept apart from auto-resolve, and time to acknowledge.
+
+Hand an exported LLM usage or trace file to `llm-trace-reader`; it returns cost and
+latency hotspots by feature, prompt path, model and user.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `ci-log-reader` | A failing run's logs | One of five triage classes and the line that decided it |
+| `telemetry-reader` | Traces and structured logs | The critical path, or why the data cannot answer |
+| `k8s-evidence-reader` | Captured Kubernetes evidence | Up to five capture-time evidence chains, with contradictions and missing evidence |
+| `cost-analyst` | A cloud billing export | The top movers period over period, not the top spenders |
+| `incident-scribe` | Raw triage notes and scrollback | A blameless postmortem draft |
+| `page-history-reader` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
+| `llm-trace-reader` | An LLM usage or trace export | Cost and latency hotspots by feature, prompt path, model and user, with spend-cap 429s kept apart from rate-limit 429s |
 
 #### Skills
 
@@ -492,18 +557,6 @@ Keeping a running system alive.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `ci-log-reader` | A failing run's logs | One of five triage classes and the line that decided it |
-| `telemetry-reader` | Traces and structured logs | The critical path, or why the data cannot answer |
-| `k8s-evidence-reader` | Captured Kubernetes evidence | Up to five capture-time evidence chains, with contradictions and missing evidence |
-| `cost-analyst` | A cloud billing export | The top movers period over period, not the top spenders |
-| `incident-scribe` | Raw triage notes and scrollback | A blameless postmortem draft |
-| `page-history-reader` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
-| `llm-trace-reader` | An LLM usage or trace export | Cost and latency hotspots by feature, prompt path, model and user, with spend-cap 429s kept apart from rate-limit 429s |
-
 #### Commands
 
 | Command | What it does |
@@ -520,6 +573,15 @@ Keeping a running system alive.
 ### Delivery
 
 Getting a change into production without a bad night.
+
+Hand a release range of commits and merged pull requests to `changelog-reader`; it returns
+an inventory by audience with likely breaking changes flagged and noise collapsed.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `changelog-reader` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |
 
 #### Skills
 
@@ -543,12 +605,6 @@ Getting a change into production without a bad night.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `changelog-reader` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -558,6 +614,33 @@ Getting a change into production without a bad night.
 ### Security
 
 The defensive side of shipping software.
+
+Hand a Terraform or OpenTofu plan JSON to `plan-reviewer`; it returns what the apply will
+do, destroys first.
+
+Hand IAM policies and access logs to `policy-auditor`; it returns least-privilege
+findings, the gap between what an identity may do and what it did.
+
+Hand a schema dump or row sample to `pii-reader`; it returns which fields carry personal
+data, their category and where they flow onward.
+
+Hand a third-party agent extension in a quarantine directory to `extension-reader`; it
+returns what executes automatically, its permissions and risk findings anchored to
+file:line.
+
+Name a compromised package, action SHA or version window and hand lockfile history and CI
+logs to `supply-chain-exposure-reader`; it returns the repositories, runs and jobs that
+resolved or executed a bad version, with the secrets each job could reach.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `plan-reviewer` | A Terraform plan JSON | The blast radius, destroys first |
+| `policy-auditor` | IAM policies and access logs | The gap between permitted and used, with the window stated |
+| `pii-reader` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
+| `extension-reader` | A third-party agent extension in a quarantine directory | What executes automatically, permissions, text aimed at the model described, never quoted or followed, and risk findings anchored to file and line |
+| `supply-chain-exposure-reader` | Lockfile git history and CI run logs across many repositories | Every repository and run that resolved or executed a bad package or action, with the secrets each could reach |
 
 #### Skills
 
@@ -600,16 +683,6 @@ The defensive side of shipping software.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `plan-reviewer` | A Terraform plan JSON | The blast radius, destroys first |
-| `policy-auditor` | IAM policies and access logs | The gap between permitted and used, with the window stated |
-| `pii-reader` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
-| `extension-reader` | A third-party agent extension in a quarantine directory | What executes automatically, permissions, text aimed at the model quoted as data, and risk findings anchored to file and line |
-| `supply-chain-exposure-reader` | Lockfile git history and CI run logs across many repositories | Every repository and run that resolved or executed a bad package or action, with the secrets each could reach |
-
 #### Commands
 
 | Command | What it does |
@@ -626,6 +699,19 @@ The defensive side of shipping software.
 ### Manager
 
 Engineering leadership.
+
+Hand a vendor contract, order form, DPA or SOC 2 report to `contract-reader`; it returns
+the clauses that decide the deal, each quoted with its location.
+
+Hand collected peer and stakeholder feedback about one person to `feedback-synthesiser`;
+it returns themes with the number of independent sources and a quoted example.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `contract-reader` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
+| `feedback-synthesiser` | Collected peer feedback | Themes with a source count and a quoted example |
 
 #### Skills
 
@@ -659,13 +745,6 @@ Engineering leadership.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `contract-reader` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
-| `feedback-synthesiser` | Collected peer feedback | Themes with a source count and a quoted example |
-
 #### Commands
 
 | Command | What it does |
@@ -682,6 +761,20 @@ Engineering leadership.
 ### Personal
 
 The parts of life that are nobody's job.
+
+Hand bank, credit-card or wallet transaction exports to `statement-reader`; it returns
+spending by category per month, recurring charges, fees and interest, with transfers
+between your own accounts kept out of spending.
+
+Hand an insurance policy, tenancy agreement, loan offer or subscription terms to
+`terms-reader`; it returns the terms that decide what to do next, each quoted.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `statement-reader` | Bank, credit-card and digital-wallet transaction exports | Spending by category bucket, recurring charges, fees, transfers and anomalies |
+| `terms-reader` | An insurance policy, tenancy, loan or subscription's terms | The renewal date, notice period, exit charges and exclusions, each quoted and located |
 
 #### Skills
 
@@ -701,13 +794,6 @@ The parts of life that are nobody's job.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `statement-reader` | Bank, credit-card and digital-wallet transaction exports | Spending by category bucket, recurring charges, fees, transfers and anomalies |
-| `terms-reader` | An insurance policy, tenancy, loan or subscription's terms | The renewal date, notice period, exit charges and exclusions, each quoted and located |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -717,6 +803,15 @@ The parts of life that are nobody's job.
 ### Career
 
 Applications, negotiation, speaking and writing.
+
+Hand a folder of saved job postings to `job-posting-reader`; it returns the requirements
+that recur across them, classed hard or wish-list with a posting count and a quoted line.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `job-posting-reader` | A folder of saved job postings | Recurring requirements classed hard or wish-list with posting counts and a quote, scoping signals, and how many postings state a pay band and a level |
 
 #### Skills
 
@@ -739,12 +834,6 @@ Applications, negotiation, speaking and writing.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `job-posting-reader` | A folder of saved job postings | Recurring requirements classed hard or wish-list with posting counts and a quote, scoping signals, and how many postings state a pay band and a level |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -754,6 +843,16 @@ Applications, negotiation, speaking and writing.
 ### Design
 
 Usability, accessibility and design systems, and the words, structure and handoff around them.
+
+Hand one or more screenshots of a UI to `screenshot-reader`; it returns findings that each
+name a file, a region and what is visibly wrong, and lists what the image cannot
+establish.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `screenshot-reader` | One or more screenshots of a UI | Findings by file and region, with what the image cannot show listed for measurement in code |
 
 #### Skills
 
@@ -781,12 +880,6 @@ Usability, accessibility and design systems, and the words, structure and handof
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `screenshot-reader` | One or more screenshots of a UI | Findings by file and region, with what the image cannot show listed for measurement in code |
-
 #### Commands
 
 | Command | What it does |
@@ -802,6 +895,16 @@ Usability, accessibility and design systems, and the words, structure and handof
 ### LLM
 
 Building features on language models, and the checks that keep them honest.
+
+Hand a file of raw model replies that failed schema validation to `schema-failure-reader`;
+it returns each failure class with its count, the schema version it hit and one quoted
+example.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `schema-failure-reader` | A file of raw model replies that failed schema validation | Each failure class with its count, the schema version and one quoted example |
 
 #### Skills
 
@@ -828,12 +931,6 @@ Building features on language models, and the checks that keep them honest.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `schema-failure-reader` | A file of raw model replies that failed schema validation | Each failure class with its count, the schema version and one quoted example |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -843,6 +940,16 @@ Building features on language models, and the checks that keep them honest.
 ### Data
 
 Analytics engineering and classical machine learning: why a number is wrong, why a query costs what it does, what the data really shows, whether an experiment's result holds, and whether a model still works once it is in production.
+
+Hand a warehouse access-history or BI query-log export of 90 days or more to
+`warehouse-access-reader`; it returns which people, jobs, service accounts, extracts and
+views read one table, view or column, with the window's coverage stated.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `warehouse-access-reader` | A 90-day or longer warehouse access-history or BI query-log export | The people, jobs, service accounts, BI extracts and views that read one object, each classified, with the window's coverage |
 
 #### Skills
 
@@ -876,12 +983,6 @@ Analytics engineering and classical machine learning: why a number is wrong, why
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `warehouse-access-reader` | A 90-day or longer warehouse access-history or BI query-log export | The people, jobs, service accounts, BI extracts and views that read one object, each classified, with the window's coverage |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -891,6 +992,15 @@ Analytics engineering and classical machine learning: why a number is wrong, why
 ### Techdocs
 
 Documentation as something that can be tested: tutorials run from a clean machine, samples executed in CI, drift caught when the product changes, and URLs that keep working.
+
+Hand a documentation site-search export to `docs-search-log-reader`; it returns the
+zero-result and reformulated-query clusters, each with a count and a representative query.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `docs-search-log-reader` | A docs site-search export of many queries | Zero-result and reformulated-query clusters, each with its count, a representative query and the page clicked at the end of a chain |
 
 #### Skills
 
@@ -914,12 +1024,6 @@ Documentation as something that can be tested: tutorials run from a clean machin
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `docs-search-log-reader` | A docs site-search export of many queries | Zero-result and reformulated-query clusters, each with its count, a representative query and the page clicked at the end of a chain |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -929,6 +1033,16 @@ Documentation as something that can be tested: tutorials run from a clean machin
 ### Assurance
 
 Evidence that software does what it should and that the organisation can show it: tests that find their own blind spots, load and replay before a change ships, and privacy, licence and audit work run as procedure rather than legal advice.
+
+Hand a traffic replay's raw response-diff output to `replay-diff-reader`; it returns the
+diffs bucketed by signature, each bucket classed as noise, candidate bug, pre-approved or
+needs sign-off, with one example request.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `replay-diff-reader` | A traffic replay's old-against-old and candidate-against-old diff output | Diffs bucketed by signature and classed as noise, candidate bug, pre-approved or needing sign-off, with one example request each |
 
 #### Skills
 
@@ -951,12 +1065,6 @@ Evidence that software does what it should and that the organisation can show it
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `replay-diff-reader` | A traffic replay's old-against-old and candidate-against-old diff output | Diffs bucketed by signature and classed as noise, candidate bug, pre-approved or needing sign-off, with one example request each |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -966,6 +1074,16 @@ Evidence that software does what it should and that the organisation can show it
 ### Client-apps
 
 Code that runs on someone else's device: field performance and memory in the browser, version skew and service workers, Safari-only bugs, and on phones the crashes, hangs, slow starts, battery drain, bad networks and migrations that only show up in the wild.
+
+Hand a large set of Android ANR traces, iOS watchdog or hang reports and MetricKit
+payloads to `anr-trace-reader`; it returns, for each cluster, the termination class and
+the main-thread wait that decided it.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `anr-trace-reader` | Dozens or thousands of ANR traces, iOS watchdog and hang reports and MetricKit exit payloads | Clusters by termination class and the main-thread wait that decided each |
 
 #### Skills
 
@@ -999,12 +1117,6 @@ Code that runs on someone else's device: field performance and memory in the bro
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `anr-trace-reader` | Dozens or thousands of ANR traces, iOS watchdog and hang reports and MetricKit exit payloads | Clusters by termination class and the main-thread wait that decided each |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1014,6 +1126,16 @@ Code that runs on someone else's device: field performance and memory in the bro
 ### Product
 
 Product management and go-to-market run on evidence: interviews about what people actually switched from, cheap tests of demand before a build, pricing changed without a revolt, metrics diagnosed before anyone reacts, and churn, deals and support load read for their causes.
+
+Hand exported cancellation notes and tickets for a sample of churned accounts to
+`cancellation-note-reader`; it returns one primary code per account from your codebook,
+with the quoted line that decided it.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `cancellation-note-reader` | Exported cancellation notes, tickets and success-team notes for a sample of churned accounts | One primary code per account from the caller's codebook, the quoted line that decided it, and logo and revenue totals per code |
 
 #### Skills
 
@@ -1047,12 +1169,6 @@ Product management and go-to-market run on evidence: interviews about what peopl
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `cancellation-note-reader` | Exported cancellation notes, tickets and success-team notes for a sample of churned accounts | One primary code per account from the caller's codebook, the quoted line that decided it, and logo and revenue totals per code |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1062,6 +1178,16 @@ Product management and go-to-market run on evidence: interviews about what peopl
 ### Platform
 
 Cloud and platform engineering for the situations that recur and hurt: an overloaded Kubernetes control plane, network policy and storage, Terraform estates that grew by hand, cloud networks and identity, database upgrades and replicas, the edge, and commitments sized to real usage.
+
+Hand a saved conntrack dump, socket listing or NAT port-allocation export to
+`connection-table-reader`; it returns connection counts per destination IP and port
+against the relevant limit, with the one destination that dominates.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `connection-table-reader` | A saved conntrack dump, socket listing or NAT port-allocation export | Connection counts per destination IP and port against the relevant limit, with the dominant destination and source |
 
 #### Skills
 
@@ -1095,12 +1221,6 @@ Cloud and platform engineering for the situations that recur and hurt: an overlo
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `connection-table-reader` | A saved conntrack dump, socket listing or NAT port-allocation export | Connection counts per destination IP and port against the relevant limit, with the dominant destination and source |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1112,6 +1232,16 @@ Cloud and platform engineering for the situations that recur and hurt: an overlo
 Build and change infrastructure as code with explicit contracts and reviewable evidence.
 The [IaC usage guide](docs/iac.md) maps everyday tasks to these skills and to existing
 state, adoption, upgrade and security workflows.
+
+Hand the captured output of one local terraform test run to `terraform-test-reader`; it
+returns which runs passed, which failed on an assertion and which on a provider or
+configuration error, and the cleanup result with any orphaned resource addresses.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `terraform-test-reader` | The captured output of one local terraform test run | Each run's result split into assertion and provider or configuration failures, and the cleanup outcome with any orphaned resource addresses |
 
 #### Skills
 
@@ -1126,12 +1256,6 @@ state, adoption, upgrade and security workflows.
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `terraform-test-reader` | The captured output of one local terraform test run | Each run's result split into assertion and provider or configuration failures, and the cleanup outcome with any orphaned resource addresses |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1141,6 +1265,16 @@ state, adoption, upgrade and security workflows.
 ### Devtools
 
 Developer tooling and build systems: recovering lost git history, untangling rebases and dependency conflicts, finding why a build cache misses, building only what changed in a monorepo, and measuring before claiming anything got faster.
+
+Hand two build-cache key dumps for one task, one from each machine, to
+`cache-key-diff-reader`; it returns the single input that differs, classed as one of six
+culprits or as no input difference.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `cache-key-diff-reader` | Two build-cache key dumps for one task, one per machine | The single differing input, classed as one of six culprits or as no input difference |
 
 #### Skills
 
@@ -1162,12 +1296,6 @@ Developer tooling and build systems: recovering lost git history, untangling reb
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `cache-key-diff-reader` | Two build-cache key dumps for one task, one per machine | The single differing input, classed as one of six culprits or as no input difference |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1177,6 +1305,16 @@ Developer tooling and build systems: recovering lost git history, untangling reb
 ### Smallbiz
 
 Running a freelance practice or a small services business: pricing and quoting, keeping scope and payment under control, contracts, bookkeeping and tax preparation. Procedure, not professional advice.
+
+Hand a period's invoice register and payment export to `receivables-reader`; it returns
+each invoice as paid, part-paid or unpaid with the amount outstanding, totals per currency
+and any receipt that matched nothing.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `receivables-reader` | A period's invoice register and payment exports | Each invoice as paid, part-paid or unpaid, totals per currency and unmatched receipts |
 
 #### Skills
 
@@ -1208,12 +1346,6 @@ Running a freelance practice or a small services business: pricing and quoting, 
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `receivables-reader` | A period's invoice register and payment exports | Each invoice as paid, part-paid or unpaid, totals per currency and unmatched receipts |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1223,6 +1355,16 @@ Running a freelance practice or a small services business: pricing and quoting, 
 ### Backend
 
 Correctness in services that talk to each other: webhooks, transaction races, timeout and retry budgets, overload, rate limits, distributed locks, sagas, evolving event schemas, consumer lag, hot partitions, scheduled jobs, GraphQL query cost and gRPC runtime failures, and keeping a search index in step with its source.
+
+Hand two saved consumer-group snapshots and the consumer's client and GC logs to
+`consumer-lag-reader`; it returns one lag-pattern class with the per-partition deltas and
+the deciding log line.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `consumer-lag-reader` | Two saved consumer-group snapshots plus the consumer client and GC logs | One lag-pattern class with the per-partition deltas and the deciding log line |
 
 #### Skills
 
@@ -1248,12 +1390,6 @@ Correctness in services that talk to each other: webhooks, transaction races, ti
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `consumer-lag-reader` | Two saved consumer-group snapshots plus the consumer client and GC logs | One lag-pattern class with the per-partition deltas and the deciding log line |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1263,6 +1399,15 @@ Correctness in services that talk to each other: webhooks, transaction races, ti
 ### Languages
 
 The failures that belong to one runtime or toolchain: Python imports, wheels, memory and typing, Node module formats and leaks, TypeScript strictness, Go goroutines, races and the GC, JVM memory, threads and classpaths, .NET memory and thread-pool starvation, and native code — sanitizers, link errors, core dumps and unsafe Rust.
+
+Hand the stack dumps from one stall, crash or race to `stack-dump-reader`; it returns the
+frames that stayed put across captures, the decisive line and one named cause.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `stack-dump-reader` | Stack dumps from one stall, crash or race: JVM thread dumps, Go goroutine dumps, sanitizer reports, dotnet-stack output, gdb backtraces | The frames that stayed put across captures, the decisive line and one named cause |
 
 #### Skills
 
@@ -1294,12 +1439,6 @@ The failures that belong to one runtime or toolchain: Python imports, wheels, me
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `stack-dump-reader` | Stack dumps from one stall, crash or race: JVM thread dumps, Go goroutine dumps, sanitizer reports, dotnet-stack output, gdb backtraces | The frames that stayed put across captures, the decisive line and one named cause |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1309,6 +1448,16 @@ The failures that belong to one runtime or toolchain: Python imports, wheels, me
 ### Linux
 
 Keeping a Linux host up and reachable: units that will not start, boots that fail, kernel updates and crashes, full or failing disks, the OOM killer, load and resource limits, DNS, firewalls, MTU black holes, packet captures, TLS handshakes, private CAs, SSH lockouts and clocks that drift.
+
+Hand a saved host journal or dmesg dump to `journal-reader`; it returns the one decisive
+line for the unit, boot or kernel event you name, with its timestamp, line number and a
+one-sentence reading.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `journal-reader` | A saved host journal or dmesg dump too large to read inline | The one decisive line for the unit, boot or kernel event named, with its line number and a one-sentence reading |
 
 #### Skills
 
@@ -1341,12 +1490,6 @@ Keeping a Linux host up and reachable: units that will not start, boots that fai
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `journal-reader` | A saved host journal or dmesg dump too large to read inline | The one decisive line for the unit, boot or kernel event named, with its line number and a one-sentence reading |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1356,6 +1499,16 @@ Keeping a Linux host up and reachable: units that will not start, boots that fai
 ### Databases
 
 Database engineering past the basics: PostgreSQL locks, vacuum, bloat and wraparound, MySQL purge lag, deadlocks, connection storms and failover, integer keys running out, partitioning and index pruning, search and vector indexes, ClickHouse parts, time-series retention, Redis memory and SQLite in production.
+
+Hand a PostgreSQL server log or MySQL error log holding many deadlock reports to
+`deadlock-log-reader`; it returns the cycle class of each distinct pattern, with counts
+and the deciding log line.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `deadlock-log-reader` | A PostgreSQL server log or MySQL error log holding many deadlock reports | The cycle class of each distinct pattern with counts and the deciding log line |
 
 #### Skills
 
@@ -1387,12 +1540,6 @@ Database engineering past the basics: PostgreSQL locks, vacuum, bloat and wrapar
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `deadlock-log-reader` | A PostgreSQL server log or MySQL error log holding many deadlock reports | The cycle class of each distinct pattern with counts and the deciding log line |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1402,6 +1549,16 @@ Database engineering past the basics: PostgreSQL locks, vacuum, bloat and wrapar
 ### Observability
 
 Telemetry that answers the question during an incident and costs what it should: trace sampling and broken traces, latency histograms, cardinality and log volume, collector pipelines and back-pressure, semantic-convention upgrades and migrations, redaction, profiling, alerts that are backtested and dashboards that load.
+
+Hand one saved OpenTelemetry collector self-telemetry dump to `collector-metrics-reader`;
+it returns, in pipeline order, the furthest-downstream stage whose counters are unclean,
+with the decisive series and values.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `collector-metrics-reader` | One saved OpenTelemetry collector self-telemetry dump | The furthest-downstream unclean pipeline stage with the decisive series and a six-stage table |
 
 #### Skills
 
@@ -1433,12 +1590,6 @@ Telemetry that answers the question during an incident and costs what it should:
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `collector-metrics-reader` | One saved OpenTelemetry collector self-telemetry dump | The furthest-downstream unclean pipeline stage with the decisive series and a six-stage table |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1448,6 +1599,16 @@ Telemetry that answers the question during an incident and costs what it should:
 ### Embedded
 
 Software on devices you cannot walk up to: firmware updates that must not brick, staged fleet rollouts, provisioning and trust anchors, hard faults, watchdogs and RTOS races, sleep current and wake bugs, flash wear and memory budgets, clocks without a network, and serial, fieldbus, BLE and MQTT links that misbehave in the field.
+
+Hand a firmware build's linker map, stack-usage files and size reports to
+`linker-map-reader`; it returns flash and RAM use by region against budget, per-module
+growth against the base revision and the worst-case stack per task.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `linker-map-reader` | A firmware linker map, per-object stack-usage files and size reports | Flash and RAM use by region against budget, per-module growth against the base revision and the worst-case stack per task |
 
 #### Skills
 
@@ -1479,12 +1640,6 @@ Software on devices you cannot walk up to: firmware updates that must not brick,
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `linker-map-reader` | A firmware linker map, per-object stack-usage files and size reports | Flash and RAM use by region against budget, per-module growth against the base revision and the worst-case stack per task |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1494,6 +1649,16 @@ Software on devices you cannot walk up to: firmware updates that must not brick,
 ### Learning
 
 Getting good at something, and helping others do the same: ramping up on an unfamiliar domain or technology, study and exam plans, workshops and exercises that practise the real skill, mentoring and pairing, getting what experts know out of their heads, checking that training changed anything, and reading, reproducing and scanning research.
+
+Hand recorded expert-interview transcripts to `interview-transcript-reader`; it returns
+decision-rule candidates, each with the verbatim line that supports it and a note of what
+the expert never said.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `interview-transcript-reader` | Recorded expert-interview transcripts | Decision-rule candidates, each with the verbatim transcript line that supports it, and what the expert never said |
 
 #### Skills
 
@@ -1521,12 +1686,6 @@ Getting good at something, and helping others do the same: ramping up on an unfa
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `interview-transcript-reader` | Recorded expert-interview transcripts | Decision-rule candidates, each with the verbatim transcript line that supports it, and what the expert never said |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1536,6 +1695,15 @@ Getting good at something, and helping others do the same: ramping up on an unfa
 ### Research
 
 Engineering for research code and data: environments that reproduce, NaNs and floating-point error traced to their source, convergence and Monte Carlo run lengths, fair comparisons and statistics that survive review, batch effects and non-independence, Slurm jobs that fail or are mis-sized, checkpoints, scaling studies, sweeps, chunked arrays and parallel filesystems that stay healthy.
+
+Hand a failed Slurm job's sacct rows and its stderr and stdout to `slurm-log-reader`; it
+returns the State class, the step row that decided it and the one decisive log line.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `slurm-log-reader` | A failed Slurm job's saved sacct rows and its stderr and stdout across an array or MPI run | The State class, the step row that decided it and the decisive log line, with the first failing index or rank |
 
 #### Skills
 
@@ -1566,12 +1734,6 @@ Engineering for research code and data: environments that reproduce, NaNs and fl
 
 </details>
 
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `slurm-log-reader` | A failed Slurm job's saved sacct rows and its stderr and stdout across an array or MPI run | The State class, the step row that decided it and the decisive log line, with the first failing index or rank |
-
 #### Project kit
 
 | Skill | Rule | Hook | Template |
@@ -1581,6 +1743,16 @@ Engineering for research code and data: environments that reproduce, NaNs and fl
 ### Growth
 
 Marketing and content operations that hold up to measurement: content SEO and programmatic pages that earn their index, email that authenticates and lands, lifecycle sequences, campaign tags and preflight checks, attribution and paid-search waste, lead quality, landing pages that match the ad, tests on low-traffic pages, customer stories, and communities and developer programmes that stay healthy.
+
+Hand a directory of DMARC aggregate reports to `dmarc-report-reader`; it returns a sender
+inventory classed as working, fixable, forwarder or list, or unknown, with the rows that
+decided each class.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `dmarc-report-reader` | A directory of DMARC aggregate reports | A sender inventory classed as working, fixable, forwarder or list, or unknown, with the deciding rows |
 
 #### Skills
 
@@ -1611,12 +1783,6 @@ Marketing and content operations that hold up to measurement: content SEO and pr
 | [`sending-domain-warmup`](plugins/growth/skills/sending-domain-warmup/SKILL.md) | Bring a new sending domain, dedicated IP or migrated email provider up to full volume without burning reputation: separate streams by subdomain first, then ramp by engaged recipients rather than calendar, starting with the most recently active subscribers at a few hundred a day and doubling only while complaint rate stays under 0.1%, hard bounces stay under a house threshold and provider dashboards stay green, holding or stepping back on any breach. |
 
 </details>
-
-#### Subagents
-
-| Subagent | Reads | Returns |
-| --- | --- | --- |
-| `dmarc-report-reader` | A directory of DMARC aggregate reports | A sender inventory classed as working, fixable, forwarder or list, or unknown, with the deciding rows |
 
 #### Project kit
 
