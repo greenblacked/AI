@@ -93,7 +93,11 @@ fi
 # an excluded block (ª, º, µ, the letterlike symbols, the rarer CJK ideographs) count as
 # non-letters, and some marks and symbols in an included block (combining marks, the modifier
 # letters, private use) count as letters. The multiplication and division signs, the CJK punctuation
-# block and the fullwidth and special-purpose punctuation are removed first.
+# block and the fullwidth and special-purpose punctuation are removed first. The CJK block holds
+# letters too, which stay: the iteration mark and the other ideographic letters (U+3005-3007,
+# so 人々 and 時々 are words), and the vertical kana repeat marks and the vertical ideographic
+# iteration mark (U+3031-3035, U+303B). The hiragana and katakana repeat marks (ゝ ゞ ヽ ヾ) are
+# outside the CJK punctuation block and were never removed.
 #   Stryker line: the reason is what follows the first colon after "Stryker disable".
 #   Other marker: the reason must come after the marker (code before it is not one, and a
 #   suffix such as the "-all" in @infection-ignore-all belongs to the marker), or sit in a
@@ -106,7 +110,7 @@ rc=0
 verdict="$(
   LC_ALL=C awk '
     function norm(s) {
-      gsub(/\303\227|\303\267|\343\200[\200-\277]|\357\274[\200-\217\232-\240\273-\277]|\357\275[\200\233-\245]|\357\273\277|\357\277[\260-\277]/, " ", s)
+      gsub(/\303\227|\303\267|\343\200[\200-\204\210-\260\266-\272\274-\277]|\357\274[\200-\217\232-\240\273-\277]|\357\275[\200\233-\245]|\357\273\277|\357\277[\260-\277]/, " ", s)
       gsub(/[\303-\341\343-\355\357][\200-\277]*/, "a", s)
       gsub(/[\200-\377]/, " ", s)
       return s

@@ -648,5 +648,15 @@
   {"hook": "ddl", "name": "brace-list-no-client", "payload": {"tool_input": {"command": "cp a.{c,h} dir"}}, "exit": 0},
   {"hook": "ddl", "name": "quoted-words-no-ddl", "payload": {"tool_input": {"command": "echo 'drop' 'tables'"}}, "exit": 0},
   {"hook": "ddl", "name": "bq-query-select", "payload": {"tool_input": {"command": "bq 'query' 'select 1'"}}, "exit": 0},
-  {"hook": "ddl", "name": "git-log", "payload": {"tool_input": {"command": "git log --oneline"}}, "exit": 0}
+  {"hook": "ddl", "name": "git-log", "payload": {"tool_input": {"command": "git log --oneline"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-japanese-repeat-mark-hitobito", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 人々\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-japanese-repeat-mark-tokidoki", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 時々\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-japanese-shime", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 〆〆\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-japanese-vertical-repeat-marks", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 〱〱\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-japanese-vertical-iteration-mark", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 〻〻\n"}}, "exit": 0},
+  {"hook": "sup", "name": "stryker-japanese-repeat-mark", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: 人々\n"}}, "exit": 0},
+  {"hook": "sup", "name": "above-comment-japanese-repeat-mark", "payload": {"tool_input": {"file_path": "a.py", "content": "# 時々\nx = 1  # pragma: no mutate\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-cjk-punctuation-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 。。\n"}}, "exit": 2},
+  {"hook": "sup", "name": "reason-cjk-comma-and-brackets-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 、「」\n"}}, "exit": 2},
+  {"hook": "sup", "name": "reason-ideographic-space-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 　　\n"}}, "exit": 2}
 ]
