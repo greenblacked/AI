@@ -13,7 +13,7 @@ if command -v jq >/dev/null 2>&1; then
     'if type=="object" and (.tool_input|type)=="object" then (.tool_input.command | if . == null then empty elif type=="string" then . else tojson end) else empty end' \
     2>/dev/null || true)"
 elif command -v python3 >/dev/null 2>&1; then
-  command="$(printf '%s' "$input" | python3 -c \
+  command="$(printf '%s' "$input" | python3 -I -c \
     'import json, sys
 try:
     data = json.load(sys.stdin)

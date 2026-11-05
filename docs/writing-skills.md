@@ -553,16 +553,37 @@ runs with your permissions on every matching tool call.
   thing.
 - It starts with `#!/usr/bin/env bash` and `set -Eeuo pipefail`.
 - It uses standard tools only, with no network access and no secrets.
-- It reads the stdin JSON with `python3` or `jq` only if present, and degrades to
+- It reads the stdin JSON with `python3 -I` or `jq` only if present, and degrades to
   allowing when neither is, because a hook that blocks everything on a missing tool is
-  worse than none.
-- It exits 2 with the reason on stderr to block, and 0 otherwise.
+  worse than none. `-I` keeps a `json.py` in the project directory from being imported in
+  place of the standard module.
+- It exits 0 to allow and 2 to object, with the reason on stderr, and what 2 does depends
+  on the event. On `PreToolUse` it blocks the call before it runs. On `PostToolUse` the
+  write has already happened: exit 2 only feeds stderr back to the model, which can fix the
+  file but cannot be undone by the hook. A kit that must stop a write registers on
+  `PreToolUse`.
+- It sees only the command text, and a text match cannot read the shell's own spellings.
+  A hook that judges a shell command therefore normalises it once (deletes quotes and
+  backslashes, drops the `$` of `$'...'`, joins continuation lines) and matches on that,
+  and refuses what it cannot normalise when the command also names its protected target:
+  a `$'...'` string with a backslash (hex and octal escapes), a brace list or range, and a
+  variable or substitution where the command word goes (`t=terraform; $t apply`), which it
+  reads directly after a separator or after the common wrappers (`sudo`, `exec`, `command`
+  and similar) and not after any other wrapper; `env` is among them only in the symbols,
+  terraform and erase hooks, not in the DDL and backend-kill hooks. It
+  refuses with a message saying it could not read the command and that it should be
+  written plainly. Indirection through a script file or an interpreter one-liner is still
+  out of scope, and each hook's header comment says so rather than imply a guarantee.
 
-A kit's `.sh` makes both skill scanners flag its anchor skill: Cisco reports
-`ALLOWED_TOOLS_BASH_VIOLATION` and SkillSpector reports AE1 `static_parse_limit`. So each
-kit lands with a reviewed Cisco suppression scoped to that skill and rule, and a
-SkillSpector accepted entry, both judged under `.github/skill-scan/README.md`. Never use a
-broad suppression.
+A kit's `.sh` makes Cisco flag its anchor skill with `ALLOWED_TOOLS_BASH_VIOLATION`, and
+may make SkillSpector report AE1 `static_parse_limit` there; in the first batch of ten kits
+it fired on one. So each kit lands with a reviewed Cisco suppression scoped to that skill
+and rule, judged under `.github/skill-scan/README.md`. When SkillSpector does report AE1 on
+a kit script, read its SARIF evidence first. A `runtime_limit` reason is a slow runner:
+re-run the job and add nothing. A `static_parse_limit` on the script is a scanner limit, so
+read the script by hand and, if it is a deterministic guard with no network, secret or
+eval, add one accepted entry scoped to that skill, path and match, with its reason. Never
+use a broad suppression.
 
 The command in the JSON must be exactly `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`
 with nothing else on the line, and the script must sit beside the JSON.

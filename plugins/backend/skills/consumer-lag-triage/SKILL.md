@@ -22,6 +22,8 @@ kafka-consumer-groups.sh --bootstrap-server $B --describe --group $G
 
 Per partition, compute the change in `CURRENT-OFFSET` (consumption), in `LOG-END-OFFSET` (production) and in `LAG`. Add `--state` for the group state and coordinator, and `--members --verbose` for which consumer holds which partitions. Read `references/commands-and-patterns.md` for the output columns and the extra invocations.
 
+When the saved snapshots and the consumer client and GC logs are bulky, hand them to the `consumer-lag-reader` subagent, which returns one class with the per-partition deltas and the deciding log line without the files entering this context.
+
 If the command reports no active members, the group is empty: nothing is consuming, and the question becomes why the consumers are not running, not why they are slow.
 
 ## 2. Read the pattern

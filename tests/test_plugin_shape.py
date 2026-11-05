@@ -11,6 +11,7 @@ mode does not fail until `PLUGIN_SHAPE_ENFORCED` is flipped.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -659,3 +660,222 @@ def test_the_two_example_hook_branches_agree_on_a_non_string_command(tmp_path, c
     assert results[0].returncode == results[1].returncode
     assert results[0].stderr == results[1].stderr
     assert results[0].returncode == (2 if "forbidden" in command else 0)
+
+
+# A command line is cut into simple commands at the shell's separators, each command is read
+# past the words that only introduce another one (a keyword, a variable assignment, `env` and
+# its flags, `timeout` and its duration, `command -p`, `exec`), and the word that is left is the
+# command. It counts as python when it is `python`, `python3.12` or a path to one, or a variable
+# whose name says so (`"$PY"`, `$PYTHON3`). `command -v python3` and prose such as "needs python3
+# on PATH" put another word first, so they are not a call.
+_SEPARATORS = re.compile(r"\$\(|[|;&()`]")
+_TOKEN = re.compile(r"""(?:[^\s'"]|'[^']*'|"[^"]*")+""")
+_ASSIGNMENT = re.compile(r"[A-Za-z_]\w*=")
+_KEYWORDS = {
+    "if",
+    "then",
+    "elif",
+    "else",
+    "do",
+    "while",
+    "until",
+    "!",
+    "exec",
+    "time",
+    "nohup",
+    "{",
+}
+_PYTHON_WORD = re.compile(r"(?:.*/)?python[0-9.]*")
+_PYTHON_VARIABLE = re.compile(r"\$\{?\w*(?:py|python)\w*\}?", re.IGNORECASE)
+_DURATION = re.compile(r"[0-9.]+[smhd]?")
+# Flags that take the next word as their value, for the wrappers handled below.
+_ENV_VALUE_FLAGS = {"-u", "-C", "-S", "--unset", "--chdir", "--split-string"}
+_TIMEOUT_VALUE_FLAGS = {"-k", "-s", "--kill-after", "--signal"}
+
+
+def _unquote(word: str) -> str:
+    return word.replace('"', "").replace("'", "")
+
+
+def _command_word(tokens: list[str]) -> int | None:
+    """Index of the word that is the command, or None when this is not a call at all."""
+    i = 0
+    while i < len(tokens):
+        word = _unquote(tokens[i])
+        base = word.rsplit("/", 1)[-1]
+        if word in _KEYWORDS or _ASSIGNMENT.match(word):
+            i += 1
+        elif base == "env":
+            i += 1
+            while i < len(tokens) and (
+                _unquote(tokens[i]).startswith("-") or _ASSIGNMENT.match(_unquote(tokens[i]))
+            ):
+                i += 2 if _unquote(tokens[i]) in _ENV_VALUE_FLAGS else 1
+        elif base == "timeout":
+            i += 1
+            while i < len(tokens) and _unquote(tokens[i]).startswith("-"):
+                i += 2 if _unquote(tokens[i]) in _TIMEOUT_VALUE_FLAGS else 1
+            if i < len(tokens) and _DURATION.fullmatch(_unquote(tokens[i])):
+                i += 1
+        elif word == "command":
+            i += 1
+            if i < len(tokens) and _unquote(tokens[i]) in {"-v", "-V"}:
+                return None
+            while i < len(tokens) and _unquote(tokens[i]) == "-p":
+                i += 1
+        else:
+            return i
+    return None
+
+
+def _isolated(options: list[str]) -> bool:
+    """True when `-I` comes as a flag of its own or in a cluster before one that takes a value.
+
+    `-c` and `-m` end the interpreter's options (the next word is code or a module), and `-W` and
+    `-X` take a value, so an `I` after any of them is part of that value and isolates nothing.
+    """
+    skip = False
+    for option in options:
+        word = _unquote(option)
+        if skip:
+            skip = False
+            continue
+        if not re.fullmatch(r"-[A-Za-z]+", word):
+            return False
+        for position, letter in enumerate(word[1:], 1):
+            if letter == "I":
+                return True
+            if letter in "cm":
+                return False
+            if letter in "WX":
+                skip = position == len(word) - 1
+                break
+    return False
+
+
+def _python_calls_without_isolation(script: Path) -> list[str]:
+    """Lines that start a python interpreter in command position without -I."""
+    bad = []
+    text = script.read_text(encoding="utf-8").replace("\\\n", " ")
+    for line in text.splitlines():
+        code = line.split("#", 1)[0]
+        for command in _SEPARATORS.split(code):
+            tokens = _TOKEN.findall(command)
+            index = _command_word(tokens)
+            if index is None:
+                continue
+            word = _unquote(tokens[index])
+            is_python = _PYTHON_WORD.fullmatch(word) or _PYTHON_VARIABLE.fullmatch(word)
+            if is_python and not _isolated(tokens[index + 1 :]):
+                bad.append(line.strip())
+    return bad
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "x=$(python3 -c 'pass')",
+        "x=$(printf a | python3 -c 'pass')",
+        "if python3 -c 'pass'; then :; fi",
+        "elif python3 -c 'pass'; then :",
+        "  then python3 -c 'pass'",
+        "while python3 -c 'pass'; do :; done",
+        "! python3 -c 'pass' || exit 0",
+        "exec python3 -c 'pass'",
+        "exec env python3 -c 'pass'",
+        "env python3 -c 'pass'",
+        "command python3 -c 'pass'",
+        "time python3 -c 'pass'",
+        "LC_ALL=C python3 -c 'pass'",
+        "a && python3 -c 'pass'",
+        "  python3.12 -c 'pass'",
+        "if python3; then :; fi",
+        "if python3\n",
+        "/usr/bin/env python3 -c 'pass'",
+        "env -i python3 -c 'pass'",
+        "env -u HOME python3 -c 'pass'",
+        "env FOO=1 python3 -c 'pass'",
+        "timeout 5 python3 -c 'pass'",
+        "timeout -k 1 5 python3 -c 'pass'",
+        "x=$(timeout 5s env -i python3 -c 'pass')",
+        "python3 -cI 'pass'",
+        "python3 -c 'pass' -I",
+        "python3 -Ec 'pass'",
+        "python3 -W error -c 'pass'",
+    ],
+)
+def test_the_isolation_scan_flags_python_in_command_position_without_dash_i(tmp_path, line):
+    script = tmp_path / "hook.sh"
+    script.write_text(line + "\n", encoding="utf-8")
+    assert _python_calls_without_isolation(script)
+    # The same line with -I is clean, so the scan is not flagging the form itself.
+    isolated = re.sub(r"(python[0-9.]*)(?=[\s;|&)]|$)", r"\1 -I", line, count=1)
+    script.write_text(isolated + "\n", encoding="utf-8")
+    assert not _python_calls_without_isolation(script)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "elif command -v python3 >/dev/null 2>&1; then",
+        "if command -v python3 >/dev/null 2>&1; then",
+        "# needs python3 on PATH",
+        'echo "needs python3 on PATH"',
+        "x=$(command -v python3)",
+        "  command=\"$(printf '%s' \"$input\" | python3 -I -c 'pass')\"",
+        "if python3 -I -c 'pass'; then :; fi",
+        "exec env python3 -I -c 'pass'",
+        "LC_ALL=C python3 -Ic 'pass'",
+        "echo python3",
+        "python3 -Ic 'pass'",
+        "python3 -EIc 'pass'",
+        "python3 -E -I -c 'pass'",
+        "python3 -I script.py",
+        "/usr/bin/env python3 -I -c 'pass'",
+        "env -i python3 -I -c 'pass'",
+        "timeout 5 python3 -I -c 'pass'",
+        'timeout 5 "$PY" -I -c pass',
+        "printf '%s' \"$input\" | python3 -I -c \\",
+        "command -p python3 -I -c 'pass'",
+        "echo env python3 timeout 5 python3",
+    ],
+)
+def test_the_isolation_scan_does_not_flag_prose_or_a_lookup(tmp_path, line):
+    script = tmp_path / "hook.sh"
+    script.write_text(line + "\n", encoding="utf-8")
+    assert not _python_calls_without_isolation(script)
+
+
+@pytest.mark.parametrize(
+    ("bad", "good"),
+    [
+        ("\"$PY\" -c 'pass'", "\"$PY\" -I -c 'pass'"),
+        ("$PYTHON -c 'pass'", "$PYTHON -I -c 'pass'"),
+        ('x=$("${PY}" -c pass)', 'x=$("${PY}" -I -c pass)'),
+        ("env -i $py -c pass", "env -i $py -I -c pass"),
+        ("timeout 5 $PYTHON3 -c pass", "timeout 5 $PYTHON3 -Ic pass"),
+        ("python3 -cI pass", "python3 -Ic pass"),
+        ("python3 -c pass -I", "python3 -I -c pass"),
+    ],
+)
+def test_the_isolation_scan_reads_a_variable_command_and_the_flag_position(tmp_path, bad, good):
+    script = tmp_path / "hook.sh"
+    script.write_text(bad + "\n", encoding="utf-8")
+    assert _python_calls_without_isolation(script)
+    script.write_text(good + "\n", encoding="utf-8")
+    assert not _python_calls_without_isolation(script)
+
+
+def test_every_shipped_kit_hook_runs_python_isolated():
+    # A project directory can hold a json.py; without -I a bare `python3 -c` imports it
+    # and runs it as the hook, so the guard becomes whatever the repository planted.
+    root = Path(__file__).resolve().parent.parent
+    scripts = sorted(root.glob("plugins/*/skills/*/assets/hooks/*.sh"))
+    scripts.append(root / "template/kit/hooks/example.sh")
+    assert len(scripts) > 5
+    offenders = {
+        str(s.relative_to(root)): found
+        for s in scripts
+        if (found := _python_calls_without_isolation(s))
+    }
+    assert not offenders

@@ -9,7 +9,7 @@
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-527 agent skills, 31 subagents, eleven slash commands and one project kit, in
+527 agent skills, 41 subagents, eleven slash commands and eleven project kits, in
 twenty-nine plugins you install separately.
 
 [![Skills](https://img.shields.io/badge/skills-527-7c3aed)](#plugins)
@@ -76,27 +76,27 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 0 |
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands | 0 |
 | [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 0 |
-| [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills | 0 |
+| [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills, 1 subagent | 1 |
 | [`design`](#design) | Usability, accessibility and design systems | 16 skills, 1 subagent, 1 command | 0 |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills | 0 |
-| [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills | 0 |
+| [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills, 1 subagent | 1 |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills | 0 |
-| [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills | 0 |
-| [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills | 0 |
+| [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills, 1 subagent | 1 |
+| [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills, 1 subagent | 1 |
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills | 0 |
 | [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills | 0 |
-| [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills | 0 |
-| [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills | 0 |
+| [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills, 1 subagent | 1 |
+| [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills, 1 subagent | 1 |
 | [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills | 0 |
-| [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills | 0 |
+| [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills, 1 subagent | 1 |
 | [`languages`](#languages) | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C and C++, Rust | 20 skills | 0 |
 | [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 21 skills | 0 |
-| [`databases`](#databases) | Database engineering: PostgreSQL and MySQL internals, locks, vacuum, failover, partitioning, search, vectors, ClickHouse, Redis, SQLite | 20 skills | 0 |
+| [`databases`](#databases) | Database engineering: PostgreSQL and MySQL internals, locks, vacuum, failover, partitioning, search, vectors, ClickHouse, Redis, SQLite | 20 skills, 1 subagent | 1 |
 | [`observability`](#observability) | Observability engineering: tracing and sampling, metrics and cardinality, log cost, collector pipelines, profiling, alerting, dashboards | 20 skills | 0 |
-| [`embedded`](#embedded) | Embedded and IoT: firmware updates, fleet rollouts, provisioning, faults, watchdogs, power, memory, flash, buses, BLE, MQTT | 20 skills | 0 |
+| [`embedded`](#embedded) | Embedded and IoT: firmware updates, fleet rollouts, provisioning, faults, watchdogs, power, memory, flash, buses, BLE, MQTT | 20 skills, 1 subagent | 1 |
 | [`learning`](#learning) | Learning and teaching: ramp-up, study plans, workshops, mentoring, tacit knowledge, training evaluation, reading research | 16 skills | 0 |
 | [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills | 0 |
-| [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills | 0 |
+| [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills, 1 subagent | 1 |
 
 Each plugin is a self-contained directory under `plugins/` with its own manifest, so
 installing one does not pull in another's files.
@@ -727,11 +727,15 @@ Applications, negotiation, speaking and writing.
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `job-posting-reader` | A folder of saved job postings | Recurring requirements classed hard or wish-list with posting counts and a quote, scoping signals, and how many postings state a pay band and a level |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `job-search` | `application-evidence` | `placeholder-list` | `application-record` |
 
 ### Design
 
@@ -854,11 +858,15 @@ Analytics engineering and classical machine learning: why a number is wrong, why
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `warehouse-access-reader` | A 90-day or longer warehouse access-history or BI query-log export | The people, jobs, service accounts, BI extracts and views that read one object, each classified, with the window's coverage |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `metric-reconciliation` | `metric-definitions` | `block-destructive-warehouse-ddl` | `metric-definition` |
 
 ### Techdocs
 
@@ -921,11 +929,15 @@ Evidence that software does what it should and that the organisation can show it
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `replay-diff-reader` | A traffic replay's old-against-old and candidate-against-old diff output | Diffs bucketed by signature and classed as noise, candidate bug, pre-approved or needing sign-off, with one example request each |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `mutation-testing` | `test-strength` | `require-suppression-reason` | `survivor-ledger` |
 
 ### Client-apps
 
@@ -965,11 +977,15 @@ Code that runs on someone else's device: field performance and memory in the bro
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `anr-trace-reader` | Dozens or thousands of ANR traces, iOS watchdog and hang reports and MetricKit exit payloads | Clusters by termination class and the main-thread wait that decided each |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `crash-triage` | `shipped-build-symbols` | `keep-shipped-symbols` | `crash-review` |
 
 ### Product
 
@@ -1080,11 +1096,15 @@ state, adoption, upgrade and security workflows.
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `terraform-test-reader` | The captured output of one local terraform test run | Each run's result split into assertion and provider or configuration failures, and the cleanup outcome with any orphaned resource addresses |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `iac-apply-pipeline` | `terraform-apply-handoff` | `refuse-unsaved-terraform-apply` | `apply-approval-record` |
 
 ### Devtools
 
@@ -1112,11 +1132,15 @@ Developer tooling and build systems: recovering lost git history, untangling reb
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `cache-key-diff-reader` | Two build-cache key dumps for one task, one per machine | The single differing input, classed as one of six culprits or as no input difference |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `slow-build-profile` | `build-graph-edits` | `generated-stamp-guard` | `build-timing-record` |
 
 ### Smallbiz
 
@@ -1190,11 +1214,15 @@ Correctness in services that talk to each other: webhooks, transaction races, ti
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `consumer-lag-reader` | Two saved consumer-group snapshots plus the consumer client and GC logs | One lag-pattern class with the per-partition deltas and the deciding log line |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `timeout-and-retry-budget` | `client-deadlines` | `retry-without-deadline` | `call-chain-budget` |
 
 ### Languages
 
@@ -1317,11 +1345,15 @@ Database engineering past the basics: PostgreSQL locks, vacuum, bloat and wrapar
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `deadlock-log-reader` | A PostgreSQL server log or MySQL error log holding many deadlock reports | The cycle class of each distinct pattern with counts and the deciding log line |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `lock-queue-triage` | `migration-lock-timeout` | `block-set-based-backend-kill` | `stall-record` |
 
 ### Observability
 
@@ -1401,11 +1433,15 @@ Software on devices you cannot walk up to: firmware updates that must not brick,
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `linker-map-reader` | A firmware linker map, per-object stack-usage files and size reports | Flash and RAM use by region against budget, per-module growth against the base revision and the worst-case stack per task |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `ota-update-safety` | `firmware-update-path` | `block-whole-device-erase` | `power-cut-sweep-record` |
 
 ### Learning
 
@@ -1522,11 +1558,15 @@ Marketing and content operations that hold up to measurement: content SEO and pr
 
 #### Subagents
 
-None yet.
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `dmarc-report-reader` | A directory of DMARC aggregate reports | A sender inventory classed as working, fixable, forwarder or list, or unknown, with the deciding rows |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `deliverability-triage` | `email-template-rules` | `email-template-unsubscribe` | `deliverability-incident` |
 
 ## Other tools
 

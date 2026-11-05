@@ -437,6 +437,13 @@
       "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
     },
     {
+      "rule_id": "AE1",
+      "path": "plugins/devtools/skills/slow-build-profile/SKILL.md",
+      "match": "assets/hooks/generated-stamp-guard.sh (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports static_parse_limit: a bounded static parser span limit was exceeded on the project kit's opt-in hook script, which is a deterministic guard that reads one stdin payload and greps it, with no network, secrets or eval; the line is only a pointer to a file that exists in the skill."
+    },
+    {
       "rule_id": "MP3",
       "path": "plugins/family/agents/yielder.md",
       "match": "clear state",
