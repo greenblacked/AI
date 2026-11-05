@@ -501,5 +501,19 @@
   {"hook": "sup", "name": "reasoned-markers-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.py", "content": {"parts": [["x = 1  # pragma: no mutate because ok\n", 20000]]}}}, "exit": 0},
   {"hook": "sup", "name": "bare-marker-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.py", "content": {"parts": [["x = 1\n", 20000], "y = 2  # pragma: no mutate\n"]}}}, "exit": 2},
   {"hook": "sup", "name": "stryker-reasoned-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.ts", "content": {"parts": [["// Stryker disable next-line all: ok\n", 5000]]}}}, "exit": 0},
-  {"hook": "sup", "name": "reason-multiplication-signs", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate ×× ÷\n"}}, "exit": 2}
+  {"hook": "sup", "name": "reason-multiplication-signs", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate ×× ÷\n"}}, "exit": 2},
+  {"hook": "game", "name": "invalid-json-stdin", "raw": "not json", "exit": 0},
+  {"hook": "game", "name": "no-tool-input", "payload": {}, "exit": 0},
+  {"hook": "game", "name": "path-number", "payload": {"tool_input": {"file_path": 5}}, "exit": 0},
+  {"hook": "game", "name": "valid-file", "payload": {"tool_input": {"file_path": "data/valid.json"}}, "exit": 0},
+  {"hook": "game", "name": "invalid-json", "payload": {"tool_input": {"file_path": "data/invalid.json"}}, "exit": 2},
+  {"hook": "game", "name": "two-values", "payload": {"tool_input": {"file_path": "data/two.json"}}, "exit": 2},
+  {"hook": "game", "name": "empty-file", "payload": {"tool_input": {"file_path": "data/empty.json"}}, "exit": 2},
+  {"hook": "game", "name": "bom-valid", "payload": {"tool_input": {"file_path": "data/bom.json"}}, "exit": 0},
+  {"hook": "game", "name": "bom-invalid", "payload": {"tool_input": {"file_path": "data/bom-bad.json"}}, "exit": 2},
+  {"hook": "game", "name": "outside-data-invalid", "payload": {"tool_input": {"file_path": "other/invalid.json"}}, "exit": 0},
+  {"hook": "game", "name": "data-but-not-json", "payload": {"tool_input": {"file_path": "data/invalid.txt"}}, "exit": 0},
+  {"hook": "game", "name": "missing-file", "payload": {"tool_input": {"file_path": "data/missing.json"}}, "exit": 0},
+  {"hook": "game", "name": "dash-path-invalid", "payload": {"tool_input": {"file_path": "-x/data/invalid.json"}}, "exit": 2},
+  {"hook": "game", "name": "dash-path-valid", "payload": {"tool_input": {"file_path": "-x/data/valid.json"}}, "exit": 0}
 ]

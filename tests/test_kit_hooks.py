@@ -1,4 +1,4 @@
-"""Behaviour tests for the ten kit hooks under `plugins/*/skills/*/assets/hooks/`.
+"""Behaviour tests for the eleven kit hooks under `plugins/*/skills/*/assets/hooks/`.
 
 `tests/test_plugin_shape.py` checks what a hook is allowed to look like; this file runs
 each one. The cases live in `tests/fixtures/kit_hooks.json` as data: a hook, a payload,
@@ -39,11 +39,13 @@ HOOK_FILES = {
     "gen": "generated-stamp-guard",
     "mail": "email-template-unsubscribe",
     "ph": "placeholder-list",
+    "game": "game-data-json",
 }
 
 # Everything a hook may call besides its parser. A tool a hook starts using that is not here
 # fails the whole table, which is the point: the hook has gained a dependency.
-BASE_TOOLS = ("bash", "cat", "grep", "sed", "tr", "wc", "head", "awk")
+# `tail` is for game-data-json in its jq mode, which skips a byte order mark with `tail -c +4`.
+BASE_TOOLS = ("bash", "cat", "grep", "sed", "tr", "wc", "head", "tail", "awk")
 
 MODES = {"jq": ("jq",), "python3": ("python3",)}
 
@@ -68,6 +70,18 @@ SCRATCH_FILES = {
     "applications/ok.md": "Dear team\n",
     "applications/dir.md/.keep": "",
     "cv/bad.md": "[TK: role]\n",
+    # game-data-json reads the written file; a file outside data/ is invalid on purpose so that
+    # an allow proves the hook never opened it.
+    "data/valid.json": '{"a": [1, 2]}',
+    "data/invalid.json": '{"a": ',
+    "data/two.json": "1 2",
+    "data/empty.json": "",
+    "data/bom.json": '\ufeff{"a": 1}',
+    "data/bom-bad.json": '\ufeff{"a": ',
+    "data/invalid.txt": "{",
+    "other/invalid.json": "{",
+    "-x/data/invalid.json": "{",
+    "-x/data/valid.json": "{}",
 }
 
 
@@ -179,7 +193,11 @@ def test_hook_verdict(case, mode, bins, scratch):
     done = run_hook(case["hook"], _stdin(case), mode, bins, scratch, timeout=30)
     assert done.returncode == case["exit"], done.stderr.decode("utf-8", "replace")[:300]
     if case["exit"] == 2:
-        assert done.stderr.startswith(b"blocked") or b"placeholder" in done.stderr.lower()
+        assert (
+            done.stderr.startswith(b"blocked")
+            or b"placeholder" in done.stderr.lower()
+            or b"invalid JSON" in done.stderr
+        )
 
 
 # Worst-case inputs of about 2 MB, built here because they are too large for the table. Each
@@ -366,6 +384,26 @@ BIG = {
             {},
         ),
     ],
+    "game": [
+        (
+            "big-valid-array",
+            lambda: {"file_path": "data/big-valid.json"},
+            0,
+            {"data/big-valid.json": "[" + "1," * MB + "1]"},
+        ),
+        (
+            "big-many-values",
+            lambda: {"file_path": "data/big-many.json"},
+            2,
+            {"data/big-many.json": "1 " * MB},
+        ),
+        (
+            "big-bom-invalid-at-the-end",
+            lambda: {"file_path": "data/big-bom.json"},
+            2,
+            {"data/big-bom.json": "\ufeff[" + "1," * MB + "]"},
+        ),
+    ],
     "ph": [
         (
             "near-marker",
@@ -438,6 +476,14 @@ EARLY = {
             {},
         )
     ],
+    "game": [
+        (
+            "invalid-after-a-long-first-line",
+            lambda: {"file_path": "data/early.json"},
+            2,
+            {"data/early.json": "{" + LINES},
+        )
+    ],
     "ph": [
         (
             "tk-first-line",
@@ -503,7 +549,7 @@ NO_SCAN = {
 
 
 def test_no_scan_case_for_every_hook_with_a_here_string():
-    assert set(NO_SCAN) == set(HOOK_FILES) - {"ph"}
+    assert set(NO_SCAN) == set(HOOK_FILES) - {"ph", "game"}
 
 
 @pytest.mark.parametrize("mode", MODES)
