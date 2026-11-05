@@ -485,5 +485,17 @@
   {"hook": "kill", "name": "tab-between-name-and-literal", "payload": {"tool_input": {"command": "select pg_cancel_backend\t(4242)"}}, "exit": 0},
   {"hook": "kill", "name": "quoted-identifier-literal", "payload": {"tool_input": {"command": "select \"pg_terminate_backend\"(12345)"}}, "exit": 0},
   {"hook": "kill", "name": "literal-spaced-timeout", "payload": {"tool_input": {"command": "select pg_terminate_backend( 12345 , 5000)"}}, "exit": 0},
-  {"hook": "kill", "name": "cancel-literal-then-other-statement", "payload": {"tool_input": {"command": "select pg_cancel_backend(4242); select now()"}}, "exit": 0}
+  {"hook": "kill", "name": "cancel-literal-then-other-statement", "payload": {"tool_input": {"command": "select pg_cancel_backend(4242); select now()"}}, "exit": 0},
+  {"hook": "sym", "name": "rm-split-by-backslash", "payload": {"tool_input": {"command": "r\\m -rf App.dSYM"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-ansi-c-quoted", "payload": {"tool_input": {"command": "$'rm' -rf App.dSYM"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-locale-quoted", "payload": {"tool_input": {"command": "$\"rm\" -rf App.dSYM"}}, "exit": 2},
+  {"hook": "sym", "name": "unlink-split-by-backslash", "payload": {"tool_input": {"command": "unl\\ink mapping.txt"}}, "exit": 2},
+  {"hook": "sym", "name": "rm-after-semicolon-ansi-c", "payload": {"tool_input": {"command": "ls; $'rm' App.dSYM"}}, "exit": 2},
+  {"hook": "sym", "name": "variable-named-like-rm-prefix", "payload": {"tool_input": {"command": "echo $rm_dir App.dSYM"}}, "exit": 0},
+  {"hook": "sym", "name": "dollar-variable-copy", "payload": {"tool_input": {"command": "cp $HOME/App.dSYM /archive"}}, "exit": 0},
+  {"hook": "tf", "name": "ansi-c-quoted-binary", "payload": {"tool_input": {"command": "$'terraform' apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "ansi-c-quoted-apply", "payload": {"tool_input": {"command": "terraform $'apply' -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "locale-quoted-tofu", "payload": {"tool_input": {"command": "$\"tofu\" apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "ansi-c-quoted-binary-no-plan", "payload": {"tool_input": {"command": "$'terraform' apply"}}, "exit": 2},
+  {"hook": "tf", "name": "ansi-c-quoted-plan-only", "payload": {"tool_input": {"command": "$'terraform' plan"}}, "exit": 0}
 ]

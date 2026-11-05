@@ -56,10 +56,11 @@ fi
 
 # Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
 # path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias. It may also be
-# the last word (names piped to xargs, arriving on stdin) or followed by ${IFS}. Quotes are
-# deleted first, because the shell joins "rm", 'rm' and r""m into the verb.
-bare="$(printf '%s' "$command" | tr -d "\"'")"
-if grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)|find[[:space:]].*-delete' <<<"$bare"; then
+# the last word (names piped to xargs, arriving on stdin) or followed by ${IFS}. Quotes and
+# backslashes are deleted first, because the shell joins "rm", 'rm', r""m and r\m into the verb,
+# and a `$` before the verb is the opening of $'rm' or $"rm" once the quotes are gone.
+bare="$(printf '%s' "$command" | tr -d "\"'\\\\")"
+if grep -Eq '(^|[[:space:];&|($])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)|find[[:space:]].*-delete' <<<"$bare"; then
   echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
   exit 2
 fi

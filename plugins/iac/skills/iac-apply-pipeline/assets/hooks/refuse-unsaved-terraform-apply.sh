@@ -63,6 +63,13 @@ takes_value() {
   return 1
 }
 
+# Sets w to a word as the shell reads it: $'..' and $".." lose their opening, then quotes and
+# backslashes are deleted, so $'terraform', ter\raform and "apply" are terraform and apply.
+unq() {
+  w="${1//\$[\"\']/}"
+  w="${w//[\"\'\\]/}"
+}
+
 check_segment() {
   local -a words
   local i=0 n w chdir="" seen=0 plan=0 skip=0
@@ -70,12 +77,12 @@ check_segment() {
   n=${#words[@]}
   # Find `terraform|tofu [-chdir=dir] apply`, tolerating env-var prefixes and a path to the binary.
   while [ "$i" -lt "$n" ]; do
-    w="${words[$i]//[\"\'\\]/}"
+    unq "${words[$i]}"
     case "${w##*/}" in
       terraform | tofu)
         i=$((i + 1))
         while [ "$i" -lt "$n" ]; do
-          w="${words[$i]//[\"\'\\]/}"
+          unq "${words[$i]}"
           case "$w" in
             -chdir=*) chdir="${w#-chdir=}" ;;
             -*) ;;
@@ -83,7 +90,10 @@ check_segment() {
           esac
           i=$((i + 1))
         done
-        [ "$i" -lt "$n" ] && [ "${words[$i]//[\"\'\\]/}" = "apply" ] && seen=1
+        if [ "$i" -lt "$n" ]; then
+          unq "${words[$i]}"
+          [ "$w" = "apply" ] && seen=1
+        fi
         break
         ;;
     esac
@@ -92,7 +102,7 @@ check_segment() {
   [ "$seen" -eq 1 ] || return 0
   i=$((i + 1))
   while [ "$i" -lt "$n" ]; do
-    w="${words[$i]//[\"\'\\]/}"
+    unq "${words[$i]}"
     i=$((i + 1))
     if [ "$skip" -eq 1 ]; then
       skip=0
