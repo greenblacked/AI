@@ -111,7 +111,7 @@ Re-run the step 1 query: no waiters, and the pile of connections falls. Watch fo
 Opt-in files under `${CLAUDE_SKILL_DIR}/assets/`, worth installing in a project that runs its own PostgreSQL or MySQL migrations or has had a stall:
 
 - `${CLAUDE_SKILL_DIR}/assets/rules/migration-lock-timeout.md` — a rule that loads when a migration file is read and asks for a lock timeout with bounded retry on every DDL statement.
-- `${CLAUDE_SKILL_DIR}/assets/hooks/block-set-based-backend-kill.json` and `.sh` — a hook that blocks `pg_terminate_backend` or `pg_cancel_backend` unless the argument is a literal pid. It also refuses a command that names either function in a spelling it cannot read (a `$'...'` escape, a brace list, a variable as the command); SQL in a file the command runs is out of its reach.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/block-set-based-backend-kill.json` and `.sh` — a hook that blocks `pg_terminate_backend` or `pg_cancel_backend` unless the argument is a literal pid. It also refuses a command that names either function in a spelling it cannot read (a `$'...'` escape, a brace list, a variable as the command, read right after a separator or after a wrapper such as sudo, exec or command, not after other wrappers); SQL in a file the command runs is out of its reach.
 - `${CLAUDE_SKILL_DIR}/assets/templates/stall-record.md` — the record to fill in per incident (step 4).
 
 Run from the root of the project that wants the kit:

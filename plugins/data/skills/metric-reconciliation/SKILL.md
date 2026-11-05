@@ -109,7 +109,7 @@ them when the project defines metrics in `models/` or `metrics/`:
 - `${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.json`, with its script
   `${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.sh`, blocks a Bash command
   that drops, truncates or removes a warehouse object, and one that names a SQL client or a DROP
-  in a spelling it cannot read (a `$'...'` escape, a brace list, a variable as the command). SQL in
+  in a spelling it cannot read (a `$'...'` escape, a brace list, a variable as the command, read right after a separator or after a wrapper such as sudo, exec or command, not after other wrappers). SQL in
   a file the command runs is out of its reach.
 - `${CLAUDE_SKILL_DIR}/assets/templates/metric-definition.md` is the definition card to fill in
   once reconciliation has picked one definition.

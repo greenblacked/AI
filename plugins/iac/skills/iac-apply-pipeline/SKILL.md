@@ -157,7 +157,7 @@ The next implementer should know exactly which evidence blocks deployment.
 Three opt-in files under `${CLAUDE_SKILL_DIR}/assets/`, worth installing in a project that applies Terraform or OpenTofu from automation or from an agent session:
 
 - `${CLAUDE_SKILL_DIR}/assets/rules/terraform-apply-handoff.md` loads when a backend, lock file or Terraform workflow is read and states the saved-plan and approval rules.
-- `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.sh` refuse an apply that auto-approves or names no existing saved plan file, and a `destroy -auto-approve`; a plain `destroy` that prompts is allowed. A command it cannot read plainly (a `$'...'` escape, a brace list, a variable as the binary) is refused too, and a script file or an interpreter one-liner is out of its reach.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.sh` refuse an apply that auto-approves or names no existing saved plan file, and a `destroy -auto-approve`; a plain `destroy` that prompts is allowed. A command it cannot read plainly (a `$'...'` escape, a brace list, a variable as the binary, read right after a separator or after a wrapper such as sudo, exec, command or env, not after other wrappers) is refused too, and a script file or an interpreter one-liner is out of its reach.
 - `${CLAUDE_SKILL_DIR}/assets/templates/apply-approval-record.md` is the record to fill in once per apply, matching the artifact and approval contract.
 
 Run from the root of the project that wants the kit:
