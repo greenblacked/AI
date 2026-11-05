@@ -31,8 +31,10 @@ fi
 [ -n "$command" ] || exit 0
 
 # A command that names neither terraform nor tofu as a word cannot be an apply; allow it at
-# once, whatever its size, so a large unrelated command is never blocked by this hook.
-if ! printf '%s' "$command" | LC_ALL=C grep -Eq '(^|[^[:alnum:]_])(terraform|tofu)([^[:alnum:]_]|$)'; then
+# once, whatever its size, so a large unrelated command is never blocked by this hook. Quotes
+# and backslashes are deleted first, as the word scan below deletes them, because the shell
+# joins ter""raform, t'o'fu and ter\raform into the binary name.
+if ! printf '%s' "$command" | tr -d "\"'\\\\" | LC_ALL=C grep -Eq '(^|[^[:alnum:]_])(terraform|tofu)([^[:alnum:]_]|$)'; then
   exit 0
 fi
 
@@ -64,12 +66,12 @@ check_segment() {
   n=${#words[@]}
   # Find `terraform|tofu [-chdir=dir] apply`, tolerating env-var prefixes and a path to the binary.
   while [ "$i" -lt "$n" ]; do
-    w="${words[$i]//[\"\']/}"
+    w="${words[$i]//[\"\'\\]/}"
     case "${w##*/}" in
       terraform | tofu)
         i=$((i + 1))
         while [ "$i" -lt "$n" ]; do
-          w="${words[$i]//[\"\']/}"
+          w="${words[$i]//[\"\'\\]/}"
           case "$w" in
             -chdir=*) chdir="${w#-chdir=}" ;;
             -*) ;;
@@ -77,7 +79,7 @@ check_segment() {
           esac
           i=$((i + 1))
         done
-        [ "$i" -lt "$n" ] && [ "${words[$i]//[\"\']/}" = "apply" ] && seen=1
+        [ "$i" -lt "$n" ] && [ "${words[$i]//[\"\'\\]/}" = "apply" ] && seen=1
         break
         ;;
     esac
@@ -86,7 +88,7 @@ check_segment() {
   [ "$seen" -eq 1 ] || return 0
   i=$((i + 1))
   while [ "$i" -lt "$n" ]; do
-    w="${words[$i]//[\"\']/}"
+    w="${words[$i]//[\"\'\\]/}"
     i=$((i + 1))
     if [ "$skip" -eq 1 ]; then
       skip=0
