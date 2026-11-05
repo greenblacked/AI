@@ -7,7 +7,7 @@
 # before matching, and refuses a command that names a SQL client or a DROP or TRUNCATE in a spelling
 # it cannot read ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right after a separator or after
 # sudo, exec, command and similar wrappers, not after other wrappers) rather
-# than guessing. It also reads the command with SQL comments (/* */, -- and #) replaced by a space,
+# than guessing. It also reads the command with SQL comments (/* */ nested, --, // and #) replaced by a space,
 # so DROP /* x */ TABLE t blocks, and a comment that names a drop blocks as well. A .sql or script file the command runs is out of scope: the hook cannot see what
 # is in it.
 set -Eeuo pipefail
@@ -131,19 +131,24 @@ fi
 # on the next is still one statement to the patterns.
 flat="$(printf '%s' "$command" | tr '\n' ' ')"
 # SQL comments count as whitespace in PostgreSQL, MySQL, Snowflake and BigQuery, so DROP /* x */ TABLE t
-# and DROP/**/TABLE t are the statement DROP TABLE t. A third reading replaces each /* ... */ (not
-# nested; an unterminated one runs to the end), each -- to the end of its line and each # that starts
-# a word with one space. It is one character-wise awk pass, so it stays linear. The patterns run on
-# this reading as well as on the other two, and a hit on any of them refuses: text inside a comment is
-# read both ways, so `select 1 -- drop table later` is refused, which is the safe direction.
+# and DROP/**/TABLE t are the statement DROP TABLE t. A third reading replaces each /* ... */ (nested
+# ones counted by depth, as PostgreSQL does; an unterminated one runs to the end), and each --, // (Snowflake) and #
+# (MySQL) to the end of its line, with one space. The # starts a comment wherever it appears, not only
+# after whitespace, because MySQL reads DROP#c as DROP followed by a comment. It is one character-wise awk pass, so
+# it stays linear. The patterns run on this reading as well as on the other two, and a hit on any of them
+# refuses: this reading can only add refusals, and text inside a comment is read both ways, so
+# `select 1 -- drop table later` is refused, which is the safe direction.
 strip_comments() {
-  LC_ALL=C awk '{ n = length($0); i = 1; prev = " "
+  LC_ALL=C awk '{ n = length($0); i = 1
     while (i <= n) {
       c = substr($0, i, 1); d = substr($0, i, 2)
-      if (inb) { if (d == "*/") { inb = 0; i += 2 } else i++; continue }
-      if (d == "/*") { inb = 1; printf " "; prev = " "; i += 2; continue }
-      if (d == "--" || (c == "#" && prev ~ /[ \t\r]/)) { printf " "; break }
-      printf "%s", c; prev = c; i++
+      if (depth > 0) {
+        if (d == "*/") { depth--; i += 2 } else if (d == "/*") { depth++; i += 2 } else i++
+        continue
+      }
+      if (d == "/*") { depth = 1; printf " "; i += 2; continue }
+      if (d == "--" || d == "//" || c == "#") { printf " "; break }
+      printf "%s", c; i++
     }
     printf "\n" }'
 }

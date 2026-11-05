@@ -877,6 +877,11 @@
   {"hook": "tf", "name": "apply-fd-dup-then-auto-approve", "payload": {"tool_input": {"command": "terraform apply 2>&1 -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "apply-ampersand-append-redirect-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply &>> tfplan"}}, "exit": 2},
   {"hook": "tf", "name": "apply-gt-ampersand-file-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply >& tfplan"}}, "exit": 2},
-  {"hook": "tf", "name": "plan-then-apply-saved-plan-is-allowed", "payload": {"tool_input": {"command": "terraform plan -out=tfplan && terraform apply tfplan"}}, "exit": 0}
+  {"hook": "tf", "name": "plan-then-apply-saved-plan-is-allowed", "payload": {"tool_input": {"command": "terraform plan -out=tfplan && terraform apply tfplan"}}, "exit": 0},
+  {"hook": "ddl", "name": "drop-after-hash-without-space", "payload": {"tool_input": {"command": "mysql -e \"DROP#c\nTABLE t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-with-nested-block-comment", "payload": {"tool_input": {"command": "psql -c \"DROP /* a /* b */ c */ TABLE t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-with-double-slash-comment", "payload": {"tool_input": {"command": "snowsql -q \"DROP // c\nTABLE t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "plain-select-is-allowed", "payload": {"tool_input": {"command": "psql -c \"select 1\""}}, "exit": 0},
+  {"hook": "ddl", "name": "url-fragment-is-allowed", "payload": {"tool_input": {"command": "curl https://h/p#x"}}, "exit": 0},
+  {"hook": "ddl", "name": "hash-inside-identifier-is-allowed", "payload": {"tool_input": {"command": "select a#b from t"}}, "exit": 0}
 ]
-
