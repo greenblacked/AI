@@ -662,15 +662,81 @@ def test_the_two_example_hook_branches_agree_on_a_non_string_command(tmp_path, c
     assert results[0].returncode == (2 if "forbidden" in command else 0)
 
 
+# Where a command word can start: after a delimiter, after a shell keyword or a wrapper that
+# takes the command next (`if python3`, `then python3`, `exec python3`, `env python3`), or after
+# a variable assignment (`LC_ALL=C python3`). `command -v python3` and prose such as "needs
+# python3 on PATH" put another word before the name, so they are not command position.
+_COMMAND_START = (
+    r"(?:^|[|;&(]|\$\("
+    r"|(?<![\w./$-])(?:if|then|elif|else|do|while|until|exec|env|command|time|nohup)\s"
+    r"|(?:^|(?<=\s))!\s"
+    r"|(?:^|(?<=\s))[A-Za-z_]\w*=\S*\s)"
+)
+_PYTHON_CALL = re.compile(_COMMAND_START + r"\s*python[0-9.]*(?=[\s;|&)]|$)(.*)")
+
+
 def _python_calls_without_isolation(script: Path) -> list[str]:
     """Lines that start a python interpreter in command position without -I."""
     bad = []
     for line in script.read_text(encoding="utf-8").splitlines():
         code = line.split("#", 1)[0]
-        for match in re.finditer(r"(?:^|[|;&(]|\$\()\s*python[0-9.]*(?=\s)(.*)", code):
+        for match in _PYTHON_CALL.finditer(code):
             if not re.match(r"\s+-[A-Za-z]*I", match.group(1)):
                 bad.append(line.strip())
     return bad
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "x=$(python3 -c 'pass')",
+        "x=$(printf a | python3 -c 'pass')",
+        "if python3 -c 'pass'; then :; fi",
+        "elif python3 -c 'pass'; then :",
+        "  then python3 -c 'pass'",
+        "while python3 -c 'pass'; do :; done",
+        "! python3 -c 'pass' || exit 0",
+        "exec python3 -c 'pass'",
+        "exec env python3 -c 'pass'",
+        "env python3 -c 'pass'",
+        "command python3 -c 'pass'",
+        "time python3 -c 'pass'",
+        "LC_ALL=C python3 -c 'pass'",
+        "a && python3 -c 'pass'",
+        "  python3.12 -c 'pass'",
+        "if python3; then :; fi",
+        "if python3\n",
+    ],
+)
+def test_the_isolation_scan_flags_python_in_command_position_without_dash_i(tmp_path, line):
+    script = tmp_path / "hook.sh"
+    script.write_text(line + "\n", encoding="utf-8")
+    assert _python_calls_without_isolation(script)
+    # The same line with -I is clean, so the scan is not flagging the form itself.
+    isolated = re.sub(r"(python[0-9.]*)(?=[\s;|&)]|$)", r"\1 -I", line, count=1)
+    script.write_text(isolated + "\n", encoding="utf-8")
+    assert not _python_calls_without_isolation(script)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "elif command -v python3 >/dev/null 2>&1; then",
+        "if command -v python3 >/dev/null 2>&1; then",
+        "# needs python3 on PATH",
+        'echo "needs python3 on PATH"',
+        "x=$(command -v python3)",
+        "  command=\"$(printf '%s' \"$input\" | python3 -I -c 'pass')\"",
+        "if python3 -I -c 'pass'; then :; fi",
+        "exec env python3 -I -c 'pass'",
+        "LC_ALL=C python3 -Ic 'pass'",
+        "echo python3",
+    ],
+)
+def test_the_isolation_scan_does_not_flag_prose_or_a_lookup(tmp_path, line):
+    script = tmp_path / "hook.sh"
+    script.write_text(line + "\n", encoding="utf-8")
+    assert not _python_calls_without_isolation(script)
 
 
 def test_every_shipped_kit_hook_runs_python_isolated():
