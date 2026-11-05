@@ -2228,15 +2228,85 @@ def test_the_open_menu_is_a_left_drawer_that_escape_a_backdrop_and_a_link_close(
             ".getBoundingClientRect(); return document.elementFromPoint("
             "r.left + 2, r.top + r.height / 2).closest('summary') !== null; }"
         )
+        # Focus is on a drawer link first, so landing on the summary afterwards is the
+        # script's doing and not where a click on the toggle left it.
+        page.focus(".menu nav a")
+        assert page.evaluate("() => !document.activeElement.matches('.menu summary')")
         page.keyboard.press("Escape")
         assert not page.evaluate("() => document.querySelector('.menu').open")
         assert page.evaluate("() => document.activeElement.matches('.menu summary')")
         page.click(".menu summary")
-        page.mouse.click(width - 5, viewport / 2)
+        # A classic scrollbar's reserved gutter is not part of the page, so aim inside it.
+        edge = page.evaluate("() => document.documentElement.scrollWidth")
+        page.mouse.click(edge - 5, viewport / 2)
         assert not page.evaluate("() => document.querySelector('.menu').open")
+        # A capturing listener stops the navigation, so the menu closing is the link
+        # handler's doing and not the page being replaced under it.
         page.click(".menu summary")
+        page.evaluate(
+            "() => document.addEventListener('click',"
+            " e => { if (e.target.closest('a')) e.preventDefault(); }, true)"
+        )
+        before = page.url
         page.click(".menu nav a >> nth=1")
-        page.wait_for_load_state()
+        assert not page.evaluate("() => document.querySelector('.menu').open")
+        assert page.url == before
+        # A modified click opens the link elsewhere and leaves this page as it was.
+        page.click(".menu summary")
+        page.click(".menu nav a >> nth=1", modifiers=["Shift"])
+        assert page.evaluate("() => document.querySelector('.menu').open")
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 768])
+def test_the_open_drawer_stays_usable_when_the_page_scrolls_under_it(browser, base_url, width):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        page.click(".menu summary")
+        # overflow:hidden stops the wheel and touch, not a script or focus scrolling.
+        page.evaluate("() => window.scrollTo(0, 600)")
+        page.evaluate(
+            "() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))"
+        )
+        assert page.evaluate("() => window.scrollY") > 64
+        assert page.evaluate("() => !document.getElementById('banner').inert")
+        assert page.evaluate("() => !document.getElementById('banner').classList.contains('away')")
+        assert page.evaluate(
+            "() => { const a = document.querySelector('.menu nav a');"
+            " const r = a.getBoundingClientRect();"
+            " return document.elementFromPoint(r.left + 5, r.top + r.height / 2)"
+            ".closest('a') === a; }"
+        )
+        page.keyboard.press("Escape")
+        assert not page.evaluate("() => document.querySelector('.menu').open")
+        assert page.evaluate("() => document.activeElement.matches('.menu summary')")
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 768])
+def test_tab_cycles_inside_the_open_drawer(browser, base_url, width):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        page.click(".menu summary")
+        links = page.evaluate("() => document.querySelectorAll('.menu nav a').length")
+        inside = "() => document.activeElement.closest('.menu') !== null"
+        for _ in range(links + 3):
+            page.keyboard.press("Tab")
+            assert page.evaluate(inside)
+        page.focus(".menu summary")
+        page.keyboard.press("Shift+Tab")
+        assert page.evaluate(
+            "() => document.activeElement === [...document.querySelectorAll('.menu nav a')].pop()"
+        )
+        page.keyboard.press("Tab")
+        assert page.evaluate("() => document.activeElement.matches('.menu summary')")
+        page.keyboard.press("Escape")
         assert not page.evaluate("() => document.querySelector('.menu').open")
     finally:
         context.close()

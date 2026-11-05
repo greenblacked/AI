@@ -3063,7 +3063,12 @@ def test_the_header_css_shows_the_menu_below_64rem_and_the_sections_from_it():
     ):
         assert rule in panel, rule
     assert ".menu[open] summary::before" in drawer and "position: fixed" in drawer
-    assert "html:has(.menu[open]) { overflow: hidden; }" in drawer
+    assert "html:has(.menu[open]) { overflow: hidden; scrollbar-gutter: stable; }" in drawer
+    # The dark themes raise the drawer off a black page; the day theme keeps the page colour.
+    for theme in ("night", "reactor"):
+        assert f'html[data-theme="{theme}"] .menu[open] nav' in drawer
+    raised = drawer.split('html[data-theme="reactor"] .menu[open] nav {', 1)[1].split("}", 1)[0]
+    assert "background: var(--card)" in raised and "box-shadow" in raised
     # The slide runs only for a visitor who has not asked for less motion.
     motion = css.split("@media (prefers-reduced-motion: no-preference) {", 1)[1]
     assert ".menu[open] nav { animation: menu-in 220ms var(--ease)" in motion
@@ -3075,8 +3080,13 @@ def test_the_header_css_shows_the_menu_below_64rem_and_the_sections_from_it():
 
 def test_the_page_script_closes_the_menu_on_escape_and_on_a_link():
     script = site.site_style.PAGE_SCRIPT
-    assert 'event.key !== "Escape"' in script and 'closest("nav a")' in script
-    assert 'drawer.querySelector("summary").focus()' in script
+    assert 'event.key === "Escape"' in script and 'closest("nav a")' in script
+    assert "summary.focus()" in script
+    # A modified click opens the link elsewhere, so it leaves the menu as it was.
+    assert "event.metaKey || event.ctrlKey || event.shiftKey || event.altKey" in script
+    # An open menu keeps the header live; a hidden, inert header would hold the drawer.
+    assert "if (drawer && drawer.open) away(false);" in script
+    assert script.index("var drawer") < script.index('addEventListener("scroll"')
     # Before the finder's early return, which pages without a finder take.
     assert script.index("drawer.addEventListener") < script.index("if (!input ||")
 

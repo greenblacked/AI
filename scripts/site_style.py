@@ -316,7 +316,12 @@ html[data-theme="reactor"]::before {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  html:has(.menu[open]) { overflow: hidden; }
+  html:has(.menu[open]) { overflow: hidden; scrollbar-gutter: stable; }
+  html[data-theme="night"] .menu[open] nav,
+  html[data-theme="reactor"] .menu[open] nav {
+    background: var(--card);
+    box-shadow: 0.75rem 0 2rem -0.5rem var(--glass-edge);
+  }
 }
 .menu-else { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--line); }
 .bar .menu nav a { display: flex; }
@@ -2178,6 +2183,7 @@ PAGE_SCRIPT = """
     }
   });
   var banner = document.getElementById("banner");
+  var drawer = document.querySelector(".menu");
   var last = window.scrollY;
   function away(on) {
     banner.classList.toggle("away", on);
@@ -2186,7 +2192,10 @@ PAGE_SCRIPT = """
   window.addEventListener("scroll", function () {
     var y = window.scrollY;
     var delta = y - last;
-    if (y <= 64) away(false);
+    // The open drawer lives in the header, and overflow:hidden does not stop a script or a
+    // focus from scrolling the page, so an open menu keeps the header live and drawn.
+    if (drawer && drawer.open) away(false);
+    else if (y <= 64) away(false);
     else if (delta > 8) away(true);
     else if (delta < -8) away(false);
     last = y;
@@ -2241,17 +2250,31 @@ PAGE_SCRIPT = """
     home.focus({ preventScroll: true });
   });
 
-  // The menu already works without this: Escape and a tap on a link are the two ways out
-  // a details element does not give a drawer for free.
-  var drawer = document.querySelector(".menu");
+  // The menu already works without this: Escape, a tap on a link and keeping Tab inside the
+  // drawer are what a details element does not give a drawer for free.
   if (drawer) {
+    var summary = drawer.querySelector("summary");
+    drawer.addEventListener("toggle", function () {
+      if (drawer.open) away(false);
+    });
     drawer.addEventListener("click", function (event) {
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (event.target.closest("nav a")) drawer.removeAttribute("open");
     });
     document.addEventListener("keydown", function (event) {
-      if (event.key !== "Escape" || !drawer.open) return;
-      drawer.removeAttribute("open");
-      drawer.querySelector("summary").focus();
+      if (!drawer.open) return;
+      if (event.key === "Escape") {
+        drawer.removeAttribute("open");
+        summary.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !summary.getClientRects().length) return;
+      var links = drawer.querySelectorAll("nav a");
+      var end = event.shiftKey ? summary : links[links.length - 1];
+      if (document.activeElement !== end) return;
+      event.preventDefault();
+      (event.shiftKey ? links[links.length - 1] : summary).focus();
     });
   }
 
