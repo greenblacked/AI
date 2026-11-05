@@ -471,5 +471,19 @@
   {"hook": "erase", "name": "pipe-heredoc-into-jlink", "payload": {"tool_input": {"command": "cat <<EOF | JLinkExe -device X\nerase\nEOF"}}, "exit": 2},
   {"hook": "erase", "name": "here-string-erase", "payload": {"tool_input": {"command": "JLinkExe -device X <<< \"erase\""}}, "exit": 2},
   {"hook": "erase", "name": "erase-pipe-newline-jlink", "payload": {"tool_input": {"command": "echo erase |\nJLinkExe -device X"}}, "exit": 2},
-  {"hook": "erase", "name": "subshell-erase-pipe-jlink", "payload": {"tool_input": {"command": "(printf 'r\\n'; echo erase) | JLinkExe"}}, "exit": 2}
+  {"hook": "erase", "name": "subshell-erase-pipe-jlink", "payload": {"tool_input": {"command": "(printf 'r\\n'; echo erase) | JLinkExe"}}, "exit": 2},
+  {"hook": "kill", "name": "newline-between-name-and-paren", "payload": {"tool_input": {"command": "select pg_terminate_backend\n(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "crlf-between-name-and-paren", "payload": {"tool_input": {"command": "select pg_terminate_backend\r\n(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "comment-between-name-and-paren", "payload": {"tool_input": {"command": "select pg_terminate_backend/**/(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "comment-between-name-and-literal", "payload": {"tool_input": {"command": "select pg_terminate_backend/**/(4242)"}}, "exit": 2},
+  {"hook": "kill", "name": "line-comment-then-newline-paren", "payload": {"tool_input": {"command": "select pg_terminate_backend -- x\n(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "quoted-identifier-column", "payload": {"tool_input": {"command": "select \"pg_terminate_backend\"(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "quoted-identifier-cancel-column", "payload": {"tool_input": {"command": "select \"pg_cancel_backend\"(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "schema-qualified-column", "payload": {"tool_input": {"command": "select pg_catalog.pg_terminate_backend(pid) from pg_stat_activity"}}, "exit": 2},
+  {"hook": "kill", "name": "long-comment-between-name-and-paren", "payload": {"tool_input": {"command": "select pg_terminate_backend/*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/(pid)"}}, "exit": 2},
+  {"hook": "kill", "name": "newline-between-name-and-literal", "payload": {"tool_input": {"command": "select pg_terminate_backend\n(12345)"}}, "exit": 0},
+  {"hook": "kill", "name": "tab-between-name-and-literal", "payload": {"tool_input": {"command": "select pg_cancel_backend\t(4242)"}}, "exit": 0},
+  {"hook": "kill", "name": "quoted-identifier-literal", "payload": {"tool_input": {"command": "select \"pg_terminate_backend\"(12345)"}}, "exit": 0},
+  {"hook": "kill", "name": "literal-spaced-timeout", "payload": {"tool_input": {"command": "select pg_terminate_backend( 12345 , 5000)"}}, "exit": 0},
+  {"hook": "kill", "name": "cancel-literal-then-other-statement", "payload": {"tool_input": {"command": "select pg_cancel_backend(4242); select now()"}}, "exit": 0}
 ]

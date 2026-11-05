@@ -46,12 +46,33 @@ if [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
   exit 2
 fi
 
-# Each match runs from the opening parenthesis to the first closing one, capped at 256 bytes so
-# no single argument is trimmed at length. Anything that is not a digit string there (a column
-# such as pid, a subquery, a bare word, or an argument too long to be a pid) could end every
-# session the query returns, so it is refused.
+# Newlines and carriage returns become spaces and double quotes are deleted before the scan, so
+# a call split across lines (pg_terminate_backend, a newline, then (pid)) and a quoted
+# identifier ("pg_terminate_backend"(pid)) are one call to the pattern below, as SQL reads them.
+# Each match runs from the function name to the opening parenthesis and on to the first closing
+# parenthesis, capped at 256 bytes so no single argument is trimmed at length. Only whitespace
+# may sit between the name and its parenthesis: a comment (name/**/(pid)) or any other text there
+# is a call this hook cannot read, so it is refused like a column or subquery. Anything that is
+# not a digit string in the parentheses (a column such as pid, a subquery, a bare word, or an
+# argument too long to be a pid) could end every session the query returns, so it is refused.
+flat="$(printf '%s' "$command" | tr -d '"' | tr '\n\r' '  ')"
+rc=0
+calls="$(printf '%s\n' "$flat" | grep -oiE 'pg_(terminate|cancel)_backend[^(]*\([^)]{0,256}'; exit "${PIPESTATUS[1]}")" || rc=$?
+case "$rc" in
+  0 | 1) ;;
+  *)
+    echo "blocked: could not scan the command for pg_terminate_backend calls (grep status $rc), so it was not judged. Retry the command." >&2
+    exit 2
+    ;;
+esac
 while IFS= read -r call; do
   [ -n "$call" ] || continue
+  gap="${call%%\(*}"
+  gap="${gap#*[bB][aA][cC][kK][eE][nN][dD]}"
+  if [ -n "${gap//[[:space:]]/}" ]; then
+    echo "blocked: something other than whitespace sits between the function name and its parenthesis; write pg_terminate_backend(<pid>) with one literal pid you recorded from the blocking chain" >&2
+    exit 2
+  fi
   arg="${call#*(}"
   # A span that hit the cap may go on to something other than digits (111...1+pid), and the
   # cut-off part cannot be judged, so it is refused.
@@ -70,5 +91,5 @@ while IFS= read -r call; do
       exit 2
       ;;
   esac
-done < <(printf '%s\n' "$command" | grep -oiE 'pg_(terminate|cancel)_backend[[:space:]]*\([^)]{0,256}' || true)
+done <<<"$calls"
 exit 0
