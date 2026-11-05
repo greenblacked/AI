@@ -331,6 +331,9 @@ SCRATCH_FILES = {
     "-x/churn/blank.csv": (
         "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
     ),
+    "a=b/churn/blank.csv": (
+        "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
+    ),
     "reports/q3/churn/2026/blank.csv": (
         "Account,Dropdown,Primary code,Key evidence\n1,Price,Missing capability,\n"
     ),

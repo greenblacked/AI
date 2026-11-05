@@ -65,11 +65,6 @@ for tool in grep awk wc; do
   fi
 done
 
-# A name starting with a dash must not be read as an option by awk.
-case "$file" in
-  -*) file="./$file" ;;
-esac
-
 # No real coding sheet is near 1 MiB; refusing bounds the work, and a hook that outlasts its
 # timeout fails open.
 rc=0
@@ -195,7 +190,7 @@ verdict="$(
       if (found > 20) printf "... and %d more\n", found - 20
       print "@@done"
     }
-  ' "$file"
+  ' <"$file"
 )" || rc=$?
 if [ "$rc" -ne 0 ] || [ "${verdict##*$'\n'}" != "@@done" ]; then
   echo "blocked (after the write): could not scan $file for churn evidence (awk status $rc), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2

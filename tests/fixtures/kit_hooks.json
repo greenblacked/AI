@@ -1079,6 +1079,7 @@
   {"hook": "churn", "name": "blank-evidence-dot-prefix", "payload": {"tool_input": {"file_path": "./churn/blank.csv"}}, "exit": 2},
   {"hook": "churn", "name": "blank-evidence-nested-dir", "payload": {"tool_input": {"file_path": "reports/q3/churn/2026/blank.csv"}}, "exit": 2},
   {"hook": "churn", "name": "blank-evidence-dash-name", "payload": {"tool_input": {"file_path": "-x/churn/blank.csv"}}, "exit": 2},
+  {"hook": "churn", "name": "blank-evidence-assignment-looking-segment", "payload": {"tool_input": {"file_path": "a=b/churn/blank.csv"}}, "exit": 2},
   {"hook": "churn", "name": "placeholder-evidence", "payload": {"tool_input": {"file_path": "churn/na.csv"}}, "exit": 2},
   {"hook": "churn", "name": "row-shorter-than-header", "payload": {"tool_input": {"file_path": "churn/short.csv"}}, "exit": 2},
   {"hook": "churn", "name": "title-line-above-header", "payload": {"tool_input": {"file_path": "churn/titled.csv"}}, "exit": 2},
