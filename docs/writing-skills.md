@@ -554,9 +554,9 @@ runs with your permissions on every matching tool call.
 - It starts with `#!/usr/bin/env bash` and `set -Eeuo pipefail`.
 - It uses standard tools only, with no network access and no secrets.
 - It reads the stdin JSON with `python3 -I` or `jq` only if present, and degrades to
-  allowing when neither is (`-I` keeps a `json.py` in the project directory from being
-  imported in place of the standard module), because a hook that blocks everything on a missing tool is
-  worse than none.
+  allowing when neither is, because a hook that blocks everything on a missing tool is
+  worse than none. `-I` keeps a `json.py` in the project directory from being imported in
+  place of the standard module.
 - It exits 0 to allow and 2 to object, with the reason on stderr, and what 2 does depends
   on the event. On `PreToolUse` it blocks the call before it runs. On `PostToolUse` the
   write has already happened: exit 2 only feeds stderr back to the model, which can fix the
