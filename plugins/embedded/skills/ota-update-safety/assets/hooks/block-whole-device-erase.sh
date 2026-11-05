@@ -199,14 +199,33 @@ fi
 # is not part of what J-Link reads.
 # An erase that echo or printf writes to a file (echo erase > c.jlink, printf '%s\n' r erase q >>
 # c.jlink, echo erase | tee c.jlink) counts the same way: when a command that names J-Link names
-# that file, joined by ; or && or only by a line break. Names are compared as whole words, a path
+# that file, joined by ; or && or only by a line break. The redirect may touch the word (echo
+# erase>c.jlink), follow a descriptor copy (echo erase 2>&1 > c.jlink), be written >| or &>, or
+# follow a here-string (cat <<< erase > c.jlink); an escaped \> is an argument, not a redirect.
+# Names are compared as whole words, a path
 # by its last component, so a file called a is not found in every command. Each J-Link command
 # is looked at once, with the file names it redirects its own output to taken out, and each
 # file name is looked up in a table, so the work grows with the length of the command and not
 # with the files times the commands.
+esc_mark=$'\001'
+esc_pair=$'\002'
 jl_scan() {
   LC_ALL=C awk '
-    function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t\r;&|)"\047]|\\n|$)/ }
+    function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t\r;&|)"\047<>]|\\n|$)/ }
+    function redir(s) {
+      gsub(/[0-9]*>&[0-9]+-?/, " ", s)
+      gsub(/>&/, ">", s)
+      gsub(/&>/, ">", s)
+      gsub(/>\|/, ">", s)
+      return s
+    }
+    function hs_erase(s,   w, c) {
+      sub(/^[ \t]+/, "", s)
+      c = substr(s, 1, 1)
+      if (c == "\"" || c == "\047") { w = substr(s, 2); sub(c ".*$", "", w) }
+      else { w = s; sub(/[ \t;&|<>()].*$/, "", w) }
+      return has_erase(" " w " ")
+    }
     function gather(s,   n, k, f, parts) {
       nt = 0
       n = split(s, parts, />>?[ \t]*/)
@@ -225,6 +244,7 @@ jl_scan() {
       if (b != "") files[b] = 1
     }
     function scan(text,   n, k, seg, own, m) {
+      text = redir(text)
       if (index(text, "jlink") == 0 && index(text, "erase") == 0) return
       n = split(text, segs, /[;&]+/)
       for (k = 1; k <= n; k++) {
@@ -266,7 +286,21 @@ jl_scan() {
       if (!p) next
       feeds = (line ~ /jlink(exe|\.exe)?[^|;&]*<</ || line ~ /<<.*\|&?[^;&]*jlink/)
       rest = substr(line, p + 2)
-      if (substr(rest, 1, 1) == "<") { if (feeds && has_erase(substr(rest, 2))) hit = 1; next }
+      if (substr(rest, 1, 1) == "<") {
+        hs = substr(rest, 2)
+        if (feeds) { if (has_erase(hs)) hit = 1 }
+        else if (hs_erase(hs)) {
+          l2 = redir(line)
+          q = index(l2, "<<<")
+          before = substr(l2, 1, q - 1)
+          sub(/^.*[;&|(]/, "", before)
+          after = substr(l2, q + 3)
+          sub(/[;&].*$/, "", after)
+          gather(before "<<<" after)
+          for (k = 1; k <= nt; k++) addfile(tfs[k])
+        }
+        next
+      }
       gather(line)
       piped = (line ~ /\|&?[ \t\r]*\\?[ \t\r]*$/)
       dash = (substr(rest, 1, 1) == "-")
@@ -298,7 +332,10 @@ jl_scan() {
   ' <<<"$1"
 }
 if [ "$hit" -eq 0 ]; then
-  for source in "$lower" "$plain_ns"; do
+  # plain_ns has lost the backslash in `erase\>file`, where the > is an argument and no redirect, so
+  # the second view marks an escaped < or > before normalising and the marker stops the word there.
+  plain_jl="$(printf '%s\n' "$lower" | sed -E 's/[\][\]/'"$esc_pair"'/g; s/[\]([<>])/'"$esc_mark"'\1/g; s/'"$esc_pair"'/\\\\/g' | normalise)"
+  for source in "$lower" "$plain_jl"; do
     heredoc="$(jl_scan "$source")" || heredoc="failed"
     # The awk prints hit or none; no answer means it did not run (the here-string failed to write).
     case "$heredoc" in
