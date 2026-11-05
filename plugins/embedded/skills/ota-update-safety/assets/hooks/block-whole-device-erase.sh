@@ -319,6 +319,8 @@ jl_scan() {
     function gather(s,   n, k, f, parts) {
       nt = 0
       gdyn = 0
+      # Without a > or a tee there is no target to gather, so the two splits are skipped.
+      if (!index(s, ">") && !index(s, "tee")) return
       n = split(s, parts, />>?[ \t]*/)
       for (k = 2; k <= n; k++) {
         if (parts[k] ~ /^[^ \t;&|<>]*(\$|`)/) gdyn = 1
@@ -340,8 +342,8 @@ jl_scan() {
       if (index(f, "\r")) { b = f; sub(/^.*\r/, "", b); if (b != "") files[b] = 1 }
     }
     function scan(text,   n, k, seg, own, m) {
-      text = redir(text)
       if (index(text, "jlink") == 0 && index(text, "erase") == 0) return
+      if (index(text, ">")) text = redir(text)
       n = split(text, segs, /[;&]+/)
       for (k = 1; k <= n; k++) {
         seg = segs[k]
@@ -352,8 +354,10 @@ jl_scan() {
         }
         if (index(seg, "jlink")) {
           own = seg
-          gsub(/>>?[ \t]*[^ \t;&|<>()]+/, " ", own)
-          gsub(/tee[ \t]+(-a[ \t]+)?[^ \t;&|<>()]+/, " ", own)
+          if (index(own, ">") || index(own, "tee")) {
+            gsub(/>>?[ \t]*[^ \t;&|<>()]+/, " ", own)
+            gsub(/tee[ \t]+(-a[ \t]+)?[^ \t;&|<>()]+/, " ", own)
+          }
           if (index(own, "jlink")) jl[++nj] = own
         }
       }
@@ -437,7 +441,10 @@ if [ "$hit" -eq 0 ]; then
   # plain_ns has lost the backslash in `erase\>file`, where the > is an argument and no redirect, so
   # the second view marks an escaped < or > before normalising and the marker stops the word there.
   plain_jl="$(printf '%s\n' "$lower" | sed -E 's/[\][\]/'"$esc_pair"'/g; s/[\]([<>])/'"$esc_mark"'\1/g; s/'"$esc_pair"'/\\\\/g' | normalise)"
-  for source in "$lower" "$plain_jl"; do
+  sources=("$lower")
+  # jl_scan reads only its input, so an identical second view would give the same answer twice.
+  [ "$plain_jl" = "$lower" ] || sources+=("$plain_jl")
+  for source in "${sources[@]}"; do
     heredoc="$(jl_scan "$source")" || heredoc="failed"
     # The awk prints hit, unreadable or none; no answer means it did not run (the here-string failed to write).
     case "$heredoc" in
