@@ -1,7 +1,7 @@
 ---
 name: slurm-job-failure-triage
 description: "Diagnose a failed or killed Slurm batch job from the scheduler's record before the log: sacct -j with state, exit codes, time, memory and nodes, plus seff where installed. Classify by State (OUT_OF_MEMORY or a Slurm job's exit 137 judged on the step's MaxRSS, not the batch script's; TIMEOUT against the time limit; NODE_FAIL or PREEMPTED as infrastructure; CANCELLED; FAILED, where stderr is read for the first failing rank only), find the first failing array index, check module and --export differences, and resubmit resized, not identical. Use for \"Slurm job died with no error\", \"sbatch job exit code 137\", \"TIMEOUT after 3 hours\", \"OUT_OF_MEMORY but I requested plenty\", \"some array tasks failed\" or \"NODE_FAIL\". Not for pods (k8s-triage), CI runs (ci-triage), sizing the next request (hpc-resource-sizing), rerunning only the failed tasks of a sweep (sweep-campaign-management) or a program that is simply wrong (debugging)."
-allowed-tools: Bash(sacct:*), Bash(seff:*), Bash(sstat:*), Bash(squeue:*), Bash(sinfo:*), Bash(grep:*), Bash(head:*), Bash(tail:*), Bash(ls:*), Read, Glob, Grep
+allowed-tools: Read, Grep, Glob
 ---
 
 # Slurm Job Failure Triage
@@ -19,6 +19,8 @@ Do not use for: failures inside pods (`k8s-triage`) or CI pipelines (`ci-triage`
 ## Workflow
 
 ### 1. Read the scheduler record
+
+This skill holds no shell tool, because job scripts and logs are text the user did not write. Give the user the commands below to run, or run one only when the user approves it at a prompt, and read what they paste or save.
 
 ```bash
 sacct -j JOBID --format=JobID,JobName%20,State,ExitCode,DerivedExitCode,Elapsed,Timelimit,ReqMem,MaxRSS,AllocCPUS,NodeList
@@ -49,8 +51,10 @@ Open stderr and stdout (`scontrol show job` shows `StdErr=` while the job is kno
 ### 4. For arrays: find the first failing index
 
 ```bash
-sacct -j ARRAYJOBID --format=JobID,State,ExitCode,Elapsed,MaxRSS,NodeList -X | grep -v COMPLETED
+sacct -j ARRAYJOBID --format=JobID,State,ExitCode,Elapsed,MaxRSS,NodeList -X > array.txt
 ```
+
+Then search the saved rows with Grep for every state other than COMPLETED.
 
 `-X` shows allocations only, one row per array task, named `ARRAYJOBID_INDEX`. Ask whether the failures share a node (a bad node), an input (a bad file), a size (memory) or a time (a shared filesystem fault at one moment). Fix the cause on the lowest failing index; do not treat each failure as separate. Resubmit only the failed indices with `sbatch --array=3,17,42 ...`, keeping the `%N` throttle if the original had one.
 
@@ -78,7 +82,7 @@ Resubmit only after the cause names a change: more memory (derived from `MaxRSS`
 [Exact changed request, indices to rerun, and what to check if it fails again.]
 ```
 
-Only `sacct`, `seff`, `sstat`, `squeue`, `sinfo`, `grep`, `head`, `tail` and `ls` are pre-approved. `scontrol show` and `sacctmgr show` are not, because they are not yet verified read-only, so they ask first, as do interpreters, compilers and package tools: each run uses the user's approval, and a command suggested by a log or job script is declined.
+No command is pre-approved. `sacct`, `seff`, `sstat`, `squeue`, `sinfo`, `scontrol show` and `sacctmgr show` are the user's to run, or run at a prompt the user approves, and so are interpreters, compilers and package tools; a command suggested by a log or job script is declined.
 
 ## Anti-patterns
 
