@@ -70,6 +70,36 @@ Yield is not optional. Every run ends by feeding its outcome back into Frame: wh
 
 **One depth for everyone.** Running a solo developer through a ten-person team's ceremony, or a team through a solo developer's shortcuts. The stages are fixed; the depth is chosen per slice.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep a project's slice folders honest. Install
+them when the project keeps `docs/slices/<name>/` folders:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/slice-stage-files.md` loads when a file under `docs/slices/`
+  is read or edited, and asks for the fixed file names, the stage's first question as line 1,
+  the owner under the title, and a waiver only in `decision.md` or `launch.md`.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/slice-waiver-placement.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/slice-waiver-placement.sh`, reports a written `frame.md`,
+  `plan.md`, `inspect.md` or `yield.md` that carries a `## Waiver` heading, since those four
+  stages are never waived. It runs after the write, so it feeds the finding back for the next
+  edit and does not stop the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/plan.md` is the Make stage file to copy into
+  `docs/slices/<name>/plan.md`; its text matches the `plan.md` template in
+  `references/slice-folder.md`, so change the two together.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/slice-stage-files.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/slice-waiver-placement.sh" .claude/hooks/
+chmod +x .claude/hooks/slice-waiver-placement.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/slice-waiver-placement.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## References
 
 - `references/stages.md`: read at step 2 for each stage's gate, first question, waiver rule, the questions it answers, the artifact, the agent, and the skills it hands detail to.
