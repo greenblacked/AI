@@ -141,7 +141,7 @@ suppressions:
     paths: ["SKILL.md"]
     reason: >-
       The skill's opt-in Project kit ships assets/hooks/block-set-based-backend-kill.sh, which the scanner reads as bash the skill runs. It is
-      a template the installer copies on purpose: the hook refuses pg_terminate_backend or pg_cancel_backend with a non-literal pid, and a command that calls either and is over 32 KiB, uses standard tools only, reads one stdin
+      a template the installer copies on purpose: the hook refuses pg_terminate_backend or pg_cancel_backend with a non-literal pid, a command that names either in a spelling it cannot read ($'...' escape, brace expansion, variable or substitution as the command), and a command that calls either and is over 32 KiB, uses standard tools only, reads one stdin
       payload, and has no network access, secrets or eval. The skill itself does not run it and the allowed-tools
       grant is not widened.
     expires: 2027-05-02

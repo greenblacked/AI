@@ -143,6 +143,11 @@ check_segment() {
   local -a words
   local i=0 n w chdir="" seen=0 plan=0 skip=0
   # A failed read leaves no words, which would read as "not an apply" and allow the segment.
+  # $1 is a piece of the command, which is at most 32 KiB here (the cap above), so it is always
+  # small enough for a here-string. Bash 5.1 and later write one that fits the pipe capacity (64 KiB
+  # on Linux) through a pipe and not a temporary file, so the failed temporary-file write that
+  # hits() guards against cannot happen on this read; on an older bash it can, and the `|| refuse`
+  # below turns that into a block rather than an allow.
   read -ra words <<<"$1" || refuse "could not read the command into words"
   n=${#words[@]}
   # Find `terraform|tofu [-chdir=dir] apply`, tolerating env-var prefixes and a path to the binary.

@@ -658,5 +658,21 @@
   {"hook": "sup", "name": "above-comment-japanese-repeat-mark", "payload": {"tool_input": {"file_path": "a.py", "content": "# 時々\nx = 1  # pragma: no mutate\n"}}, "exit": 0},
   {"hook": "sup", "name": "reason-cjk-punctuation-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 。。\n"}}, "exit": 2},
   {"hook": "sup", "name": "reason-cjk-comma-and-brackets-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 、「」\n"}}, "exit": 2},
-  {"hook": "sup", "name": "reason-ideographic-space-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 　　\n"}}, "exit": 2}
+  {"hook": "sup", "name": "reason-ideographic-space-only", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 　　\n"}}, "exit": 2},
+  {"hook": "kill", "name": "name-split-across-adjacent-quotes", "payload": {"tool_input": {"command": "psql -c 'select pg_terminate_back'\"end(pid) from pg_stat_activity\""}}, "exit": 2},
+  {"hook": "kill", "name": "name-split-by-empty-quotes", "payload": {"tool_input": {"command": "psql -c select\\ pg_term''inate_backend\\(pid\\)"}}, "exit": 2},
+  {"hook": "kill", "name": "name-split-by-backslash", "payload": {"tool_input": {"command": "psql -c select\\ pg_termin\\ate_backend\\(pid\\)"}}, "exit": 2},
+  {"hook": "kill", "name": "cancel-name-split-by-quotes", "payload": {"tool_input": {"command": "psql -c 'select pg_can'cel_backend'(pid) from t'"}}, "exit": 2},
+  {"hook": "kill", "name": "ansi-c-quoted-statement", "payload": {"tool_input": {"command": "psql -c $'select pg_terminate_backend(pid) from t'"}}, "exit": 2},
+  {"hook": "kill", "name": "ansi-c-escape-in-statement", "payload": {"tool_input": {"command": "psql -c $'select pg_terminate_backend(\\x31)'"}}, "exit": 2},
+  {"hook": "kill", "name": "ansi-c-escape-hides-name", "payload": {"tool_input": {"command": "psql -c $'select pg_terminat\\x65_backend(pid) from t'"}}, "exit": 2},
+  {"hook": "kill", "name": "brace-list-in-statement", "payload": {"tool_input": {"command": "psql -c select\\ pg_terminate_backend\\({1,2}\\)"}}, "exit": 2},
+  {"hook": "kill", "name": "client-from-variable", "payload": {"tool_input": {"command": "c=psql; $c -c 'select pg_terminate_backend(123)'"}}, "exit": 2},
+  {"hook": "kill", "name": "literal-in-ansi-c-string-plain", "payload": {"tool_input": {"command": "psql -c $'select pg_terminate_backend(12345)'"}}, "exit": 0},
+  {"hook": "kill", "name": "literal-split-name-from-quotes-is-still-judged", "payload": {"tool_input": {"command": "psql -c 'select pg_terminate_back'\"end(12345)\""}}, "exit": 0},
+  {"hook": "kill", "name": "quoted-literal-pid", "payload": {"tool_input": {"command": "psql -c \"select pg_terminate_backend('123')\""}}, "exit": 2},
+  {"hook": "kill", "name": "brace-list-no-function", "payload": {"tool_input": {"command": "cp a.{c,h} dir"}}, "exit": 0},
+  {"hook": "kill", "name": "quoted-brace-with-function", "payload": {"tool_input": {"command": "psql -c \"select pg_terminate_backend(123), '{a,b}'\""}}, "exit": 0},
+  {"hook": "kill", "name": "variable-path-to-client", "payload": {"tool_input": {"command": "$HOME/bin/psql -c 'select pg_terminate_backend(123)'"}}, "exit": 0},
+  {"hook": "kill", "name": "variable-argument", "payload": {"tool_input": {"command": "psql \"$DSN\" -c 'select pg_terminate_backend(123)'"}}, "exit": 0}
 ]
