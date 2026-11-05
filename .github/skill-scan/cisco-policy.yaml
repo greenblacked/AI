@@ -186,6 +186,15 @@ suppressions:
       grant is not widened.
     expires: 2027-05-02
 
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["game-builder"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The finding comes from assets/hooks/game-data-json.sh alone (the scan is clean with that file removed). It is an
+      opt-in hook the user copies into their own project; the skill never runs it and allows Read/Grep/Glob only by
+      design. The script only parses a written .json file, makes no network call and reads no secret.
+    expires: 2027-05-02
+
   # Subagent and slash-command definitions, scanned as one-file skills by scripts/definition_shims.py. Cisco matches
   # `skills` on the shim's frontmatter name, which the wrapper sets to the shim id for agents and commands alike.
   - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE

@@ -1,0 +1,27 @@
+{
+  "defaults": {"met_smith": false},
+  "nodes": [
+    {"id": "start", "start": true, "line_key": "start.line", "sets": {"met_smith": true}},
+    {"id": "offer", "line_key": "offer.line"},
+    {"id": "accept", "line_key": "accept.line", "sets": {"quest": "taken"}},
+    {"id": "refuse", "line_key": "refuse.line"},
+    {"id": "reward", "line_key": "reward.line", "ending": true},
+    {"id": "orphan", "line_key": "orphan.line", "ending": true},
+    {"id": "loop_a", "line_key": "loop_a.line"},
+    {"id": "loop_b", "line_key": "loop_b.line"},
+    {"id": "silent", "line_key": "silent.line"},
+    {"id": "reward", "line_key": "reward.line", "ending": true}
+  ],
+  "edges": [
+    {"from": "start", "to": "offer"},
+    {"from": "offer", "to": "accept"},
+    {"from": "offer", "to": "refuse"},
+    {"from": "offer", "to": "loop_a", "when": [{"flag": "met_smith", "op": "==", "value": true}]},
+    {"from": "accept", "to": "reward", "when": [{"flag": "quest", "op": "==", "value": "done"}]},
+    {"from": "accept", "to": "silent", "when": [{"flag": "bribed", "op": "==", "value": true}]},
+    {"from": "loop_a", "to": "loop_b"},
+    {"from": "loop_b", "to": "loop_a"},
+    {"from": "orphan", "to": "ghost"},
+    {"from": "orphan", "to": "reward", "when": [{"flag": "met_smith", "op": "~=", "value": true}]}
+  ]
+}

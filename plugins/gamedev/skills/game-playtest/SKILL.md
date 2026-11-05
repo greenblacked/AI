@@ -1,6 +1,6 @@
 ---
 name: game-playtest
-description: "Run a game playtest so it ends in decisions rather than opinions: write one question per session tied to a design goal, recruit the target player instead of friends, observe in silence and record behaviour (deaths, quits, time to first success, where they look) before asking, choose think-aloud or retrospective narration knowing what each distorts, follow with a short survey on fixed scales, separate bugs from design findings, triage bugs by severity and reproducibility into the tracker with repro steps and build id, and turn findings into a short ranked change list with the metric that would show each fix worked. Use whenever someone is planning, running or writing up a playtest, a demo-day session or a closed alpha. Not for win-rate tuning (game-balance), level layout (game-level-design), concept go or no-go (game-greenlight), or usability tests of product UI (usability-test-plan)."
+description: "Run a game playtest so it ends in decisions rather than opinions: write one question per session tied to a design goal, recruit the target player instead of friends, observe in silence and record behaviour (deaths, quits, time to first success) before asking, choose think-aloud or retrospective narration, follow with a short survey on fixed scales, separate bugs from design findings, hand bugs to game-bug-triage with repro steps and build id, and turn findings into a short ranked change list with the metric that would show each fix worked. Use whenever someone is planning, running or writing up a playtest, a demo-day session or a closed alpha. Not for severity, repro records or release gates (game-bug-triage), win-rate tuning (game-balance), level layout (game-level-design), concept go or no-go (game-greenlight), or usability tests of product UI (usability-test-plan)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -20,6 +20,7 @@ Do not use for:
 - Laying out or re-pacing a level. Watching people fail to find the exit is a playtest finding; moving the exit is `game-level-design`.
 - Deciding whether a concept is worth building, or what a prototype must prove. That is `game-greenlight`, and its criteria come before any session.
 - Usability tests of product UI: settings, accounts, checkout, a storefront, a launcher. The boundary is what friction means. In a game, difficulty, confusion and failure are sometimes the intended experience, so task success is the wrong measure of in-play behaviour; in a product screen the user has a goal outside the interface and friction is a defect. Use `usability-test-plan` for the second, and this skill for what happens while the game is being played. A game's menus and settings screens belong to the second even inside a game.
+- Rating a bug's severity, building its full repro record or deciding whether it blocks release. This skill sorts bugs from design findings and hands them over; `game-bug-triage` ranks them.
 - Finding the cause of a crash. A tester's report starts a bug; `debugging` finishes it.
 
 ## Workflow
@@ -60,11 +61,11 @@ Read `references/survey.md` for the item types, the wording rules and how to rea
 
 Apply one test to everything that went wrong: did the build do what its author intended? If not, it is a bug. If it did, and the player was confused, bored or stopped, it is a design finding. The two go to different places and are judged differently, and mixing them is how a tracker fills with "players find the tutorial unclear" while real crashes wait. A bug that only matters because it exposed a design weakness gets filed as a bug and cross-referenced from the finding. When it is unclear which it is, record it as a finding; a design problem mislabelled as a bug gets fixed by patching the symptom.
 
-### 7. Triage bugs into the tracker with enough to reproduce
+### 7. Hand the bugs to game-bug-triage with enough to reproduce
 
-Rate each bug on two axes, severity and reproducibility, and file it the same day with the build id, the platform, the starting state, numbered steps, expected against actual, how often it happened (x of y attempts, not "sometimes"), and the recording timestamp. Search for a duplicate first and add the new evidence to it. A bug seen once is filed as unconfirmed with its evidence, not dropped; a crash, soft-lock or lost save is filed whatever its reproducibility, because it is the one thing a tester cannot work around.
+Record how often each bug was seen, and hand it to `game-bug-triage`, which owns the S1 to S4 severity call and the release gate; this plugin has one severity scale and it is not defined here. File it the same day with the build id, the platform, the starting state, numbered steps, expected against actual, how often it happened (x of y attempts, not "sometimes"), and the recording timestamp. Search for a duplicate first and add the new evidence to it. A bug seen once is filed as unconfirmed with its evidence, not dropped; a crash, soft-lock or lost save is filed whatever its reproducibility, because it is the one thing a tester cannot work around.
 
-Read `references/triage-and-ranking.md` for the severity scale, the matrix and the bug template.
+Read `references/triage-and-ranking.md` for the reproducibility levels and the playtest ticket fields; severity comes from `game-bug-triage`.
 
 ### 8. Rank the design changes and attach the metric
 
