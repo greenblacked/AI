@@ -32,22 +32,34 @@ fi
 # missing tool is worse than no hook.
 # Lower-cased once so every pattern below is case-insensitive without a grep flag. A J-Link
 # script argument is dropped first: its file name (erase_all.jlink, no_erase.txt) says nothing
-# about what the command line does, and the script's content is not visible here.
+# about what the command line does, and the script's content is not visible here. The argument
+# ends at a space, a joiner or a closing parenthesis, so `-CommandFile <(echo erase)` leaves
+# `erase)` behind to be matched.
 # The piped J-Link form (echo erase | JLinkExe, printf 'erase\n' | JLinkExe, quoted or not) is
 # matched; openocd may carry `;` inside a quoted -c argument, so its pattern runs to a pipe or &.
 scrubbed="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]' |
-  sed -E 's/-(commanderscript|commandfile)[[:space:]=]+[^[:space:];&|]+//g')"
+  sed -E 's/-(commanderscript|commandfile)[[:space:]=]+[^[:space:];&|)]+//g')"
 sp='[[:space:]]'
 bs='[\\]'
-word_end="(${sp}|\$|[;&|])"
+q="[\"']"
+word_end="(${sp}|\$|[;&|)])"
 # A J-Link command can reach the tool on stdin, so `erase` is also matched as a word wherever it
-# starts: after a space, a quote, a literal \n (printf 'r\nerase\nq\n') or a real newline.
-# The newlines become spaces for this view only, so that a heredoc or a quoted multi-line
-# printf is one command, while the patterns above keep the lines apart. `erased` and
-# `erase_log` are not the word.
+# starts: after a space, a quote or a literal \n (printf 'r\nerase\nq\n'), and it must be the
+# command that is piped or joined: `erase` directly followed by a pipe, `;` or `&`, with at most
+# a quote, a parenthesis or a redirect to a file in between (echo erase > c.jlink && JLinkExe
+# -CommandFile c.jlink). Text after `erase` is allowed only in the literal \n form, where it is
+# the rest of the script (`erase\nexit\n' | JLinkExe`); anywhere else it means `erase` is an
+# argument of some other command (grep -n erase docs.md; JLinkExe ...) and is not matched.
+# `erased` and `erase_log` are not the word.
+# Real newlines end a command, so the literal-\n form runs on the lines as they are. The other
+# forms run on a view with the newlines turned into spaces, which keeps a multi-line quoted
+# printf, and a pipe at the end of a line, in one command; the heredoc body is read line by line
+# by the awk below, so the text after its delimiter is never part of it.
 flat="$(printf '%s' "$scrubbed" | tr '\n' ' ')"
-stdin_erase="(^|${sp}|[\"']|${bs}n)erase((${bs}n|[\"']|${sp})[^|;&]*)?${sp}*(;|\|)[^;&]*jlink"
-heredoc_erase="jlink(exe|\.exe)?[^|;&]*<<[^|;&]*(${sp}|[\"']|${bs}n)erase${word_end}"
+stdin_erase_lit="(^|${sp}|${q}|${bs}n)erase${bs}n[^|;&]*(;|&+|\\|)[^;&]*jlink"
+stdin_erase="(^|${sp}|${q}|${bs}n)erase${q}?${sp}*\\)*${sp}*(>>?${sp}*[^[:space:];&|]+${sp}*)?(;|&+|\\|)[^;&]*jlink"
+stdin_erase_sq="'(([^'|;&]*${sp})?)erase(${sp}[^'|;&]*)?'${sp}*\\|[^;&]*jlink"
+stdin_erase_dq="\"(([^\"|;&]*${sp})?)erase(${sp}[^\"|;&]*)?\"${sp}*\\|[^;&]*jlink"
 # The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
 # and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
 # reads as "no match" and would allow a large command.
@@ -55,13 +67,57 @@ if grep -Eq \
   -e "st-flash[^|;&]*${sp}erase${word_end}" \
   -e "nrfjprog[^|;&]*--(eraseall|recover|rbp|rdp)" \
   -e "esptool[^|;&]*[[:space:]_.-]erase[_-]flash" \
-  -e "jlink(exe|\.exe)?[^|;&]*${sp}erase${word_end}" \
+  -e "jlink(exe|\.exe)?[^|;&]*(${sp}|${q}|${bs}n)erase(${sp}|\$|[;&|)]|${q}|${bs}n)" \
   -e "pyocd[^|;&]*${sp}erase(${sp}[^|;&]*)?${sp}(--chip|--mass|-c)(${sp}|\$|[;&|=])" \
   -e "stm32_programmer_cli[^|;&]*(-e|--erase)${sp}+all" \
   -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)" \
   -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))" \
+  -e "$stdin_erase_lit" \
   <<<"$scrubbed" ||
-  grep -Eq -e "$stdin_erase" -e "$heredoc_erase" <<<"$flat"; then
+  grep -Eq -e "$stdin_erase" -e "$stdin_erase_sq" -e "$stdin_erase_dq" <<<"$flat"; then
+  hit=1
+else
+  hit=0
+fi
+# A J-Link heredoc (`JLinkExe <<EOF`, `cat <<EOF | JLinkExe`) or here-string (`JLinkExe <<< erase`)
+# is judged by its own lines: the body runs to the delimiter line, and an `erase` after it, or in
+# a later command, is not part of what J-Link reads. The delimiter is the word after `<<`, with
+# an optional `-`, quotes or a backslash.
+if [ "$hit" -eq 0 ]; then
+  heredoc="$(LC_ALL=C awk '
+    function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t;&|)"\047]|\\n|$)/ }
+    {
+      line = $0
+      if (delim != "") {
+        t = line
+        sub(/^[ \t]+/, "", t)
+        sub(/[ \t\r]+$/, "", t)
+        if (t == delim) { delim = ""; next }
+        if (has_erase(line)) hit = 1
+        next
+      }
+      p = index(line, "<<")
+      if (!p) next
+      if (line !~ /jlink(exe|\.exe)?[^|;&]*<</ && line !~ /<<.*\|[^;&]*jlink/) next
+      rest = substr(line, p + 2)
+      if (substr(rest, 1, 1) == "<") { if (has_erase(substr(rest, 2))) hit = 1; next }
+      sub(/^-/, "", rest)
+      sub(/^[ \t]*/, "", rest)
+      sub(/^["\047\\]+/, "", rest)
+      if (match(rest, /^[a-z0-9_.-]+/)) delim = substr(rest, 1, RLENGTH)
+    }
+    END { print hit ? "hit" : "none" }
+  ' <<<"$scrubbed")" || heredoc="failed"
+  case "$heredoc" in
+    hit) hit=1 ;;
+    none) ;;
+    *)
+      echo "blocked: could not scan the command for a J-Link heredoc, so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
+      exit 2
+      ;;
+  esac
+fi
+if [ "$hit" -eq 1 ]; then
   echo "blocked: whole-device erase or readout-protection write. Dump flash and option bytes first (for example 'st-flash read dump.bin 0x08000000 <size>' or 'nrfjprog --readcode dump.hex'), keep the dump, then ask for the erase explicitly." >&2
   exit 2
 fi

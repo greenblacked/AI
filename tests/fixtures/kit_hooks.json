@@ -454,5 +454,22 @@
   {"hook": "sup", "name": "reason-greek-word", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate ισοδύναμο\n"}}, "exit": 0},
   {"hook": "sup", "name": "stryker-single-accented-letter", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: é\n"}}, "exit": 0},
   {"hook": "sup", "name": "stryker-cjk-reason", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: 等価\n"}}, "exit": 0},
-  {"hook": "sup", "name": "above-comment-cjk", "payload": {"tool_input": {"file_path": "a.py", "content": "# 等価変異\nx = 1  # pragma: no mutate\n"}}, "exit": 0}
+  {"hook": "sup", "name": "above-comment-cjk", "payload": {"tool_input": {"file_path": "a.py", "content": "# 等価変異\nx = 1  # pragma: no mutate\n"}}, "exit": 0},
+  {"hook": "erase", "name": "heredoc-then-echo-erase", "payload": {"tool_input": {"command": "JLinkExe -device X <<EOF\nloadfile app.hex\nEOF\necho do not erase now"}}, "exit": 0},
+  {"hook": "erase", "name": "quoted-heredoc-then-echo-erase", "payload": {"tool_input": {"command": "JLinkExe -device X <<'EOF'\nloadfile app.hex\nEOF\necho flashed, chip erase skipped"}}, "exit": 0},
+  {"hook": "erase", "name": "comment-erase-then-jlink-line", "payload": {"tool_input": {"command": "# no erase needed, flash only\nmake hex\nnrfutil pkg generate x.zip; JLinkExe -device X"}}, "exit": 0},
+  {"hook": "erase", "name": "comment-erase-semicolon-then-jlink-line", "payload": {"tool_input": {"command": "# no erase; flash only\nmake hex\nnrfutil pkg generate x.zip; JLinkExe -device X"}}, "exit": 0},
+  {"hook": "erase", "name": "grep-erase-docs-then-jlink-commandfile", "payload": {"tool_input": {"command": "grep -n erase docs/flash.md; JLinkExe -CommandFile f.jlink"}}, "exit": 0},
+  {"hook": "erase", "name": "heredoc-without-jlink-then-jlink", "payload": {"tool_input": {"command": "cat <<EOF\nerase\nEOF\nJLinkExe -device X"}}, "exit": 0},
+  {"hook": "erase", "name": "heredoc-body-then-erase-after-delimiter", "payload": {"tool_input": {"command": "JLinkExe <<EOF\nconnect\nexit\nEOF\nerase | cat"}}, "exit": 0},
+  {"hook": "erase", "name": "commandfile-process-substitution-no-erase", "payload": {"tool_input": {"command": "JLinkExe -CommandFile <(echo loadfile a.hex)"}}, "exit": 0},
+  {"hook": "erase", "name": "heredoc-erase-after-connect", "payload": {"tool_input": {"command": "JLinkExe <<EOF\nconnect\nerase\nEOF\necho done"}}, "exit": 2},
+  {"hook": "erase", "name": "commandfile-process-substitution-echo", "payload": {"tool_input": {"command": "JLinkExe -CommandFile <(echo erase)"}}, "exit": 2},
+  {"hook": "erase", "name": "commandfile-process-substitution-printf", "payload": {"tool_input": {"command": "JLinkExe -CommandFile <(printf 'r\\nerase\\n')"}}, "exit": 2},
+  {"hook": "erase", "name": "echo-erase-file-then-commandfile", "payload": {"tool_input": {"command": "echo erase > c.jlink && JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "printf-erase-file-then-commandfile", "payload": {"tool_input": {"command": "printf 'r\\nerase\\nq\\n' > c.jlink; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "pipe-heredoc-into-jlink", "payload": {"tool_input": {"command": "cat <<EOF | JLinkExe -device X\nerase\nEOF"}}, "exit": 2},
+  {"hook": "erase", "name": "here-string-erase", "payload": {"tool_input": {"command": "JLinkExe -device X <<< \"erase\""}}, "exit": 2},
+  {"hook": "erase", "name": "erase-pipe-newline-jlink", "payload": {"tool_input": {"command": "echo erase |\nJLinkExe -device X"}}, "exit": 2},
+  {"hook": "erase", "name": "subshell-erase-pipe-jlink", "payload": {"tool_input": {"command": "(printf 'r\\n'; echo erase) | JLinkExe"}}, "exit": 2}
 ]
