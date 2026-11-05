@@ -833,5 +833,6 @@
   {"hook": "erase", "name": "erase-to-command-substitution-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase > \"$(date +%s).log\"; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
   {"hook": "erase", "name": "erase-to-backtick-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase > `date`.log; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
   {"hook": "erase", "name": "erase-to-tee-substitution-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase | tee $(date +%s).log; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
-  {"hook": "erase", "name": "done-to-command-substitution-name-has-no-erase", "payload": {"tool_input": {"command": "echo done > \"$(date +%s).log\"; JLinkExe -CommandFile flash.jlink"}}, "exit": 0}
+  {"hook": "erase", "name": "done-to-command-substitution-name-has-no-erase", "payload": {"tool_input": {"command": "echo done > \"$(date +%s).log\"; JLinkExe -CommandFile flash.jlink"}}, "exit": 0},
+  {"hook": "ddl", "name": "truncate-a-non-ascii-identifier-is-blocked-byte-wise", "payload": {"tool_input": {"command": "psql -c \"truncate événements\""}}, "exit": 2}
 ]

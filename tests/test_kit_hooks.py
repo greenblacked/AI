@@ -544,6 +544,38 @@ BIG = {
             0,
             {},
         ),
+        # The digits before a descriptor copy are cut off the previous piece; an end-anchored
+        # regex there retried at every digit, which took quadratic time in mawk.
+        (
+            "digit-run-before-descriptor-copy",
+            lambda: {
+                "command": "echo erase "
+                + "9" * 200000
+                + " >&1 > c.jlink; JLinkExe -CommandFile c.jlink"
+            },
+            2,
+            {},
+        ),
+        # The three regexes that read a heredoc line were retried at every start position in mawk:
+        # a J-Link word before a missing `<<`, `<<` before many pipes, and spaces after a pipe.
+        (
+            "jlink-words-after-heredoc-marker",
+            lambda: {"command": "cat <<E " + "jlink " * 100000 + "\nx\nE"},
+            0,
+            {},
+        ),
+        (
+            "pipes-after-heredoc-marker",
+            lambda: {"command": "x <<E " + "|" * 200000 + "\nx\nE"},
+            0,
+            {},
+        ),
+        (
+            "spaces-after-trailing-pipe",
+            lambda: {"command": "cat <<E |" + " " * 500000 + "x\nx\nE"},
+            0,
+            {},
+        ),
         (
             "many-jlink-lines-one-file",
             lambda: {"command": "echo erase > f\n" + "jlink x\n" * 200000},
@@ -840,4 +872,50 @@ def test_a_large_payload_finishes_in_five_seconds(
     done = run_hook(key, stdin, mode, bins, scratch, timeout=5)
     elapsed = time.monotonic() - started
     assert done.returncode == want, (elapsed, done.stderr.decode("utf-8", "replace")[:300])
+    assert elapsed < 5
+
+
+# One long run of a single kind of character, then a character nothing matches, in front of a
+# word the hook looks for, after it, or alone. A regex that is retried at every start position, or
+# that backtracks over two adjacent repeats, takes time that grows with the square of the run, and
+# a timed-out hook fails open. This covers the normalising hooks, which read a whole command.
+RUN_LENGTH = 512 * 1024
+RUN_UNITS = {
+    "digits": "9",
+    "spaces": " ",
+    "backslashes": "\\",
+    "letters": "a",
+    "hashes": "#",
+}
+RUN_WORDS = {
+    "tf": "terraform apply",
+    "kill": "pg_terminate_backend(",
+    "sym": "rm mapping.txt",
+    "erase": "echo erase",
+    "ddl": "truncate",
+}
+RUN_SHAPES = {
+    "alone": lambda run, word: run + "~",
+    "before-word": lambda run, word: run + "~ " + word,
+    "after-word": lambda run, word: word + " " + run + "~",
+}
+
+
+def test_every_normalising_hook_has_a_word_for_the_run_tests():
+    assert set(RUN_WORDS) == set(NORMALISING)
+
+
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("shape", RUN_SHAPES)
+@pytest.mark.parametrize("unit", RUN_UNITS)
+@pytest.mark.parametrize("key", NORMALISING)
+def test_a_long_run_of_one_character_finishes_in_five_seconds(
+    key, unit, shape, mode, bins, scratch
+):
+    command = RUN_SHAPES[shape](RUN_UNITS[unit] * RUN_LENGTH, RUN_WORDS[key])
+    stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")
+    started = time.monotonic()
+    done = run_hook(key, stdin, mode, bins, scratch, timeout=5)
+    elapsed = time.monotonic() - started
+    assert done.returncode in (0, 2), (elapsed, done.stderr.decode("utf-8", "replace")[:300])
     assert elapsed < 5

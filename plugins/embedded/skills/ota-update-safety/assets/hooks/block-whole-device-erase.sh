@@ -223,6 +223,17 @@ esc_pair=$'\002'
 jl_scan() {
   LC_ALL=C awk '
     function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t\r;&|)"\047<>]|\\n|$)/ }
+    # Drops the digits at the end of s by walking back from the end. An end-anchored regex such as
+    # /[0-9]+$/ is retried at every digit start in mawk, which is quadratic on a long digit run.
+    function trim_digits(s,   j, c) {
+      j = length(s)
+      while (j > 0) {
+        c = substr(s, j, 1)
+        if (c < "0" || c > "9") break
+        j--
+      }
+      return substr(s, 1, j)
+    }
     function redir(s,   n, k, rest, tok, r, m) {
       # >&N and >&N- copy a descriptor only when the digits or dash are the whole word; >&1c.jlink
       # writes stdout and stderr to a file called 1c.jlink, so that text stays. A carriage return
@@ -239,7 +250,7 @@ jl_scan() {
             tok = RLENGTH
             r = substr(rest, tok + 1, 1)
             if (r == "" || r ~ /[ \t;&|()<>]/) {
-              sub(/[0-9]+$/, "", ro[k - 1])
+              ro[k - 1] = trim_digits(ro[k - 1])
               ro[k] = " " substr(rest, tok + 1)
               continue
             }
@@ -258,6 +269,41 @@ jl_scan() {
       gsub(/&>/, ">", s)
       gsub(/>\|/, ">", s)
       return s
+    }
+    # The three functions below stand in for regexes that mawk retries from every start position, which
+    # takes quadratic time on a long line: jlink(exe)?[^|;&]*<<, <<.*\|&?[^;&]*jlink and
+    # \|&?[ \t\r]*\\?[ \t\r]*$. Each one cuts the line at the separators and looks once per piece.
+    function jl_before(line,   n, k, i, ps) {
+      n = split(line, ps, /[|;&]/)
+      for (k = 1; k <= n; k++) {
+        i = index(ps[k], "jlink")
+        if (i && index(substr(ps[k], i + 5), "<<")) return 1
+      }
+      return 0
+    }
+    function jl_piped(line,   a, n, k, s, p, us) {
+      a = index(line, "<<")
+      if (!a) return 0
+      n = split(substr(line, a + 2), us, "|")
+      for (k = 2; k <= n; k++) {
+        s = us[k]
+        if (substr(s, 1, 1) == "&") s = substr(s, 2)
+        p = match(s, /[;&]/)
+        if (p) s = substr(s, 1, p - 1)
+        if (index(s, "jlink")) return 1
+      }
+      return 0
+    }
+    function is_blank(c) { return c == " " || c == "\t" || c == "\r" }
+    function ends_in_pipe(line,   j) {
+      j = length(line)
+      while (j > 0 && is_blank(substr(line, j, 1))) j--
+      if (j > 0 && substr(line, j, 1) == "\\") {
+        j--
+        while (j > 0 && is_blank(substr(line, j, 1))) j--
+      }
+      if (j > 0 && substr(line, j, 1) == "&") j--
+      return j > 0 && substr(line, j, 1) == "|"
     }
     function hs_erase(s,   w, c) {
       sub(/^[ \t]+/, "", s)
@@ -331,7 +377,7 @@ jl_scan() {
       scan(line)
       p = index(line, "<<")
       if (!p) next
-      feeds = (line ~ /jlink(exe|\.exe)?[^|;&]*<</ || line ~ /<<.*\|&?[^;&]*jlink/)
+      feeds = (jl_before(line) || jl_piped(line))
       rest = substr(line, p + 2)
       if (substr(rest, 1, 1) == "<") {
         hs = substr(rest, 2)
@@ -349,7 +395,7 @@ jl_scan() {
         next
       }
       gather(line)
-      piped = (line ~ /\|&?[ \t\r]*\\?[ \t\r]*$/)
+      piped = ends_in_pipe(line)
       dash = (substr(rest, 1, 1) == "-")
       sub(/^-/, "", rest)
       sub(/^[ \t]*/, "", rest)

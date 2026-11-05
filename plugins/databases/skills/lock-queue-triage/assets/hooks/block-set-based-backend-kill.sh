@@ -58,6 +58,10 @@ hits() {
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
 [ -n "$command" ] || exit 0
+# Byte-wise matching (LC_ALL=C): under a UTF-8 locale GNU grep takes quadratic time on the patterns
+# below for a long run of one kind of character, and a timed-out hook fails open. A name and a
+# keyword are ASCII, and upper case is only folded for ASCII.
+export LC_ALL=C
 # Matched without regard to case, since SQL keywords and function names are not case-sensitive.
 #
 # The command is a shell line carrying SQL, so the shell can split the function name where a text
