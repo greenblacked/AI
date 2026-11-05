@@ -834,5 +834,13 @@
   {"hook": "erase", "name": "erase-to-backtick-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase > `date`.log; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
   {"hook": "erase", "name": "erase-to-tee-substitution-name-is-unreadable", "payload": {"tool_input": {"command": "echo erase | tee $(date +%s).log; JLinkExe -CommandFile flash.jlink"}}, "exit": 2},
   {"hook": "erase", "name": "done-to-command-substitution-name-has-no-erase", "payload": {"tool_input": {"command": "echo done > \"$(date +%s).log\"; JLinkExe -CommandFile flash.jlink"}}, "exit": 0},
+  {"hook": "erase", "name": "pyocd-sector-erase-to-substitution-log-is-allowed", "payload": {"tool_input": {"command": "pyocd load fw.hex > \"log-$(date +%s).txt\"; echo erase done"}}, "exit": 0},
+  {"hook": "erase", "name": "pyocd-sector-erase-teed-to-substitution-log-is-allowed", "payload": {"tool_input": {"command": "pyocd erase --sector 0x8000 2>&1 | tee \"log-$(date +%s).txt\""}}, "exit": 0},
+  {"hook": "erase", "name": "erase-to-variable-name-is-unreadable", "payload": {"tool_input": {"command": "f=c.jlink; echo erase > $f; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-to-braced-quoted-variable-name-is-unreadable", "payload": {"tool_input": {"command": "f=c.jlink; echo erase > \"${f}\"; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-to-tee-variable-name-is-unreadable", "payload": {"tool_input": {"command": "f=c.jlink; echo erase | tee $f; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-here-string-to-variable-name-is-unreadable", "payload": {"tool_input": {"command": "f=c.jlink; cat <<< erase > $f; JLinkExe -CommandFile c.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-heredoc-to-substitution-name-is-unreadable", "payload": {"tool_input": {"command": "cat <<E > \"$(date +%s).log\"\nerase\nE\nJLinkExe -CommandFile flash.jlink"}}, "exit": 2},
+  {"hook": "erase", "name": "done-to-variable-name-has-no-erase", "payload": {"tool_input": {"command": "echo done > $LOG; JLinkExe -CommandFile flash.jlink"}}, "exit": 0},
   {"hook": "ddl", "name": "truncate-a-non-ascii-identifier-is-blocked-byte-wise", "payload": {"tool_input": {"command": "psql -c \"truncate événements\""}}, "exit": 2}
 ]

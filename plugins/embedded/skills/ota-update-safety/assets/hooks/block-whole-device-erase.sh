@@ -3,7 +3,8 @@
 # It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
 # before matching, and refuses a probe command it cannot read (a $'..' escape, a brace expansion, a
 # variable or substitution in command position, which is read right after a separator or after
-# sudo, exec, command, env and similar wrappers, not after other wrappers) rather than guessing. A script file the command runs
+# sudo, exec, command, env and similar wrappers, not after other wrappers, or in the target of a
+# redirect or tee that carries an erase) rather than guessing. A script file the command runs
 # and an interpreter one-liner are out of scope: the hook cannot see what they do.
 set -Eeuo pipefail
 
@@ -107,7 +108,7 @@ unreadable() {
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
 refuse_unreadable() {
-  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names a debug probe or an erase. Write the command plainly, with the tool and its erase option spelled out." >&2
+  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, a variable or substitution where the command goes, or a variable or substitution as a redirect or tee target that carries an erase) and it names a debug probe or an erase. Write the command plainly, with the tool and its erase option spelled out." >&2
   exit 2
 }
 # normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
@@ -212,7 +213,10 @@ fi
 # erase>c.jlink), follow a descriptor copy (echo erase 2>&1 > c.jlink), be written >| or &>, or
 # follow a here-string (cat <<< erase > c.jlink). An escaped \> that touches the word
 # (erase\>c.jlink) is an argument, not a redirect; a spaced \> (erase \> c.jlink) is still read as a
-# redirect, which fails closed.
+# redirect, which fails closed. When the target of such a redirect or tee holds a variable, a
+# command substitution or a backtick (echo erase > $f, echo erase | tee "$(date +%s).log"), the
+# file the erase goes to cannot be known, so the command is refused as unreadable; the same
+# target on a command that carries no erase (pyocd load fw.hex > "$(date +%s).log") is not.
 # Names are compared as whole words, a path
 # by its last component, so a file called a is not found in every command. Each J-Link command
 # is looked at once, with the file names it redirects its own output to taken out, and each
@@ -314,14 +318,15 @@ jl_scan() {
     }
     function gather(s,   n, k, f, parts) {
       nt = 0
+      gdyn = 0
       n = split(s, parts, />>?[ \t]*/)
       for (k = 2; k <= n; k++) {
-        if (parts[k] ~ /^[^ \t;&|<>]*(\$\(|`)/) unread = 1
+        if (parts[k] ~ /^[^ \t;&|<>]*(\$|`)/) gdyn = 1
         if (match(parts[k], /^[^ \t;&|<>()]+/)) { f = substr(parts[k], 1, RLENGTH); gsub(/["\047\\]/, "", f); if (f != "") tfs[++nt] = f }
       }
       n = split(s, parts, /tee[ \t]+(-a[ \t]+)?/)
       for (k = 2; k <= n; k++) {
-        if (parts[k] ~ /^[^ \t;&|<>]*(\$\(|`)/) unread = 1
+        if (parts[k] ~ /^[^ \t;&|<>]*(\$|`)/) gdyn = 1
         if (match(parts[k], /^[^ \t;&|<>()]+/)) { f = substr(parts[k], 1, RLENGTH); gsub(/["\047\\]/, "", f); if (f != "") tfs[++nt] = f }
       }
     }
@@ -341,7 +346,8 @@ jl_scan() {
       for (k = 1; k <= n; k++) {
         seg = segs[k]
         gather(seg)
-        if (nt > 0 && seg ~ /(^|[ \t({|])(echo|printf)[ \t]/ && has_erase(seg)) {
+        if ((nt > 0 || gdyn) && seg ~ /(^|[ \t({|])(echo|printf)[ \t]/ && has_erase(seg)) {
+          if (gdyn) unread = 1
           for (m = 1; m <= nt; m++) addfile(tfs[m])
         }
         if (index(seg, "jlink")) {
@@ -355,6 +361,7 @@ jl_scan() {
     function finish(   k) {
       if (body_erase) {
         if (feeds) hit = 1
+        if (hdyn) unread = 1
         for (k = 1; k <= nt; k++) addfile(tfs[k])
         if (piped) pend = 1
       }
@@ -390,11 +397,13 @@ jl_scan() {
           after = substr(l2, q + 3)
           sub(/[;&].*$/, "", after)
           gather(before "<<<" after)
+          if (gdyn) unread = 1
           for (k = 1; k <= nt; k++) addfile(tfs[k])
         }
         next
       }
       gather(line)
+      hdyn = gdyn
       piped = ends_in_pipe(line)
       dash = (substr(rest, 1, 1) == "-")
       sub(/^-/, "", rest)
@@ -430,7 +439,7 @@ if [ "$hit" -eq 0 ]; then
   plain_jl="$(printf '%s\n' "$lower" | sed -E 's/[\][\]/'"$esc_pair"'/g; s/[\]([<>])/'"$esc_mark"'\1/g; s/'"$esc_pair"'/\\\\/g' | normalise)"
   for source in "$lower" "$plain_jl"; do
     heredoc="$(jl_scan "$source")" || heredoc="failed"
-    # The awk prints hit or none; no answer means it did not run (the here-string failed to write).
+    # The awk prints hit, unreadable or none; no answer means it did not run (the here-string failed to write).
     case "$heredoc" in
       hit)
         hit=1
