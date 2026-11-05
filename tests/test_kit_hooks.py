@@ -116,7 +116,7 @@ SCRATCH_FILES = {
     "interviews/transcript.md": "If the batch ran late I looked at the lock\n",
     "interviews/decision-rule-sheet.md": "- If the batch ran late, check the lock\n",
     "interviews/note.txt": "If x, y\n",
-    "interviews/dir.md/.keep": "",
+    "interviews/decision-rule-dir.md/.keep": "",
     "notes/decision-rules-a.md": "If x, y\n",
     "notes/other.md": "If x, y\n",
     # unit: exec-absolute-path
