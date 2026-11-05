@@ -88,7 +88,7 @@ unreadable() {
   if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
   outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
   if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
-  cmdpos='(^|[;&|({]|[[:space:]](then|do|else))[[:space:]]*((sudo|command|exec|env|xargs|nohup|time|busybox|builtin)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|env|xargs|nohup|time|busybox|builtin)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
 plain="$(printf '%s\n' "$command" | normalise)"
@@ -117,6 +117,9 @@ if unreadable "$command" "$plain"; then
   echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names a symbol artifact. Write the command plainly, so it can be seen whether it deletes the symbols; archive or upload them instead of deleting." >&2
   exit 2
 fi
+# The looser name only widens what is refused as unreadable; deleting a file that merely has dsym in
+# its name is not this hook's business.
+[ "$named" -eq 1 ] || exit 0
 
 # Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
 # path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias. It may also be

@@ -674,5 +674,18 @@
   {"hook": "kill", "name": "brace-list-no-function", "payload": {"tool_input": {"command": "cp a.{c,h} dir"}}, "exit": 0},
   {"hook": "kill", "name": "quoted-brace-with-function", "payload": {"tool_input": {"command": "psql -c \"select pg_terminate_backend(123), '{a,b}'\""}}, "exit": 0},
   {"hook": "kill", "name": "variable-path-to-client", "payload": {"tool_input": {"command": "$HOME/bin/psql -c 'select pg_terminate_backend(123)'"}}, "exit": 0},
-  {"hook": "kill", "name": "variable-argument", "payload": {"tool_input": {"command": "psql \"$DSN\" -c 'select pg_terminate_backend(123)'"}}, "exit": 0}
+  {"hook": "kill", "name": "variable-argument", "payload": {"tool_input": {"command": "psql \"$DSN\" -c 'select pg_terminate_backend(123)'"}}, "exit": 0},
+  {"hook": "ddl", "name": "function-argument-is-a-variable", "payload": {"tool_input": {"command": "psql -c \"select count($COL) from t\""}}, "exit": 0},
+  {"hook": "ddl", "name": "function-argument-is-a-braced-variable", "payload": {"tool_input": {"command": "psql -c \"select sum(${COL}) from t\""}}, "exit": 0},
+  {"hook": "ddl", "name": "function-argument-is-a-substitution", "payload": {"tool_input": {"command": "psql -c \"select now() - interval '$(date +%s) seconds'\""}}, "exit": 0},
+  {"hook": "tf", "name": "substitution-inside-a-var-value", "payload": {"tool_input": {"command": "terraform plan -var \"d=$(date +%F)\" -out tfplan"}}, "exit": 0},
+  {"hook": "tf", "name": "variable-in-parenthesised-var-value", "payload": {"tool_input": {"command": "terraform plan -var \"n=($X)\" -out tfplan"}}, "exit": 0},
+  {"hook": "tf", "name": "variable-as-binary-in-subshell", "payload": {"tool_input": {"command": "( $t apply -auto-approve )"}}, "exit": 2},
+  {"hook": "tf", "name": "variable-as-binary-in-brace-group", "payload": {"tool_input": {"command": "{ $t apply tfplan; }"}}, "exit": 2},
+  {"hook": "tf", "name": "variable-as-binary-after-then", "payload": {"tool_input": {"command": "if true; then $t apply -auto-approve; fi"}}, "exit": 2},
+  {"hook": "erase", "name": "substitution-in-argument", "payload": {"tool_input": {"command": "nrfjprog --readcode $(pwd)/dump.hex"}}, "exit": 0},
+  {"hook": "sym", "name": "substitution-in-argument", "payload": {"tool_input": {"command": "cp $(pwd)/App.dSYM /archive"}}, "exit": 0},
+  {"hook": "sym", "name": "variable-as-verb-in-subshell", "payload": {"tool_input": {"command": "($v App.dSYM)"}}, "exit": 2},
+  {"hook": "sym", "name": "loose-name-with-rm-of-another-file", "payload": {"tool_input": {"command": "rm -f dsym-cache.log"}}, "exit": 0},
+  {"hook": "kill", "name": "function-argument-is-a-variable", "payload": {"tool_input": {"command": "psql -c \"select pg_terminate_backend(123), count($COL) from t\""}}, "exit": 0}
 ]
