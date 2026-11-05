@@ -69,6 +69,11 @@ per layer and per cloud are in `references/counters.md`; the core ones:
 - DNS: the pod's `/etc/resolv.conf` `ndots` value and the NXDOMAIN share of CoreDNS
   responses.
 
+A conntrack dump, a `ss` listing or a NAT port-allocation export can run to hundreds of
+thousands of lines; hand the saved file to the `connection-table-reader` subagent, which
+returns connection counts per destination against the relevant limit without the table
+entering this context.
+
 *Gate:* the pass condition depends on the shape of the failure.
 
 - Conntrack, local port range and NAT rows: write down which counter is at its limit, with
@@ -178,6 +183,36 @@ from the fix.
 
 **Blaming the partner.** A connect timeout from an exhausted NAT never reaches the
 partner, so their logs show nothing. Check your own path's counters first.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` make the discipline stick in a project. Install
+them when the project keeps its sysctl files in a repository, or reviews them often:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/connection-ceilings.md` loads when a `sysctl.conf` or a
+  `sysctl.d/*.conf` file is read or edited, and asks for no `tcp_tw_recycle`, an evidence
+  comment above every raised conntrack or port-range ceiling, and kube-proxy settings in
+  place of a node sysctl.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/connection-ceilings.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/connection-ceilings.sh`, reports a written sysctl file that
+  sets `net.ipv4.tcp_tw_recycle`, or sets `nf_conntrack_max` or `ip_local_port_range` with no
+  comment holding a recorded number directly above. It runs after the write and feeds the
+  finding back; it cannot undo the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/connection-ceiling-register.md` is the register to fill
+  in for each raised ceiling, matching the Exhausted resource and Cause sections above.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/connection-ceilings.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/connection-ceilings.sh" .claude/hooks/
+chmod +x .claude/hooks/connection-ceilings.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/connection-ceilings.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
 
 ## Reference files
 
