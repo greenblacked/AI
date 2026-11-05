@@ -7,7 +7,8 @@
 # after a separator or after sudo, exec, command, env and similar wrappers, not after other wrappers) rather than guessing.
 # A redirect target and anything after a word that starts with # are not read as a saved plan. That word
 # may be a comment or the inside of a quoted value (-backup="x #"), and the hook does not track quotes,
-# so the words after it are still scanned for -auto-approve.
+# so the words after it are still scanned for -auto-approve. A descriptor copy (2>&1, >&2) or &> is
+# one redirect and not a command separator.
 # A script file the command runs and an interpreter one-liner are out of scope: the hook cannot see
 # what they do.
 set -Eeuo pipefail
@@ -243,5 +244,7 @@ check_segment() {
 
 while IFS= read -r segment; do
   check_segment "$segment"
-done < <(printf '%s\n' "$command" | join_lines | tr ';&|' '\n\n\n')
+# A descriptor copy (2>&1, >&2, <&3), >&file and &> / &>> are one redirect each: rewritten to a plain
+# redirect before the split, so the & in them does not cut -auto-approve off from terraform.
+done < <(printf '%s\n' "$command" | join_lines | sed -E 's/[<>]&([0-9]+-?|-)/>_/g; s/&>>?/>/g; s/([<>])&/\1/g' | tr ';&|' '\n\n\n')
 exit 0
