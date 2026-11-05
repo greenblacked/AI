@@ -26,7 +26,7 @@ twenty-nine plugins you install separately.
 
 ## In one minute
 
-- **What it is:** a Claude Code plugin marketplace of procedures (skills), subagents with no editing tools, slash commands and project kits. An agent loads a skill when its description matches your task, and the skill supplies the ordering, the checks and the evidence to collect. It is a procedure library, not an application.
+- **What it is:** a Claude Code plugin marketplace. Subagents do the bulky reading (a log, an export, a dump) in their own context and have no editing tools, so you get a short report back instead of the bytes. Skills are the procedures: an agent loads one when its description matches your task, and it supplies the ordering, the checks and the evidence to collect. Project kits drop a rule, an opt-in hook and a template into your project. Slash commands run only when you invoke them. It is a procedure library, not an application.
 - **Who it is for:** anyone who works with a coding agent and wants it to follow a specific order and gate rather than generic advice. The plugins cover engineering, operations, security, data, product, design, management, and personal and career work.
 - **How it is built:** CI gates every pull request, and every change except a Dependabot patch or minor update is also judged by a reviewer agent with no editing tools. Skills are scanned by two skill scanners (Cisco's skill-scanner and NVIDIA's SkillSpector). Releases move through `dev`, `stage` and `main`. [How quality is enforced](#how-quality-is-enforced) has the detail.
 - **Where to start:** [install](#install) a plugin or two, or browse [ai.szolotov.com](https://ai.szolotov.com), which has a page for every plugin and skill. Using Codex, ChatGPT, Grok or another tool: [other tools](#other-tools).
@@ -99,7 +99,10 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills, 1 subagent | 1 |
 
 Each plugin is a self-contained directory under `plugins/` with its own manifest, so
-installing one does not pull in another's files.
+installing one does not pull in another's files. Inside a plugin the parts fit together in
+one order: its subagents read the bulky evidence for you, its skills are the procedures you
+then follow, its commands run only when you call them, and its project kit puts a rule, an
+opt-in hook and a template into your own project.
 
 ## How I work with agents
 
@@ -110,11 +113,14 @@ paraphrase. The verify loop is separate: it settles a single claim against prima
 [`/ship`](.claude/commands/ship.md) runs the build loop and
 [`/verify`](.claude/commands/verify.md) the verify loop.
 
+The survey stage runs two agents side by side: `explorer` beside `investigator` when the
+change rests on an outside claim, otherwise two `explorer`s on disjoint questions.
+
 ```mermaid
 flowchart LR
   subgraph build["Build loop: /ship"]
     EX["explorer: survey what exists"] --> IM["implementer: write it, run the gates"]
-    IV["investigator: only if the change rests on an outside claim"] --> IM
+    IV["investigator: if the change rests on an outside claim, else a second explorer on a disjoint question"] --> IM
     IM --> RV["reviewer: judge on a fresh context"]
     IM -.->|"security trigger"| SR["security-reviewer"]
     RV -->|"FIX"| IM
@@ -267,10 +273,13 @@ healthy pods during someone else's outage. The gate is the skill.
 
 ## Plugins
 
-Each plugin is a chapter: its skills, the subagents (no editing tools) that keep bulky
-evidence out of the main context, any slash commands, and its project kit. Commands
-declare `disable-model-invocation: true`, so they run only when invoked explicitly, which
-makes them the right shape for work that takes an argument.
+Each plugin is a chapter, laid out in the order you meet the parts. The subagents come
+first: each reads bulky evidence in its own context, has no editing tools and hands back a
+short report, so the evidence never enters the main context. The skills are the procedures
+an agent follows once a description matches. Any slash commands come next; they declare
+`disable-model-invocation: true`, so they run only when invoked explicitly, which makes
+them the right shape for work that takes an argument. The project kit comes last: a rule,
+an opt-in hook and a template to drop into your own project.
 
 ### Coding
 
