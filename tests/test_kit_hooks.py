@@ -203,7 +203,9 @@ def run_hook(key, stdin, mode, bins, scratch, timeout):
 # doing more work. CPU speed still differs between machines (one CI runner spent 7.2 CPU s on a
 # case that costs 1.4 on a development machine), so the budget is the larger of CPU_BUDGET and
 # BASELINE_FACTOR times what the same hook spends, on the same machine, on a neutral payload of the
-# same size. Every linear timing case costs at most 2.4 times its baseline; the quadratic erase hook
+# same size, capped at CPU_CEILING. The cap keeps a uniformly slow linear hook from being budgeted
+# to the edge of HOOK_TIMEOUT, past which it fails open. Every linear timing case costs at most
+# 2.4 times its baseline; the quadratic erase hook
 # of 08c7086 cost 79 times it on descriptor-copies-128k, so a factor of 8 separates the two on any
 # machine for a slowdown that depends on the payload.
 #
@@ -212,14 +214,15 @@ def run_hook(key, stdin, mode, bins, scratch, timeout):
 # see, so whenever BASELINE_FACTOR times the baseline exceeds CPU_BUDGET (a hook that slow is the
 # only one whose budget the baseline decides), the hook is also run on the neutral payload at a
 # quarter of the size, and the two must grow by less than GROWTH_LIMIT. Linear growth is about 4
-# even with start-up cost, and quadratic is about 16. Growth with a power below 1.5 (a ratio
-# under GROWTH_LIMIT for four times the input) is not caught; the check separates linear from
-# quadratic and does not prove linearity. HOOK_TIMEOUT is Claude Code's default hook
-# timeout: a run past it fails open, so it is the wall-clock limit for a hang.
+# even with start-up cost, and quadratic is about 16. Growth with a power about 1.5 or
+# below (a ratio under GROWTH_LIMIT for four times the input) is not caught; the
+# check separates linear from quadratic and does not prove linearity. HOOK_TIMEOUT is Claude
+# Code's default hook timeout: a run past it fails open, so it is the wall-clock limit for a hang.
 CPU_BUDGET = 5
 BASELINE_FACTOR = 8
 GROWTH_LIMIT = 8
 HOOK_TIMEOUT = 60
+CPU_CEILING = HOOK_TIMEOUT / 2
 NEUTRAL_LINE = "echo ok\n"
 NEUTRAL_KEYS = ("command", "content", "new_string")
 
@@ -270,7 +273,7 @@ def cpu_budget(key, tool_input, mode, bins, scratch):
             f"{HOOK_FILES[key]} ({mode}) grows {growth:.1f} times in CPU time for four times the "
             f"input on a neutral payload ({baseline:.1f} CPU s); linear is about 4, quadratic 16"
         )
-    return max(CPU_BUDGET, BASELINE_FACTOR * baseline)
+    return min(CPU_CEILING, max(CPU_BUDGET, BASELINE_FACTOR * baseline))
 
 
 def _stdin(case):
