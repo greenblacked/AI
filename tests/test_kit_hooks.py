@@ -87,6 +87,8 @@ RBK_RECORD = (
     ROOT / "plugins/operations/skills/runbook/assets/templates/runbook-verification-record.md"
 ).read_text("utf-8")
 
+WF_STEPS = "jobs:\n  a:\n    steps:\n"
+
 CHURN_HEADER = "Account,Dropdown,Primary code,Key evidence\n"
 
 SCRATCH_FILES = {
@@ -559,15 +561,26 @@ SCRATCH_FILES = {
         "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
     ),
     ".github/workflows/dir.yml/.keep": "",
-    ".github/workflows/mixed-case.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.Pull_Request.TITLE }}\n",
-    ".github/workflows/commit-email.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.commits[0].author.email }}\n",
-    ".github/workflows/commit-name.yml": 'jobs:\n  a:\n    steps:\n      - run: |\n          echo "${{ github.event.commits[*].author.name }}"\n',
-    ".github/workflows/head-email.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.head_commit.author.EMAIL }}\n",
-    ".github/workflows/commit-message.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.commits[1].message }}\n",
-    ".github/workflows/page-name.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.pages[0].page_name }}\n",
-    ".github/workflows/repo-description.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.pull_request.head.repo.description }}\n",
-    ".github/workflows/commit-id.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.commits[0].id }} ${{ github.event.commits[0].author.username }}\n",
-    ".github/workflows/commit-email-env.yml": 'jobs:\n  a:\n    steps:\n      - env:\n          E: ${{ github.event.commits[0].author.email }}\n        run: echo "$E"\n',
+    ".github/workflows/mixed-case.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.Pull_Request.TITLE }}\n",
+    ".github/workflows/commit-email.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits[0].author.email }}\n",
+    ".github/workflows/commit-name.yml": WF_STEPS
+    + '      - run: |\n          echo "${{ github.event.commits[*].author.name }}"\n',
+    ".github/workflows/head-email.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.head_commit.author.EMAIL }}\n",
+    ".github/workflows/commit-message.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits[1].message }}\n",
+    ".github/workflows/page-name.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.pages[0].page_name }}\n",
+    ".github/workflows/repo-description.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.pull_request.head.repo.description }}\n",
+    ".github/workflows/commit-id.yml": WF_STEPS
+    + "      - run: echo ${{ github.event.commits[0].id }}"
+    + " ${{ github.event.commits[0].author.username }}\n",
+    ".github/workflows/commit-email-env.yml": WF_STEPS
+    + "      - env:\n          E: ${{ github.event.commits[0].author.email }}\n"
+    + '        run: echo "$E"\n',
     # css: flag-viewport-width-css
     "css/bad.css": ".hero {\n  width: 100vw;\n}\n",
     "css/bad-min.css": ".a {\n  min-width: 100dvw !important;\n}\n",
@@ -737,8 +750,11 @@ SCRATCH_FILES = {
         "my_ssl_verify: false2\nnot_skip_tls_verify_x: 1\n"
     ),
     "cfg/exception.yaml": "validate_certs: false # tls-exception TLS-12\n",
-    "sl/suite/test_token.py": "import time\n\n\ndef test_x():\n    time.sleep(2)  # FAKE-TOKEN-0000\n",
-    ".github/workflows/token-in-run.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }} FAKE-TOKEN-0000\n",
+    "sl/suite/test_token.py": (
+        "import time\n\n\ndef test_x():\n    time.sleep(2)  # FAKE-TOKEN-0000\n"
+    ),
+    ".github/workflows/token-in-run.yml": WF_STEPS
+    + "      - run: echo ${{ github.head_ref }} FAKE-TOKEN-0000\n",
     "css/token.css": ".hero { width: 100vw; } /* FAKE-TOKEN-0000 */\n",
     "cfg/token.yaml": "insecure-skip-tls-verify: true # FAKE-TOKEN-0000\n",
     "cfg/kube.txt": "insecure-skip-tls-verify: true\n",
