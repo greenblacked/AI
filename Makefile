@@ -16,7 +16,7 @@ SHELL := bash
 # This extraction has to accept the same three, or a pin re-quoted a way `check_workflows`
 # still reads fine turns RUFF_PIN empty and `make lint` starts comparing against nothing.
 RUFF_PIN := $(strip $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/security.yml))
-MARKDOWNLINT_PIN := 0.23.2
+MARKDOWNLINT_PIN := 0.24.0
 CODESPELL_PIN := $(strip $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 ACTIONLINT_PIN := $(strip $(shell sed -En "s/^ *ACTIONLINT_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 # The same pins the test job installs, for the container that reruns the suite elsewhere.
