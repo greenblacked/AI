@@ -1012,6 +1012,31 @@ def test_hook_verdict(case, mode, bins, scratch):
         )
 
 
+def _wild_cpu(scratch, mode, bins, repeats):
+    rel = ".github/workflows/grow.yml"
+    target = scratch / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "      - run: echo ${{ github.sha " + WILD_PREFIX * repeats + "\n", encoding="utf-8"
+    )
+    stdin = json.dumps({"tool_input": {"file_path": rel}}).encode("utf-8")
+    done, spent = run_hook_timed("wfrun", stdin, mode, bins, scratch)
+    assert done.returncode == 0, done.stderr.decode("utf-8", "replace")[:300]
+    return spent
+
+
+@pytest.mark.parametrize("mode", MODES)
+def test_the_wildcard_scan_grows_linearly(mode, bins, scratch):
+    """A repeated index-form prefix with no closing bracket is the worst case for the scan. It
+    stays inside CPU_BUDGET even when quadratic, so the budget row cannot tell the two apart;
+    comparing a quarter of the input with the whole can (linear is about 4, quadratic 16)."""
+    if mode not in bins:
+        pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
+    small = _wild_cpu(scratch, mode, bins, 12000)
+    large = _wild_cpu(scratch, mode, bins, 48000)
+    assert large / max(small, 0.05) < GROWTH_LIMIT, (small, large)
+
+
 # Without awk the normalising hooks cannot read the command. Left alone they would exit 127,
 # which is not a block, so the command would run unjudged; they refuse with exit 2 instead,
 # whatever the command is.
@@ -1157,6 +1182,9 @@ OPEN_BIG = (
     + ",".join(_OPEN_OBJECT.format(i) for i in range(8000))
     + '},"additionalProperties":false}'
 )
+# The text the index-form entries of flag-untrusted-field-in-run look for before a bracket.
+WILD_PREFIX = "github.event.commits["
+
 BIG = {
     "tf": [
         # A command made of continuation lines is joined into one line; joining by appending to a
@@ -2067,6 +2095,16 @@ BIG = {
             {
                 ".github/workflows/big-keys.yml": "a: ${{ github.sha }}\n" * 30000
                 + "      - run: |\n          echo ${{ github.event.issue.title }}\n"
+            },
+        ),
+        (
+            "wildcard-prefix-repeated-without-a-bracket",
+            lambda: {"file_path": ".github/workflows/big-wild.yml"},
+            0,
+            {
+                ".github/workflows/big-wild.yml": "      - run: echo ${{ github.sha "
+                + WILD_PREFIX * 48000
+                + "\n"
             },
         ),
         (

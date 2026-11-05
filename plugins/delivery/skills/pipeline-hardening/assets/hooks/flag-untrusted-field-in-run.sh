@@ -118,21 +118,22 @@ esac
 # One awk pass. The expression opener is built from fragments, here and nowhere else, so this
 # script carries no literal expression that a scanner could read as a sink. A line is split on the
 # opener once, which is linear in its length; each piece is cut at the first closer and compared
-# with the field names by plain substring search, so there is no regex to backtrack. awk prints a
-# last line, @@done, so that an awk that did not run (killed, or the redirection failed) is told
-# from one that found nothing wrong.
+# with the field names by plain substring search, so there is no regex to backtrack. An entry
+# written with an index is checked on that piece split once at its closing brackets, each byte
+# read a fixed number of times, and tests/test_kit_hooks.py checks that the time grows linearly.
+# awk prints a last line, @@done, so that an awk that did not run (killed, or the redirection
+# failed) is told from one that found nothing wrong.
 rc=0
 verdict="$(
   awk '
-    function wild(expr, w,   a, b, rest, p, q) {
+    function wild(expr, w,   a, b, n, i, S) {
       a = W1[w]
       b = W2[w]
-      rest = expr
-      while ((p = index(rest, a)) > 0) {
-        rest = substr(rest, p + length(a))
-        q = index(rest, "]")
-        if (q && substr(rest, q + 1, length(b)) == b) return 1
-      }
+      # Split once on the closing bracket, so every byte is read a constant number of times: a
+      # piece is a stretch with no bracket in it, and the text after its bracket opens the next.
+      n = split(expr, S, "]")
+      for (i = 1; i < n; i++)
+        if (index(S[i], a) && substr(S[i + 1], 1, length(b)) == b) return 1
       return 0
     }
     function check(s,   n, k, j, part, e, expr) {
