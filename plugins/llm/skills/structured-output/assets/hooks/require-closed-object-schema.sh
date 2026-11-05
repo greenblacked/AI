@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Report an object schema written under schemas/ that does not close itself with
-# "additionalProperties": false. Provider strict modes reject (Anthropic) or require
-# (OpenAI) the closed form, and an open object lets the model invent fields that a
-# validator then has to decide about. Deterministic: standard tools only, no network, no
-# secrets, nothing from the file is ever run.
+# "additionalProperties": false. Both providers' strict modes require the closed form,
+# and an open object lets the model invent fields that a validator then has to decide
+# about. Deterministic: standard tools only, no network, no secrets, nothing from the file
+# is ever run.
 #
 # What it checks. The tool call's file_path is matched against schemas/**/*.json. The file
 # is then read from disk, not from the tool call, because an Edit carries only a fragment.
