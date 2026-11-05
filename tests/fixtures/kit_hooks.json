@@ -691,5 +691,16 @@
   {"hook": "tf", "name": "variable-as-binary-after-assignment-prefix", "payload": {"tool_input": {"command": "A=1 $t apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "variable-as-binary-after-sudo", "payload": {"tool_input": {"command": "sudo $t apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "substitution-in-assignment-prefix", "payload": {"tool_input": {"command": "X=$(pwd) terraform apply tfplan"}}, "exit": 0},
-  {"hook": "sym", "name": "variable-as-verb-after-assignment-prefix", "payload": {"tool_input": {"command": "A=1 $v App.dSYM"}}, "exit": 2}
+  {"hook": "sym", "name": "variable-as-verb-after-assignment-prefix", "payload": {"tool_input": {"command": "A=1 $v App.dSYM"}}, "exit": 2},
+  {"hook": "tf", "name": "continued-destroy-auto-approve", "payload": {"tool_input": {"command": "terraform destroy \\\n  -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "continued-apply-auto-approve", "payload": {"tool_input": {"command": "terraform apply \\\n  -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "continued-apply-existing-plan", "payload": {"tool_input": {"command": "terraform apply \\\n  tfplan"}}, "exit": 0},
+  {"hook": "tf", "name": "continued-apply-missing-plan", "payload": {"tool_input": {"command": "terraform apply \\\n  nope.tfplan"}}, "exit": 2},
+  {"hook": "tf", "name": "continued-destroy-prompting", "payload": {"tool_input": {"command": "terraform destroy \\\n  -lock=false"}}, "exit": 0},
+  {"hook": "tf", "name": "continued-binary-then-apply-existing-plan", "payload": {"tool_input": {"command": "terraform \\\n  apply \\\n  tfplan"}}, "exit": 0},
+  {"hook": "tf", "name": "continued-destroy-after-separator", "payload": {"tool_input": {"command": "echo hi; terraform destroy \\\n  -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "variable-as-binary-after-env", "payload": {"tool_input": {"command": "env $T destroy -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "variable-as-binary-after-env-assignment", "payload": {"tool_input": {"command": "env TF_LOG=1 $T apply tfplan"}}, "exit": 2},
+  {"hook": "tf", "name": "variable-as-binary-after-sudo-env", "payload": {"tool_input": {"command": "sudo env $T apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "env-assignment-then-plain-binary", "payload": {"tool_input": {"command": "env TF_LOG=1 terraform plan"}}, "exit": 0}
 ]

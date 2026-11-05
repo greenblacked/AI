@@ -3,7 +3,8 @@
 # Deterministic: standard tools only, no network, no secrets.
 # It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
 # before matching, and refuses a command that names terraform or tofu in a spelling it cannot read
-# ($'..' escapes, brace expansion, a variable or substitution as the command) rather than guessing.
+# ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right
+# after a separator or after sudo, exec, command, env and similar wrappers, not after other wrappers) rather than guessing.
 # A script file the command runs and an interpreter one-liner are out of scope: the hook cannot see
 # what they do.
 set -Eeuo pipefail
@@ -63,15 +64,22 @@ hits() {
 # spaces. What cannot be normalised is refused instead, when the command also names terraform or
 # tofu: a $'..' string with a backslash (hex and octal escapes, $'t\x65rraform'), a brace
 # expansion with a comma or `..` outside quotes (terraform {apply,}), and a variable, a command
-# substitution or a backtick where the command word goes (t=terraform; $t apply). A variable that
+# substitution or a backtick where the command word goes (right after a separator, a group opener, then, do or else, or one of the wrappers sudo, command, exec, env, xargs, nohup, time, busybox and builtin, with any NAME=value assignments between; a command run through another wrapper is not read) (t=terraform; $t apply). A variable that
 # is only the start of a path ($HOME/bin/terraform) is read as the path it ends in. An escape or
 # brace can also hide the name itself, so apply or destroy as a word stands in for the name there.
 # Indirection through a script file and an interpreter one-liner are out of scope: this hook sees
 # only the command text.
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 normalise() {
-  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
+}
+# join_lines: the first step of normalise on its own, for the segment split at the end. A
+# continuation (backslash, newline) joins the lines it joins in the shell, so a flag or a plan file
+# on the next line belongs to the same command; split on the raw text, `terraform destroy \` and
+# `-auto-approve` would be two segments and the second would never be read as an argument.
+join_lines() {
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }'
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
 unreadable() {
@@ -79,9 +87,15 @@ unreadable() {
   if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
   outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
   if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
-  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|e[n]v|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
+# normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
+# so the command would run unjudged; refuse instead, because a missing tool is not a reason to allow.
+if [ -n "$command" ] && ! command -v awk >/dev/null 2>&1; then
+  echo "blocked: awk is not installed, so this hook cannot read the command and did not judge it. Install awk (any POSIX awk), or run the command yourself." >&2
+  exit 2
+fi
 plain="$(printf '%s\n' "$command" | normalise)"
 plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
 
@@ -204,5 +218,5 @@ check_segment() {
 
 while IFS= read -r segment; do
   check_segment "$segment"
-done < <(printf '%s\n' "$command" | tr ';&|' '\n\n\n')
+done < <(printf '%s\n' "$command" | join_lines | tr ';&|' '\n\n\n')
 exit 0
