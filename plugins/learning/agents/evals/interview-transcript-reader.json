@@ -1,0 +1,22 @@
+[
+  {"query": "here are the three recorded interviews with Priya about the billing batch, 40 pages each. pull out the decision rules with the exact lines that back them, i don't want to read the transcripts", "should_trigger": true},
+  {"query": "read interviews/dba-session-2.md and give me every moment where he says what he checked first and why, quoted verbatim", "should_trigger": true},
+  {"query": "the transcript from the retiring architect is 9,000 lines. find the places he says what a novice would miss", "should_trigger": true},
+  {"query": "go through the recorded critical-incident interviews and list candidate if X look at Y because Z rules, with the transcript line for each", "should_trigger": true},
+  {"query": "here's the transcript of our expert interview about the legacy scheduler, which parts show his judgement rather than facts about the system", "should_trigger": true},
+  {"query": "scan all the files under interviews/ and tell me which candidate rules have no stated reason so i know what to ask her next week", "should_trigger": true},
+  {"query": "i recorded three 45 minute sessions with the only person who understands the tax batch. read the transcripts and return the rule candidates, don't paste them back", "should_trigger": true},
+  {"query": "what did the expert say would make him change course in each of these transcripts? quote the lines", "should_trigger": true},
+  {"query": "two of the interview transcripts seem to disagree on what to check first when the queue backs up. find the lines and quote both", "should_trigger": true},
+  {"query": "read the interview notes folder and list what the expert never covered, per case, so i can plan the follow-up questions", "should_trigger": true},
+  {"query": "our only DBA is leaving, how should i run the interviews to get her knowledge out", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "how do i check that a second person can actually use the decision rules we wrote down", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "turn these rule candidates into a final sheet and decide which ones to keep", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "read these customer interview transcripts and reconstruct why they switched to us, from first thought to first use", "should_trigger": false, "expected": "jobs-timeline-interview"},
+  {"query": "we lost three enterprise deals this quarter, work out why from the call notes", "should_trigger": false, "expected": "win-loss-review"},
+  {"query": "is the problem we are about to build for real? design the interviews and the disconfirming criteria", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "merge the feedback from five reviewers into one summary for the engineer's performance review", "should_trigger": false, "expected": "feedback-synthesiser"},
+  {"query": "write the wiki page that documents how the billing batch works", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "the expert has two weeks left and time to sit with the new hire, how do we do the handover by working together", "should_trigger": false, "expected": "shadow-reverse-shadow"},
+  {"query": "write up last night's outage as a blameless postmortem", "should_trigger": false, "expected": "postmortem"}
+]

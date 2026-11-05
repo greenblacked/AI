@@ -37,6 +37,8 @@ Ask for the observable: which graph, which log line, which number. "It felt wron
 
 ### 3. Turn answers into decision rules
 
+When the recorded transcripts run past a few pages, hand them to the `interview-transcript-reader` subagent instead of reading them here. It returns decision-rule candidates, each with the verbatim line that supports it, and the transcripts never enter this conversation; then keep, reword or discard each candidate with the expert. The steps below are for transcripts short enough to read.
+
 After each session, extract rules in the form "if X, look at Y first because Z". X must be something a person can observe, Y a concrete place or action, Z the reason, since the reason is what lets the next person recognise a case that does not quite match. Mark each rule with the case it came from and the artefact that shows it. Keep exceptions with the rule they qualify, for example "unless the batch ran late, in which case...". Discard anything that is only a fact about the system; facts belong in the documentation.
 
 Send each rule list back to the expert within two days for correction. They remember what they left out soon after they see it written.
@@ -60,6 +62,35 @@ The decision-rule sheet, grouped by symptom, each rule with its observable trigg
 - **Polishing the transcript.** A tidy transcript feels like progress and cannot be used at 3 a.m.
 - **Skipping verification.** A rule only the author can apply is a note. Test it on a second person.
 - **Capturing everything.** Rank cases by cost of failure and capture the costly ones; the long tail can wait.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` make the discipline stick in a project. Install
+them when the project keeps interview notes or decision-rule sheets in files:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/decision-rules.md` loads when a file under an `interviews/`
+  directory is read or edited and asks that every rule say what is observed, what to look at
+  first and why.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/decision-rule-because.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/decision-rule-because.sh`, reports a rule written without a
+  reason: after a write to a Markdown file under `interviews/`, or one named `decision-rule`, it
+  lists each line starting "If " that has no "because". It runs after the write, so it asks for a
+  correction and cannot undo it.
+- `${CLAUDE_SKILL_DIR}/assets/templates/decision-rule-sheet.md` is the sheet to fill in for one
+  expert and one system, matching Hand back.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/decision-rules.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/decision-rule-because.sh" .claude/hooks/
+chmod +x .claude/hooks/decision-rule-because.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/decision-rule-because.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
 
 ## Reference files
 
