@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Refuse a terraform or tofu apply that auto-approves or names no existing saved plan file.
+# Refuse a terraform or tofu apply that auto-approves or names no existing saved plan file, and a destroy that auto-approves.
 # Deterministic: standard tools only, no network, no secrets.
+# It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
+# before matching, and refuses a command that names terraform or tofu in a spelling it cannot read
+# ($'..' escapes, brace expansion, a variable or substitution as the command) rather than guessing.
+# A script file the command runs and an interpreter one-liner are out of scope: the hook cannot see
+# what they do.
 set -Eeuo pipefail
 
 input="$(cat)"
@@ -51,25 +56,71 @@ hits() {
 # missing tool is worse than no hook.
 [ -n "$command" ] || exit 0
 
-# A command that names neither terraform nor tofu as a word cannot be an apply; allow it at
-# once, whatever its size, so a large unrelated command is never blocked by this hook. Quotes
-# and backslashes are deleted first, as the word scan below deletes them, because the shell
-# joins ter""raform, t'o'fu and ter\raform into the binary name.
-bare="$(printf '%s' "$command" | tr -d "\"'\\\\")"
-if ! LC_ALL=C hits "$bare" -E '(^|[^[:alnum:]_])(terraform|tofu)([^[:alnum:]_]|$)'; then
+# A text match cannot read the shell's own spellings, so the command is normalised first: a
+# backslash-newline continuation is joined, the $ of $'..' and $".." is dropped, and quotes and
+# backslashes are deleted, which makes ter""raform, t'o'fu, ter\raform and $'terraform' the binary
+# name. Newlines stay in plain (a command word can start a line); plain_flat turns them into
+# spaces. What cannot be normalised is refused instead, when the command also names terraform or
+# tofu: a $'..' string with a backslash (hex and octal escapes, $'t\x65rraform'), a brace
+# expansion with a comma or `..` outside quotes (terraform {apply,}), and a variable, a command
+# substitution or a backtick where the command word goes (t=terraform; $t apply). A variable that
+# is only the start of a path ($HOME/bin/terraform) is read as the path it ends in. An escape or
+# brace can also hide the name itself, so apply or destroy as a word stands in for the name there.
+# Indirection through a script file and an interpreter one-liner are out of scope: this hook sees
+# only the command text.
+# Standalone like every hook here, so these two functions are copied rather than sourced.
+normalise() {
+  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+    sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
+}
+# unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
+unreadable() {
+  local outside cmdpos
+  if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
+  outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
+  if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
+  cmdpos='(^|[;&|({]|[[:space:]](then|do|else))[[:space:]]*((sudo|command|exec|env|xargs|nohup|time|busybox|builtin)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
+}
+plain="$(printf '%s\n' "$command" | normalise)"
+plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
+
+# A command that names neither terraform nor tofu as a word cannot be an apply, unless a spelling
+# hides the name (see above); allow it at once, whatever its size, so a large unrelated command
+# is never blocked by this hook.
+named=0
+if LC_ALL=C hits "$plain_flat" -E '(^|[^[:alnum:]_])(terraform|tofu)([^[:alnum:]_]|$)'; then
+  named=1
+elif [ "$(printf '%s' "$command" | wc -c)" -le 32768 ] &&
+  LC_ALL=C hits "$plain_flat" -E '(^|[^[:alnum:]_])(apply|destroy)([^[:alnum:]_]|$)'; then
+  named=2
+else
   exit 0
 fi
 
 # The word scan below strips quotes with a replacement that is quadratic in a word's length,
 # so one enormous token can outlast the hook timeout, and a timed-out hook fails open. Refuse
 # an oversized terraform command up front instead; no real invocation is near this size.
-if [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
+if [ "$named" -eq 1 ] && [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
   echo "blocked: the terraform command is larger than 32 KiB, which this hook will not scan. Put the commands in a script file or split them, and apply only a saved plan file: terraform apply <planfile>" >&2
   exit 2
 fi
 
+if LC_ALL=C unreadable "$command" "$plain"; then
+  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names terraform, tofu, apply or destroy. Write the command plainly, with the binary and its subcommand spelled out, and apply only a saved plan file: terraform apply <planfile>" >&2
+  exit 2
+fi
+[ "$named" -eq 1 ] || exit 0
+
 refuse() {
   echo "blocked: $1. Apply only a saved plan file that a trusted run produced and an approval covered: terraform apply <planfile>" >&2
+  exit 2
+}
+
+# A destroy with -auto-approve removes everything the state tracks with nobody confirming it; one
+# that prompts is allowed.
+refuse_destroy() {
+  echo "blocked: destroy with -auto-approve. Run terraform destroy without -auto-approve so it prompts, or save a destroy plan (terraform plan -destroy -out <planfile>) and apply that saved plan." >&2
   exit 2
 }
 
@@ -112,13 +163,14 @@ check_segment() {
         if [ "$i" -lt "$n" ]; then
           unq "${words[$i]}"
           [ "$w" = "apply" ] && seen=1
+          [ "$w" = "destroy" ] && seen=2
         fi
         break
         ;;
     esac
     i=$((i + 1))
   done
-  [ "$seen" -eq 1 ] || return 0
+  [ "$seen" -ge 1 ] || return 0
   i=$((i + 1))
   while [ "$i" -lt "$n" ]; do
     unq "${words[$i]}"
@@ -129,6 +181,7 @@ check_segment() {
     fi
     case "$w" in
       -auto-approve | -auto-approve=* | --auto-approve | --auto-approve=*)
+        if [ "$seen" -eq 2 ]; then refuse_destroy; fi
         refuse "apply with -auto-approve"
         ;;
       -*=*) ;;
@@ -140,7 +193,8 @@ check_segment() {
         ;;
     esac
   done
-  [ "$plan" -eq 1 ] || refuse "apply names no existing saved plan file"
+  # A destroy that prompts is allowed, and it takes no plan file.
+  [ "$seen" -eq 2 ] || [ "$plan" -eq 1 ] || refuse "apply names no existing saved plan file"
 }
 
 while IFS= read -r segment; do
