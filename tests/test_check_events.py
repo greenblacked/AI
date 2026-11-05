@@ -2,7 +2,7 @@
 
 import importlib.util
 import os
-import signal
+import subprocess
 import sys
 from pathlib import Path
 
@@ -184,9 +184,7 @@ def test_missing_code_directory_is_a_usage_error(tmp_path: Path) -> None:
     assert caught.value.code == 2
 
 
-def test_a_fifo_in_the_code_tree_does_not_hang_the_scan(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_a_fifo_in_the_code_tree_does_not_hang_the_scan(tmp_path: Path) -> None:
     if not hasattr(os, "mkfifo"):
         pytest.skip("no named pipes on this platform")
     csv_path = tmp_path / "events.csv"
@@ -195,9 +193,16 @@ def test_a_fifo_in_the_code_tree_does_not_hang_the_scan(
     src.mkdir()
     (src / "a.gd").write_text('"sfx.a.one"\n', encoding="utf-8")
     os.mkfifo(src / "pipe.gd")
-    # A blocking open() would hang here; a timer turns that into a failure, not a stuck run.
-    signal.alarm(10)
+    # A blocking open() would hang the scan; run it as a child with a timeout so that
+    # fails this one test instead of a stuck run, and works off the main thread too.
     try:
-        assert events.main([str(csv_path), str(src)]) == 0
-    finally:
-        signal.alarm(0)
+        done = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [sys.executable, "-I", str(SCRIPT), str(csv_path), str(src)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        pytest.fail("the scan blocked on a named pipe")
+    assert done.returncode == 0, done.stdout + done.stderr
