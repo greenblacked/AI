@@ -17,7 +17,7 @@
 # expression is compared in lower case, because GitHub reads property names without regard to
 # case, so github.event.Pull_Request.TITLE is the same field. Comment lines outside a block are skipped. A line inside a block is
 # judged even when it is a shell comment, because the substitution happens before any shell sees it.
-# A finding exits 2 and names path:line for up to 20 lines; any other file, or none, is allowed.
+# A finding exits 2 and names path:line with a fixed message for up to 20 lines, never text from the file; any other file, or none, is allowed.
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the model, which
@@ -145,7 +145,7 @@ verdict="$(
     }
     function report() {
       nfind++
-      if (nfind <= 20) out = out NR ":" substr($0, 1, 120) "\n"
+      if (nfind <= 20) out = out NR ":an untrusted field is expanded here\n"
     }
     BEGIN {
       SEP = "\\$" "\\{" "\\{"

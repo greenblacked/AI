@@ -12,8 +12,8 @@
 # verify_ssl, ssl_verify, strict-ssl or rejectunauthorized to false, no, off or 0, is a
 # finding. The words may be joined by a dash, an underscore or nothing, and case is ignored,
 # so insecureSkipVerify, tlsSkipVerify, sslverify (yum, git) and rejectUnauthorized (Node)
-# are read too. A value may be quoted. The hook exits 2 and prints path:line:text for up to ten findings. A line carrying
-# the word "tls-exception" is allowed: that is how a recorded exception says so.
+# are read too. A value may be quoted. The hook exits 2 and prints path:line and a fixed message for up to ten findings,
+# never text from the file. A line carrying the word "tls-exception" is allowed: that is how a recorded exception says so.
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the
@@ -119,7 +119,7 @@ verdict="$(
       if (index(l, "tls-exception") > 0) next
       if (l ~ /(^|[^a-z0-9_-])(((insecure[-_]?skip[-_]?tls[-_]?verify|insecure[-_]?skip[-_]?verify|skip[-_]?tls[-_]?verify|tls[-_]?skip[-_]?verify)["\047]?[ \t]*[:=][ \t]*["\047]?(true|yes|on|1))|((validate[-_]?certs|verify[-_]?ssl|ssl[-_]?verify|strict[-_]?ssl|reject[-_]?unauthorized)["\047]?[ \t]*[:=][ \t]*["\047]?(false|no|off|0)))([^a-z0-9_]|$)/) {
         n++
-        if (n <= 10) printf "%d:%s\n", NR, substr($0, 1, 120)
+        if (n <= 10) printf "%d:TLS verification is switched off here\n", NR
       }
     }
     END { print "@@done" }

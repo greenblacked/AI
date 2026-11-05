@@ -737,6 +737,10 @@ SCRATCH_FILES = {
         "my_ssl_verify: false2\nnot_skip_tls_verify_x: 1\n"
     ),
     "cfg/exception.yaml": "validate_certs: false # tls-exception TLS-12\n",
+    "sl/suite/test_token.py": "import time\n\n\ndef test_x():\n    time.sleep(2)  # FAKE-TOKEN-0000\n",
+    ".github/workflows/token-in-run.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }} FAKE-TOKEN-0000\n",
+    "css/token.css": ".hero { width: 100vw; } /* FAKE-TOKEN-0000 */\n",
+    "cfg/token.yaml": "insecure-skip-tls-verify: true # FAKE-TOKEN-0000\n",
     "cfg/kube.txt": "insecure-skip-tls-verify: true\n",
     "cfg/camel-insecure.json": '{"insecureSkipVerify": true}\n',
     "cfg/camel-insecure-tls.yaml": "insecureSkipTLSVerify: true\n",
@@ -972,6 +976,10 @@ def test_extra_tools_stay_with_the_hook_that_needs_them(bins):
 def test_hook_verdict(case, mode, bins, scratch):
     done = run_hook(case["hook"], _stdin(case), mode, bins, scratch, timeout=30)
     assert done.returncode == case["exit"], done.stderr.decode("utf-8", "replace")[:300]
+    # Content the model did not write must not reach the feedback channel: a finding names
+    # path:line and a fixed message, never the matched text.
+    if "no_echo" in case:
+        assert case["no_echo"].encode() not in done.stderr
     if case["exit"] == 2:
         assert (
             done.stderr.startswith(b"blocked")

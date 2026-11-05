@@ -9,7 +9,7 @@
 # tool_input.file_path, so an Edit is judged on the whole file and not on its fragment. A
 # line with a width, min-width or max-width declaration whose whole value is 100vw (or 100dvw,
 # 100svw, 100lvw, optionally followed by !important) is a finding, and the hook exits 2 with
-# the file, line and text of up to five of them. A file that holds the full-bleed idiom,
+# the file and line of up to five of them, with a fixed message and no text from the file. A file that holds the full-bleed idiom,
 # calc(50% - 50vw) in either order, is allowed whole: that idiom is paired with a 100vw band
 # on purpose.
 #
@@ -107,7 +107,7 @@ verdict="$(
       gsub(/\r/, "", line)
       line = line ";"
       if (match(line, /(^|[^a-z0-9_-])((min|max)-)?width[ \t]*:[ \t]*100[dsl]?vw[ \t]*(!important[ \t]*)?[;}]/)) {
-        if (++n <= 5) printf "%d:%s\n", NR, substr($0, 1, 120)
+        if (++n <= 5) printf "%d:width set to a bare 100vw\n", NR
       }
     }
     END { print "@@done" }

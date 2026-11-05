@@ -10,7 +10,7 @@
 # line that calls time.sleep(, time.Sleep(, Thread.sleep( or Thread.Sleep(, or has
 # "await sleep(", is a finding unless its first non-blank text starts a comment ("#", "//",
 # "/*" or "*") or the line contains "sleep-ok". The hook exits 2 and names up to five
-# findings as path:line:text. Any other path, or a file with no such call, is allowed.
+# findings as path:line and a fixed message, never text from the file. Any other path, or a file with no such call, is allowed.
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the
@@ -113,8 +113,8 @@ esac
 
 # One awk pass, no backtracking: a comment-start match, then one alternation match per line.
 # awk prints a last line, @@done, so that an awk that did not run (killed, or the redirection
-# failed) is told from one that found nothing wrong. A finding is the line number and the first
-# 120 bytes of the line; at most five are kept, and the total is counted past that.
+# failed) is told from one that found nothing wrong. A finding is the line number and a fixed
+# message, never text from the file; at most five are kept, and the total is counted past that.
 rc=0
 verdict="$(
   awk '
@@ -122,7 +122,7 @@ verdict="$(
     $0 ~ /^[ \t]*(#|\/\/|\/\*|\*)/ { next }
     $0 ~ /(time\.[sS]leep|Thread\.[sS]leep)\(|await[ \t]+sleep\(/ {
       total++
-      if (total <= 5) printf "%d:%s\n", NR, substr($0, 1, 120)
+      if (total <= 5) printf "%d:fixed sleep\n", NR
     }
     END {
       if (total > 5) printf "...and %d more\n", total - 5
