@@ -111,8 +111,10 @@ them when the project defines metrics in `models/` or `metrics/`:
   that drops, truncates or removes a warehouse object, and one that names a SQL client or a DROP
   in a spelling it cannot read (a `$'...'` escape, a brace list, a variable as the command, read right after a separator or after a wrapper such as sudo, exec or command, not after other wrappers). SQL in
   a file the command runs is out of its reach. It cannot read SQL comments reliably, so it also
-  refuses a command that has DROP or TRUNCATE beside any comment marker (`/*`, `*/`, `--`, `#`
-  or `//`), including a harmless `truncate -s 0 log # x`; write the statement without comments.
+  refuses a command that has DROP, TRUNCATE or `bq rm` beside any comment marker (`/*`, `*/`, `--`,
+  `#`, `//`, `$` or a backtick), including a harmless `truncate -s 0 log # x`. `--` counts as a
+  marker, so `truncate --size 0 log` is refused while `truncate -s 0 log` passes; write the
+  statement without comments.
 - `${CLAUDE_SKILL_DIR}/assets/templates/metric-definition.md` is the definition card to fill in
   once reconciliation has picked one definition.
 

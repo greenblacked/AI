@@ -901,5 +901,18 @@
   {"hook": "ddl", "name": "select-with-hint-comment-is-allowed", "payload": {"tool_input": {"command": "psql -c \"select /*+ hint */ 1\""}}, "exit": 0},
   {"hook": "ddl", "name": "curl-fragment-is-allowed", "payload": {"tool_input": {"command": "curl https://x/#y"}}, "exit": 0},
   {"hook": "ddl", "name": "quoted-hash-in-select-is-allowed", "payload": {"tool_input": {"command": "psql -c \"select 'a#b'\""}}, "exit": 0},
-  {"hook": "ddl", "name": "commit-message-issue-number-is-allowed", "payload": {"tool_input": {"command": "git commit -m \"fix #12\""}}, "exit": 0}
+  {"hook": "ddl", "name": "commit-message-issue-number-is-allowed", "payload": {"tool_input": {"command": "git commit -m \"fix #12\""}}, "exit": 0},
+  {"hook": "ddl", "name": "exec-comment-version-glued-drop-table-is-refused", "payload": {"tool_input": {"command": "mysql -e \"/*!50100DROP TABLE t*/\""}}, "exit": 2},
+  {"hook": "ddl", "name": "exec-comment-version-glued-truncate-is-refused", "payload": {"tool_input": {"command": "mysql -e \"/*!50100TRUNCATE t*/\""}}, "exit": 2},
+  {"hook": "ddl", "name": "exec-comment-version-glued-table-word-is-refused", "payload": {"tool_input": {"command": "mysql -e \"DROP /*!50100TABLE*/ t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "mariadb-exec-comment-glued-drop-table-is-refused", "payload": {"tool_input": {"command": "mariadb -e \"/*M!100100DROP TABLE t*/\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-variable-between-words-is-refused", "payload": {"tool_input": {"command": "psql -c \"DROP $e TABLE t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-substitution-glued-is-refused", "payload": {"tool_input": {"command": "psql -c \"DROP $(printf T)ABLE t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "select-variable-is-allowed", "payload": {"tool_input": {"command": "psql -c \"select $x\""}}, "exit": 0},
+  {"hook": "ddl", "name": "echo-home-is-allowed", "payload": {"tool_input": {"command": "echo $HOME"}}, "exit": 0},
+  {"hook": "ddl", "name": "bq-rm-with-block-comment-is-refused", "payload": {"tool_input": {"command": "bq /* x */ rm d.t"}}, "exit": 2},
+  {"hook": "ddl", "name": "bq-hash-then-rm-on-next-line-is-refused", "payload": {"tool_input": {"command": "bq # x\nrm d.t"}}, "exit": 2},
+  {"hook": "ddl", "name": "bq-ls-with-hash-note-is-allowed", "payload": {"tool_input": {"command": "bq ls d # note"}}, "exit": 0},
+  {"hook": "ddl", "name": "truncate-long-size-flag-is-refused", "payload": {"tool_input": {"command": "truncate --size 0 app.log"}}, "exit": 2},
+  {"hook": "ddl", "name": "truncate-short-size-flag-is-allowed", "payload": {"tool_input": {"command": "truncate -s 0 app.log"}}, "exit": 0}
 ]

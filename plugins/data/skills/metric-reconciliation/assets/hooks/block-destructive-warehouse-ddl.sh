@@ -11,9 +11,10 @@
 # SQL comments are not parsed: dialects disagree on nesting, on executable comments (/*! */, /*M! */),
 # and on --, // and #, so no text match reads them all. Instead the hook fails closed: a command that
 # has DROP (with a table, view, schema, database or column word anywhere in it) or TRUNCATE (followed
-# by an identifier) as a word and also any comment marker (/*, */, --, # or //) is refused, with a
-# request to write the statement without comments. That also refuses a harmless `truncate -s 0 f # x`
-# and a prose mention in a comment, which is the safe direction. A .sql or script file the command
+# by an identifier) as a word, or `bq` with `rm`, and also any marker (/*, */, --, #, //, $ or a
+# backtick) is refused, with a request to write the statement without comments. `--` counts, so
+# `truncate --size 0 f` is refused while `truncate -s 0 f` passes; that cost is accepted. It also
+# refuses a harmless `truncate -s 0 f # x` and a prose mention in a comment, which is the safe direction. A .sql or script file the command
 # runs is out of scope: the hook cannot see what is in it.
 set -Eeuo pipefail
 
@@ -138,20 +139,27 @@ flat="$(printf '%s' "$command" | tr '\n' ' ')"
 # Fail closed on comments. The hook cannot read SQL comments reliably (nesting, MySQL and MariaDB
 # executable comments, and which of --, // and # starts one differ by dialect), so a command with a
 # destructive keyword and any comment marker is refused instead of guessed at. DROP needs an object
-# word somewhere in the command, TRUNCATE a later identifier, as drop_re and truncate_re do. Both
-# the raw and the normalised text are read. A command without a marker is judged by the patterns
-# below alone.
-comment_re='/[*]|[*]/|--|#|//'
-drop_word_re='\<drop\>'
-drop_object_re='\<(table|view|schema|database|column)\>'
-truncate_word_re='\<truncate\>.*(\<[[:alpha:]_]|["`[\\]|[^[:print:][:cntrl:]])'
+# word somewhere in the command, TRUNCATE a later identifier, as drop_re and truncate_re do, and
+# `bq` needs `rm` as a word. The keyword patterns here have no left word boundary: a MySQL or
+# MariaDB executable comment puts the keyword right after its version digits (/*!50100DROP TABLE t*/).
+# A $ or a backtick counts as a marker too, because a variable or a substitution inside the SQL text
+# can hide where a word ends or build the object word (DROP $e TABLE t, DROP $(printf T)ABLE t), so
+# with one of those a DROP word alone is enough, without an object word beside it. Both the raw and the normalised text are read. A
+# command without a marker is judged by the patterns below alone.
+comment_re='/[*]|[*]/|--|#|//|[$]|`'
+subst_re='[$]|`'
+drop_word_re='drop\>'
+drop_object_re='(table|view|schema|database|column)\>'
+truncate_word_re='truncate\>.*(\<[[:alpha:]_]|["`[\\]|[^[:print:][:cntrl:]])'
 comment_unreadable() {
   hits "$1" -Ei -e "$comment_re" || return 1
   { hits "$1" -Ei -e "$drop_word_re" && hits "$1" -Ei -e "$drop_object_re"; } ||
-    hits "$1" -Ei -e "$truncate_word_re"
+    hits "$1" -Ei -e "$truncate_word_re" ||
+    { hits "$1" -Ei -e '\<bq\>' && hits "$1" -Ei -e '\<rm\>'; } ||
+    { hits "$1" -Ei -e "$subst_re" && hits "$1" -Ei -e "$drop_word_re"; }
 }
 if comment_unreadable "$flat" || { [ "$plain_flat" != "$flat" ] && comment_unreadable "$plain_flat"; }; then
-  echo "blocked: this hook cannot read SQL comments reliably, and the command has a comment marker (/*, */, --, # or //) beside a DROP or TRUNCATE. Write the statement without comments." >&2
+  echo "blocked: this hook cannot read SQL comments reliably, and the command has a comment marker (/*, */, --, #, //, $ or a backtick) beside a DROP, TRUNCATE or bq rm. Write the statement without comments." >&2
   exit 2
 fi
 if hits "$flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re" ||
