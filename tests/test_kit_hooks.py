@@ -729,6 +729,20 @@ SCRATCH_FILES = {
     ),
     "cfg/exception.yaml": "validate_certs: false # tls-exception TLS-12\n",
     "cfg/kube.txt": "insecure-skip-tls-verify: true\n",
+    "cfg/camel-insecure.json": '{"insecureSkipVerify": true}\n',
+    "cfg/camel-insecure-tls.yaml": "insecureSkipTLSVerify: true\n",
+    "cfg/camel-skip-tls.yaml": "skipTLSVerify: yes\n",
+    "cfg/camel-tls-skip.yaml": "tlsSkipVerify: true\n",
+    "cfg/vault.conf": 'tls_skip_verify = "true"\n',
+    "cfg/yum.conf": "[main]\nsslverify=0\n",
+    "cfg/gitconfig.ini": "[http]\n\tsslVerify = false\n",
+    "cfg/npm.ini": "strict-ssl=false\n",
+    "cfg/node.json": '{"rejectUnauthorized": false}\n',
+    "cfg/verify-true.ini": "verify_ssl: true\n",
+    "cfg/yum-ok.conf": "[main]\nsslverify=1\n",
+    "cfg/npm-ok.ini": "strict-ssl=true\n",
+    "cfg/node-ok.json": '{"rejectUnauthorized": true}\n',
+    "cfg/bare-verify.yaml": "verify: false\ninsecure: true\n",
 }
 
 

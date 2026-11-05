@@ -7,18 +7,22 @@
 # What it checks. For a written file whose path ends in .yaml, .yml, .json, .toml, .ini or
 # .conf, the file is read from disk at tool_input.file_path, so an Edit is judged on the whole
 # file and not on its fragment. A line that is not a comment (first non-blank character "#",
-# ";" or "//") and that sets one of insecure-skip-tls-verify, insecure-skip-verify or
-# skip-tls-verify (dash or underscore, quoted or bare) to true, yes, on or 1, or one of
-# validate_certs, verify_ssl or ssl_verify to false, no, off or 0, is a finding. A value may be
-# quoted. The hook exits 2 and prints path:line:text for up to ten findings. A line carrying
+# ";" or "//") and that sets one of insecure-skip-tls-verify, insecure-skip-verify,
+# skip-tls-verify or tls-skip-verify to true, yes, on or 1, or one of validate_certs,
+# verify_ssl, ssl_verify, strict-ssl or rejectunauthorized to false, no, off or 0, is a
+# finding. The words may be joined by a dash, an underscore or nothing, and case is ignored,
+# so insecureSkipVerify, tlsSkipVerify, sslverify (yum, git) and rejectUnauthorized (Node)
+# are read too. A value may be quoted. The hook exits 2 and prints path:line:text for up to ten findings. A line carrying
 # the word "tls-exception" is allowed: that is how a recorded exception says so.
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the
 #     model, which can fix the file; the hook cannot undo anything.
 #   - Config files only. A skip written in code (Python verify=False, JavaScript
-#     rejectUnauthorized, a Go client option), a command-line flag, GIT_SSL_NO_VERIFY, or an
+#     rejectUnauthorized in a JavaScript call, a Go client option), a command-line flag, GIT_SSL_NO_VERIFY, or an
 #     extensionless client config file is not seen. Terraform (.tf) is left out on purpose.
+#   - A bare "verify: false" or "insecure: true" is not matched: the key names no TLS, and it
+#     would flag every unrelated setting that carries those words. Look for them in review.
 #   - A line is read alone: a key and its value on different lines, a value built from a
 #     variable or template, or a multi-line YAML scalar is not seen. A "#" comment after a
 #     value does not hide it, but a key inside a multi-line string counts.
@@ -89,7 +93,8 @@ fi
 # grep exits 0 for a match, 1 for none and 2 or more when it could not read the file. A cheap
 # pre-filter: a file that never names a verification key has nothing to judge.
 rc=0
-grep -qi -e 'skip.*verify' -e 'validate.certs' -e 'verify_ssl' -e 'ssl_verify' <"$file" || rc=$?
+grep -qi -e 'skip.*verify' -e 'validate.*certs' -e 'verify.*ssl' -e 'ssl.*verify' \
+  -e 'strict.*ssl' -e 'reject.*unauthorized' <"$file" || rc=$?
 case "$rc" in
   0) ;;
   1) exit 0 ;;
@@ -112,7 +117,7 @@ verdict="$(
       l = tolower($0)
       if (l ~ /^[ \t]*(#|;|\/\/)/) next
       if (index(l, "tls-exception") > 0) next
-      if (l ~ /(^|[^a-z0-9_-])(((insecure[-_]skip[-_]tls[-_]verify|insecure[-_]skip[-_]verify|skip[-_]tls[-_]verify)["\047]?[ \t]*[:=][ \t]*["\047]?(true|yes|on|1))|((validate[-_]certs|verify_ssl|ssl_verify)["\047]?[ \t]*[:=][ \t]*["\047]?(false|no|off|0)))([^a-z0-9_]|$)/) {
+      if (l ~ /(^|[^a-z0-9_-])(((insecure[-_]?skip[-_]?tls[-_]?verify|insecure[-_]?skip[-_]?verify|skip[-_]?tls[-_]?verify|tls[-_]?skip[-_]?verify)["\047]?[ \t]*[:=][ \t]*["\047]?(true|yes|on|1))|((validate[-_]?certs|verify[-_]?ssl|ssl[-_]?verify|strict[-_]?ssl|reject[-_]?unauthorized)["\047]?[ \t]*[:=][ \t]*["\047]?(false|no|off|0)))([^a-z0-9_]|$)/) {
         n++
         if (n <= 10) printf "%d:%s\n", NR, substr($0, 1, 120)
       }

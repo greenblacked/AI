@@ -15,9 +15,11 @@ is committed turns it off for every environment that reads the file, usually lon
 reason for it has gone.
 
 - Do not set a skip-verification key to true or a verify key to false in a committed file.
-  That covers the Kubernetes `insecure-skip-tls-verify`, Go-style `insecure_skip_verify`,
-  `skip_tls_verify`, and the Ansible, Python-client and registry equivalents `validate_certs`,
-  `verify_ssl` and `ssl_verify`.
+  That covers the Kubernetes `insecure-skip-tls-verify`, the `insecureSkipVerify` or
+  `insecure_skip_verify` of Go-based clients (Go's field is `InsecureSkipVerify`),
+  `skip_tls_verify`, Vault's `tls_skip_verify`, npm's `strict-ssl`, Node's `rejectUnauthorized`,
+  `sslverify` in yum and git, and the Ansible, Python-client and registry equivalents
+  `validate_certs`, `verify_ssl` and `ssl_verify`.
 - Fix the trust chain instead: add the issuing CA to the client's CA bundle, or name it with
   the client's CA-file setting. Verification stays on and the failure goes away.
 - A genuine exception (a lab appliance with a self-signed certificate, a migration window)
@@ -27,6 +29,8 @@ reason for it has gone.
 - Put the key in an overlay or environment-specific file that is never the default, and carry
   the marker `tls-exception` on the same line, with the record's id, so the reviewer and the
   hook can see it is recorded.
+- A bare `verify: false` or `insecure: true` names no TLS, so the hook does not match it; look
+  for those in review.
 - The check reads these file types only. A skip written in code (a client option, a curl flag,
   an environment variable) or in an extensionless client config file is not seen, so look for those in
   review, with the `security-review` skill.
