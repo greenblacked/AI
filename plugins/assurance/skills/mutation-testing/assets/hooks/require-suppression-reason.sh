@@ -63,8 +63,17 @@ fi
 # Judged on the written text alone, so for an Edit the reason must be in the same edit.
 # A reason is words in a comment on the same line or the line directly above, or text after
 # the colon on a Stryker line. One awk pass reads every line, so a marker line costs no
-# process and no expansion of a long line. A character outside ASCII counts as one letter, as it did
-# when grep matched under a UTF-8 locale.
+# process and no expansion of a long line.
+# The awk runs byte-wise (LC_ALL=C), so it cannot ask whether a character is a letter. norm()
+# approximates grep's UTF-8 [[:alpha:]]: a multibyte character counts as one letter when its lead
+# byte starts a block that is mostly letters (Latin, Greek, Cyrillic, Hebrew, Arabic, Indic, CJK
+# and the like), and as a non-letter otherwise: \302 (U+0080-00BF, NBSP and the Latin-1
+# punctuation), \342 (U+2000-2FFF, ellipsis, dashes, arrows, symbols), \356 (private use) and
+# \360-\364 (emoji and the other supplementary planes). It is an approximation: a few letters in
+# an excluded block (ª, º, µ, the letterlike symbols, the rarer CJK ideographs) count as
+# non-letters, and some marks and symbols in an included block (combining marks, the modifier
+# letters, private use) count as letters. The CJK punctuation block and the fullwidth and
+# special-purpose punctuation are removed first.
 #   Stryker line: the reason is what follows the first colon after "Stryker disable".
 #   Other marker: the reason must come after the marker (code before it is not one, and a
 #   suffix such as the "-all" in @infection-ignore-all belongs to the marker), or sit in a
@@ -73,7 +82,12 @@ fi
 #   (` * reason`): `*count += 1;` is code.
 missing="$(
   LC_ALL=C awk '
-    function norm(s) { gsub(/[\300-\375][\200-\277]*/, "a", s); gsub(/[\200-\377]/, "a", s); return s }
+    function norm(s) {
+      gsub(/\343\200[\200-\277]|\357\274[\200-\217\232-\240\273-\277]|\357\275[\200\233-\245]|\357\273\277|\357\277[\260-\277]/, " ", s)
+      gsub(/[\303-\341\343-\355\357][\200-\277]*/, "a", s)
+      gsub(/[\200-\377]/, " ", s)
+      return s
+    }
     function words(s) { return norm(s) ~ /[A-Za-z][A-Za-z]/ }
     function marked(s) {
       return index(s, "pragma: no mutate") || index(s, "mutants::skip") || index(s, "infection-ignore")

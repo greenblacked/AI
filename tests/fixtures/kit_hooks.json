@@ -441,5 +441,18 @@
   {"hook": "ph", "name": "missing-file", "payload": {"tool_input": {"file_path": "applications/absent.md"}}, "exit": 0},
   {"hook": "ph", "name": "directory-named-md", "payload": {"tool_input": {"file_path": "applications/dir.md"}}, "exit": 0},
   {"hook": "ph", "name": "other-path", "payload": {"tool_input": {"file_path": "notes/bad.md"}}, "exit": 0},
-  {"hook": "ph", "name": "glob-path", "payload": {"tool_input": {"file_path": "applications/*.md"}}, "exit": 0}
+  {"hook": "ph", "name": "glob-path", "payload": {"tool_input": {"file_path": "applications/*.md"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-two-ellipses", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate ……\n"}}, "exit": 2},
+  {"hook": "sup", "name": "reason-emoji-pair", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 😀😀\n"}}, "exit": 2},
+  {"hook": "sup", "name": "reason-nbsp-and-e-acute", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate  é\n"}}, "exit": 2},
+  {"hook": "sup", "name": "stryker-em-dash-reason", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: —\n"}}, "exit": 2},
+  {"hook": "sup", "name": "stryker-ellipsis-reason", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: …\n"}}, "exit": 2},
+  {"hook": "sup", "name": "above-comment-only-dashes", "payload": {"tool_input": {"file_path": "a.py", "content": "# ———\nx = 1  # pragma: no mutate\n"}}, "exit": 2},
+  {"hook": "sup", "name": "reason-accented-word", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate équivalent\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-cyrillic-word", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate эквивалент\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-cjk-word", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate 等価変異\n"}}, "exit": 0},
+  {"hook": "sup", "name": "reason-greek-word", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate ισοδύναμο\n"}}, "exit": 0},
+  {"hook": "sup", "name": "stryker-single-accented-letter", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: é\n"}}, "exit": 0},
+  {"hook": "sup", "name": "stryker-cjk-reason", "payload": {"tool_input": {"file_path": "a.ts", "content": "// Stryker disable next-line all: 等価\n"}}, "exit": 0},
+  {"hook": "sup", "name": "above-comment-cjk", "payload": {"tool_input": {"file_path": "a.py", "content": "# 等価変異\nx = 1  # pragma: no mutate\n"}}, "exit": 0}
 ]
