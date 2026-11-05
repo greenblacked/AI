@@ -304,6 +304,11 @@ SCRATCH_FILES = {
         "2,Price,Champion left,x\n"
     ),
     "churn/swapped.csv": "Key evidence,Primary code\n,Champion left\n",
+    "churn/uncoded-blank.csv": (
+        "Account,Primary code,Key evidence,Confidence\n"
+        "7,,uncoded: no usable evidence in notes or tickets,uncoded\n"
+    ),
+    "churn/uncoded-as-code.csv": ("Account,Primary code,Key evidence\n7,uncoded: no evidence,\n"),
     "churn/quoted-comma.csv": (
         'Account,Dropdown,Primary code,Key evidence\n"Acme, Inc",Price,Champion left,\n'
     ),

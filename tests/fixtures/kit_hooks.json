@@ -1173,5 +1173,7 @@
   {"hook": "dmap", "name": "directory-named-like-the-map", "payload": {"tool_input": {"file_path": "dm/dir/drift-map.yaml"}}, "exit": 0},
   {"hook": "ddl", "name": "truncate-digit-led-identifier-is-blocked", "payload": {"tool_input": {"command": "mysql -e 'TRUNCATE 1t'"}}, "exit": 2},
   {"hook": "ddl", "name": "truncate-table-digit-led-identifier-is-blocked", "payload": {"tool_input": {"command": "mysql -e 'TRUNCATE TABLE 2024_events'"}}, "exit": 2},
-  {"hook": "ddl", "name": "shell-truncate-size-flag-allowed-beside-digit-rule", "payload": {"tool_input": {"command": "truncate -s 0 app.log"}}, "exit": 0}
+  {"hook": "ddl", "name": "shell-truncate-size-flag-allowed-beside-digit-rule", "payload": {"tool_input": {"command": "truncate -s 0 app.log"}}, "exit": 0},
+  {"hook": "churn", "name": "reader-uncoded-output-leaves-code-blank", "payload": {"tool_input": {"file_path": "churn/uncoded-blank.csv"}}, "exit": 0},
+  {"hook": "churn", "name": "uncoded-label-in-code-column-needs-evidence", "payload": {"tool_input": {"file_path": "churn/uncoded-as-code.csv"}}, "exit": 2}
 ]

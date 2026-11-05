@@ -37,7 +37,9 @@ integration is `Missing capability`, and the disagreement is what the caller mos
 likely have stayed. At most one secondary. If the evidence does not decide between two
 codes, give the primary you would defend, mark the account `ambiguous`, name the other
 code and say which missing fact would separate them. If there is no usable evidence at
-all, code it `uncoded: no evidence` instead of falling back on the dropdown.
+all, leave `Primary code` blank, set `Confidence` to `uncoded` and say why in `Key
+evidence`, instead of falling back on the dropdown. A label in the code column is a code, and
+the kit's evidence hook would ask for a quote that does not exist.
 
 **Quote the deciding line.** Quote one line per account, short enough to check, with its
 source file and row or ticket id. Redact emails, phone numbers and personal names in the
@@ -56,7 +58,7 @@ A report, never the notes:
 - **Sample** — the source, the period, accounts listed against accounts coded.
 - **Coding table** — one row per account with the columns `Account`, `Revenue lost`,
   `Dropdown answer`, `Primary code`, `Secondary code`, `Key evidence`, `Confidence`
-  (`clear` or `ambiguous`) and `Source`. Where the caller asked for a file, give the same
+  (`clear`, `ambiguous` or `uncoded`) and `Source`. Where the caller asked for a file, give the same
   rows in this order as CSV text for them to save; you write nothing yourself.
 - **Totals by code** — logos and revenue per code, `ambiguous` and `uncoded` included.
 - **Dropdown against code** — the cross-tabulation, one line on where they disagree most.
