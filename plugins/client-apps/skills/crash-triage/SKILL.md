@@ -189,7 +189,10 @@ or when a clean-up script might delete symbols of a build that has shipped.
   Gradle, Xcode and Fastlane files that decide whether symbols are uploaded.
 - `${CLAUDE_SKILL_DIR}/assets/hooks/keep-shipped-symbols.json` and
   `${CLAUDE_SKILL_DIR}/assets/hooks/keep-shipped-symbols.sh` - a `PreToolUse` hook that
-  refuses a command deleting a dSYM, an R8 `mapping.txt` or a `.symbols` archive.
+  refuses a command deleting a dSYM, an R8 `mapping.txt` or a `.symbols` archive (`rm`,
+  `unlink`, `find -delete`, `shred -u`, `truncate -s 0`), and one that names an artifact in a
+  spelling it cannot read, such as a `$'...'` escape or a brace list. A script file or an
+  interpreter one-liner is out of its reach.
 - `${CLAUDE_SKILL_DIR}/assets/templates/crash-review.md` - the per-release review in this
   skill's output format.
 

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # Refuse a command that deletes a dSYM bundle, an R8 mapping.txt or a .symbols archive. Deterministic: standard tools only, no network, no secrets.
+# It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
+# before matching, and refuses a command that names a symbol artifact in a spelling it cannot read
+# ($'..' escapes, brace expansion, a variable or substitution as the command) rather than guessing.
+# A script file the command runs and an interpreter one-liner (python3 -c 'os.unlink(...)') are out
+# of scope: the hook cannot see what they do.
 set -Eeuo pipefail
 
 input="$(cat)"
@@ -60,25 +65,68 @@ fi
 # fails open. Nothing here needs more than ASCII to match.
 export LC_ALL=C
 
-# A command that names no protected artifact has nothing to protect; allow it at once.
-if ! hits "$command" -E '\.dSYM|mapping\.txt|\.symbols'; then
+# A text match cannot read the shell's own spellings, so the command is normalised first: a
+# backslash-newline continuation is joined, the $ of $'..' and $".." is dropped, and quotes and
+# backslashes are deleted, which makes "rm", 'rm', r""m, r\m and $'rm' the verb, and App.d"SY"M the
+# artifact. Newlines stay in plain (a command word can start a line); plain_flat turns them into
+# spaces. What cannot be normalised is refused instead, when the command also names a symbol
+# artifact: a $'..' string with a backslash (hex and octal escapes, $'r\x6d'), a brace expansion
+# with a comma or `..` outside quotes (build/App.{app,dSYM}), and a variable, a command
+# substitution or a backtick where the command word goes ($t -rf App.dSYM). A variable that is
+# only the start of a path ($HOME/bin/tidy) is read as the path it ends in. Indirection through a
+# script file and an interpreter one-liner (python3 -c 'os.unlink(...)') are out of scope: this
+# hook sees only the command text, and it refuses only the deleting verbs listed below (rm,
+# unlink, find -delete, shred -u, truncate to size zero).
+# Standalone like every hook here, so these two functions are copied rather than sourced.
+normalise() {
+  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+    sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
+}
+# unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
+unreadable() {
+  local outside cmdpos
+  if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
+  outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
+  if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
+  cmdpos='(^|[;&|({]|[[:space:]](then|do|else))[[:space:]]*((sudo|command|exec|env|xargs|nohup|time|busybox|builtin)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
+}
+plain="$(printf '%s\n' "$command" | normalise)"
+plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
+
+# A command that names no protected artifact has nothing to protect; allow it at once. The
+# artifact may be written in a way only the unreadable spellings can split (App.{app,dSYM}), so
+# a looser name is also a reason to look, and only for the refusal below.
+named=0
+if hits "$plain_flat" -E '\.dSYM|mapping\.txt|\.symbols'; then
+  named=1
+elif hits "$plain_flat" -iE 'dsym|mapping[.{,]|[.,{]symbols'; then
+  named=2
+else
   exit 0
 fi
 
 # A command that names a protected artifact and is too large to scan is refused rather than
 # scanned slowly, because a scan that times out allows the deletion.
-if [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
+if [ "$named" -eq 1 ] && [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
   echo "blocked: the command names a symbol artifact and is larger than 32 KiB, which this hook will not scan. Put the commands in a script file or split them, and archive or upload the symbols instead of deleting them" >&2
+  exit 2
+fi
+
+if unreadable "$command" "$plain"; then
+  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names a symbol artifact. Write the command plainly, so it can be seen whether it deletes the symbols; archive or upload them instead of deleting." >&2
   exit 2
 fi
 
 # Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
 # path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias. It may also be
-# the last word (names piped to xargs, arriving on stdin) or followed by ${IFS}. Quotes and
-# backslashes are deleted first, because the shell joins "rm", 'rm', r""m and r\m into the verb,
-# and a `$` before the verb is the opening of $'rm' or $"rm" once the quotes are gone.
-bare="$(printf '%s' "$command" | tr -d "\"'\\\\")"
-if hits "$bare" -E '(^|[[:space:];&|($])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)|find[[:space:]].*-delete'; then
+# the last word (names piped to xargs, arriving on stdin) or followed by ${IFS}. shred -u removes
+# its target after overwriting it, and truncate to size zero empties a file that stays on disk.
+verb='(^|[[:space:];&|(])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)'
+find_delete='find[[:space:]].*-delete'
+shred_u='(^|[[:space:];&|(])([^[:space:];&|()]*/)?shred[[:space:]]([^;&|]*[[:space:]])?(-[A-Za-z]*u[A-Za-z]*|--remove)([[:space:]=]|$)'
+truncate_0='(^|[[:space:];&|(])([^[:space:];&|()]*/)?truncate[[:space:]]([^;&|]*[[:space:]])?(-s[[:space:]]*0|--size[[:space:]=]+0)([[:space:]]|$)'
+if hits "$plain_flat" -E -e "$verb" -e "$find_delete" -e "$shred_u" -e "$truncate_0"; then
   echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
   exit 2
 fi
