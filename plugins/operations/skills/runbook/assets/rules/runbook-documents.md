@@ -22,3 +22,5 @@ about to run a command against production, so what the document leaves implicit 
 - Owner is a team or rota. Last verified is the date someone ran the steps, with who and how;
   an edit is not a verification. Record each one with `runbook-verification-record.md` from the
   `runbook` skill's kit, and write the date as `YYYY-MM-DD`.
+- A verification record, from that template, is evidence about a runbook and not a runbook. This
+  rule loads on it only because a path match cannot exclude a file; skip it there.

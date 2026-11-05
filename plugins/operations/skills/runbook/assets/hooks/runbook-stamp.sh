@@ -16,6 +16,8 @@
 # are ignored, so "**Owner:**", "**Owner**:" and "Owner:" all read the same, and label case
 # does not matter. A finding prints file:line and a fixed message, never text from the file,
 # and the hook exits 2. README.md, index.md and _index.md are skipped: they list runbooks.
+# So is a verification record, which is evidence about a runbook and not one: a file whose name
+# contains "verification-record", or whose first heading is "# Runbook verification record".
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the
@@ -60,6 +62,7 @@ fi
 base="${file##*/}"
 case "$base" in
   README.md | readme.md | index.md | _index.md) exit 0 ;;
+  *[Vv]erification-record*) exit 0 ;;
 esac
 case "$file" in
   */[Rr]unbooks/*.md | [Rr]unbooks/*.md) ;;
@@ -115,7 +118,7 @@ esac
 # long line. The regexes are anchored or single-class, so each is linear. A code fence hides
 # the stamp inside it, which is how a template shows one. awk prints a last line, @@done, so
 # that an awk that did not run (killed, or the redirection failed) is told from one that
-# found nothing wrong. A finding is "line:message"; no text from the file is repeated.
+# found nothing wrong. A record found by its first heading prints only that last line. A finding is "line:message"; no text from the file is repeated.
 rc=0
 verdict="$(
   awk -v lim="$limit" '
@@ -143,6 +146,12 @@ verdict="$(
         next
       }
       if (infence) next
+      if (!headseen && s ~ /^#[ \t]/) {
+        headseen = 1
+        h = tolower(s)
+        sub(/[ \t]+$/, "", h)
+        if (h == "# runbook verification record") record = 1
+      }
       gsub(/\*/, "", raw)
       low = tolower(raw)
       if (!ownerline) {
@@ -172,6 +181,7 @@ verdict="$(
       }
     }
     END {
+      if (record) { print "@@done"; exit }
       if (!ownerline) print "1:no Owner line in the first 40 lines. Add Owner: with a team or rota."
       else if (ownerbad) print ownerline ":Owner has no value or still holds the template placeholder. Name the team or rota."
       if (!dateline) print "1:no Last verified line in the first 40 lines. Add Last verified: YYYY-MM-DD, who and how."

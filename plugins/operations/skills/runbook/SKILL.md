@@ -255,4 +255,7 @@ chmod +x .claude/hooks/runbook-stamp.sh
 Then merge the `hooks` block of `runbook-stamp.json` into `.claude/settings.json`, adding to
 an existing `hooks` block rather than replacing it. Read the script first; it runs with your
 permissions on every matching write. Copy the template to wherever the project keeps its
-verification records.
+verification records, for example `runbooks/verifications/2026-03-14-checkout.md`. The hook
+leaves a record alone when its file name contains `verification-record` or its first heading is
+`# Runbook verification record`, so a record beside a runbook is not asked for an owner stamp.
+The rule's path match cannot exclude a file, so it also loads on a record and says to skip it.

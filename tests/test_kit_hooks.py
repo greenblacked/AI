@@ -82,6 +82,11 @@ STUB_JSON = (
     "    return ''\n"
 )
 
+# The real verification-record template, so the rbk rows judge the file the kit ships.
+RBK_RECORD = (
+    ROOT / "plugins/operations/skills/runbook/assets/templates/runbook-verification-record.md"
+).read_text("utf-8")
+
 CHURN_HEADER = "Account,Dropdown,Primary code,Key evidence\n"
 
 SCRATCH_FILES = {
@@ -644,6 +649,11 @@ SCRATCH_FILES = {
     "myrunbooks/bad.md": "# Notes\n",
     "runbooks/notes.txt": "# Notes\n",
     "runbooks/dir.md/.keep": "",
+    "runbook-verification-record.md": RBK_RECORD,
+    "runbooks/verifications/2026-03-14-checkout.md": RBK_RECORD,
+    "runbooks/2026-03-14-checkout.md": RBK_RECORD,
+    "runbooks/db-verification-record.md": "# Notes\n",
+    "runbooks/late-heading.md": "# Runbook\n\n# Runbook verification record\n",
     # wkrev: weekly-review-shape
     "wk/reviews/two.md": (
         "# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n2. b\n\n"
