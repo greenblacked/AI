@@ -1,6 +1,6 @@
 ---
 name: automated-playthrough
-description: "Build a bot or scripted run that plays the game unattended in CI to find crashes, soft-locks and leaks. Starts with the smallest bot on the riskiest path, drives the game through the player input path rather than internal functions, records a seed with every run so failures replay, writes final state, last 500 log lines, screenshot and build id on failure, judges runs by machine-checkable criteria with a progress watchdog, and runs smoke per commit and soak nightly. Use whenever someone says \"we need a smoke test for the game\", \"soak test overnight\", \"QA can't reproduce the soft lock\", \"bot that plays through the level\" or \"automated gameplay test\". Not for web UI journeys (e2e-testing), human sessions (game-playtest), designing test cases (test-design), or the memory budget a soak checks (game-memory-budget)."
+description: "Build a bot or scripted run that plays the game unattended in CI to find crashes, soft-locks and leaks. Starts with the smallest bot on the riskiest path, drives the game through the player input path rather than internal functions, records a seed with every run so failures replay, writes state, log tail, screenshot and build id on failure, judges runs by machine-checkable criteria with a progress watchdog, and gates the hand-off to QA on a smoke (boot, load, save, quit, controller and suspend) plus a two-hour soak that fails on resident-memory slope. Use for \"we need a smoke test for the game\", \"soak test overnight\", \"QA can't reproduce the soft lock\" or \"bot that plays the level\". Not for web UI journeys (e2e-testing), human sessions (game-playtest), test case design (test-design), or memory budgets (game-memory-budget)."
 allowed-tools: Read, Grep, Glob, Edit, Write
 ---
 
@@ -68,6 +68,8 @@ A hang is the case people forget. Add a watchdog on progress, not on elapsed tim
 
 Fixed hardware matters. A shared runner whose speed varies makes timing thresholds flaky, and flaky tests get ignored.
 
+A build is not handed to QA until it passes the pre-QA gate: a smoke of cold boot, load a save, save, quit to title, controller disconnect and reconnect, and suspend and resume where the platform has it, then a two-hour soak that samples resident memory on a fixed interval and fails the build when the fitted slope exceeds a threshold taken from a known-good build. See `references/smoke-soak-gate.md` for the steps, the slope check and the hand-off note.
+
 ### 6. Treat a bot failure as a failing test
 
 A red bot run has an owner the same day, like any failing test. Reproduce it by rerunning the recorded seed; if it fails again, bisect to the commit by rerunning that seed over the commits in the range. If it does not fail again, the run was not deterministic, and that is a defect in the bot or the game to fix, not to retry through. Do not add automatic retries that turn a real intermittent soft-lock into a green build.
@@ -113,3 +115,4 @@ Track three numbers over time: the pass rate, the share of failures that were bo
 ## References
 
 - `references/bot-design.md` — read at steps 2 to 4: the layered bot design, the failure report contents, the progress watchdog, and the CI job outline.
+- `references/smoke-soak-gate.md` — read at step 5 before a build goes to QA: the smoke steps, the two-hour soak, the resident-memory slope check and the hand-off note.

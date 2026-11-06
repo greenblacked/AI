@@ -64,6 +64,10 @@ Write the severity threshold that separates a hotfix from something that waits f
 
 A hotfix still owes `game-certification` its own submission on a platform that requires review, and still owes `game-balance` its evidence if it touches a tuned number — the rhythm decides when a fix ships, not whether the normal gates apply to it. Read `references/patch-rhythm-and-comms.md` for the severity table and how to size the threshold to the game's actual player impact.
 
+### 6a. Choose the fix route for a live defect
+
+When a defect clears the threshold, choose how the fix ships before writing it: a server-side config change or kill switch first, then a feature flag, then a server deploy, and a certified client patch last. Pick by the platform's certification lead time and by blast radius, take the smallest-radius route that removes the harm in time, and write the rollback, with its trigger and owner, before anything ships. Server drain mechanics are `game-server-rollout` and exploit handling is `economy-exploit-response`. Read `references/hotfix-route.md` for the order, the lead-time and blast-radius questions, the rollback checklist and a worked choice.
+
 ### 7. Plan community communication
 
 Patch notes state what changed in terms a player experiences, not in terms of the internal ticket that produced it. Known issues are named before players find and report them, wherever that is possible — a known-issues note that ships alongside a patch protects trust that a silent bug does not. Roadmap honesty means never committing a date or a feature the team cannot currently defend; a vague roadmap costs less trust than a specific one that slips.
@@ -94,4 +98,5 @@ Every single number change goes to `game-balance` with its evidence, on the sche
 
 - `references/season-calendar.md` — read at step 2: cadence patterns by game type, sizing the lead-time buffer against a platform's certification turnaround, and a worked season calendar.
 - `references/kpi-and-stop-rules.md` — read at step 5: the candidate KPI table by category, how to build a baseline from the game's own data rather than an outside figure, and how to write a stop rule that actually binds.
+- `references/hotfix-route.md` — read at step 6a: the order of fix routes for a live defect, choosing by certification lead time and blast radius, and the rollback written before the fix ships.
 - `references/patch-rhythm-and-comms.md` — read at steps 6 and 7: the severity table that separates a hotfix from a scheduled patch, the patch-note shape, the known-issues discipline, and the roadmap-honesty anti-patterns.

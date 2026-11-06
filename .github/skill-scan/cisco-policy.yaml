@@ -85,6 +85,333 @@ suppressions:
       user permission prompt. Withholding Bash is the safer posture, not a mismatch.
     expires: 2027-05-02
 
+  # Project-kit hook scripts under a skill's assets/hooks/, shipped as opt-in templates (docs/writing-skills.md, Project
+  # kit)
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["mutation-testing"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-suppression-reason.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook refuses a Write or Edit of a mutation
+      suppression that gives no reason, and text holding a marker that is over 1 MiB, uses standard tools only, reads
+      one stdin payload, and has no network access, secrets or eval. The skill itself does not run it and the
+      allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["timeout-and-retry-budget"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/retry-without-deadline.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook refuses a source write that sets a retry
+      and no timeout, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval. The
+      skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["job-search"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/placeholder-list.sh, which the scanner reads as bash the skill
+      runs. It is a template the installer copies on purpose: the hook asks for a placeholders section when an
+      application file carries a [TK:] marker, uses standard tools only, reads one stdin payload, and has no network
+      access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["crash-triage"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/keep-shipped-symbols.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook refuses a command that deletes a dSYM,
+      mapping.txt or .symbols archive (rm, unlink, find -delete, shred -u, truncate to size zero), one that names such
+      an artifact in a spelling it cannot read ($'...' escape, brace expansion, variable or substitution as the command,
+      read right after a separator or after a common wrapper such as sudo, exec, command or env, not after other
+      wrappers), and one that names such an artifact and is over 32 KiB, uses standard tools only, reads one stdin
+      payload, and has no network access, secrets or eval. The skill itself does not run it and the allowed-tools grant
+      is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["metric-reconciliation"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/block-destructive-warehouse-ddl.sh, which the scanner reads as
+      bash the skill runs. It is a template the installer copies on purpose: the hook refuses a command that drops or
+      truncates a warehouse object, and one that names a SQL client or a DROP or TRUNCATE in a spelling it cannot read
+      ($'...' escape, brace expansion, variable or substitution as the command, read right after a separator or after a
+      common wrapper such as sudo, exec or command, not after other wrappers), uses standard tools only, reads one stdin
+      payload, and has no network access, secrets or eval. The skill itself does not run it and the allowed-tools grant
+      is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["lock-queue-triage"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/block-set-based-backend-kill.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook refuses pg_terminate_backend or
+      pg_cancel_backend with a non-literal pid, a command that names either in a spelling it cannot read ($'...' escape,
+      brace expansion, variable or substitution as the command, read right after a separator or after a common wrapper
+      such as sudo, exec or command, not after other wrappers), and a command that calls either and is over 32 KiB, uses
+      standard tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself does
+      not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["slow-build-profile"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/generated-stamp-guard.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook refuses a timestamp or git SHA written into
+      a generated file, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval.
+      The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["ota-update-safety"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/block-whole-device-erase.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook refuses a whole-device erase or
+      readout-protection write from a debug probe, and a probe command it cannot read plainly (a $'...' escape, a brace
+      expansion, a variable or substitution as the command, read right after a separator or after a common wrapper such
+      as sudo, exec, command or env, not after other wrappers), uses standard tools only, reads one stdin payload, and
+      has no network access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not
+      widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["deliverability-triage"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/email-template-unsubscribe.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook refuses a marketing email template
+      written without an unsubscribe reference, uses standard tools only, reads one stdin payload, and has no network
+      access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["iac-apply-pipeline"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/refuse-unsaved-terraform-apply.sh, which the scanner reads as
+      bash the skill runs. It is a template the installer copies on purpose: the hook refuses a terraform or tofu apply
+      that auto-approves or names no saved plan file, a destroy that auto-approves, a command it cannot read plainly
+      ($'...' escape, brace expansion, variable or substitution as the command, read right after a separator or after a
+      common wrapper such as sudo, exec, command or env, not after other wrappers), and a terraform or tofu command too
+      large (over 32 KiB) to scan, uses standard tools only, reads one stdin payload, and has no network access, secrets
+      or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["tacit-knowledge-elicitation"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/decision-rule-because.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reports, after a write, each decision
+      rule in a decision-rule sheet that gives no reason, refuses a file over 1 MiB, uses standard tools only, reads
+      one stdin payload and one file, and has no network access, secrets or eval. The skill itself does not run it and
+      the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["systemd-unit-failure"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/exec-absolute-path.sh, which the scanner reads as bash the skill
+      runs. It is a template the installer copies on purpose: the hook reads a written .service file or drop-in from
+      disk and reports an Exec line that starts a relative path, refuses a file over 1 MiB, uses standard tools only,
+      reads one stdin payload, and has no network access, secrets or eval. The skill itself does not run it and the
+      allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["rust-unsafe-review"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-safety-comment.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reports a written .rs file in which an
+      unsafe block, function, impl or trait has no safety comment above it, refuses a file over 1 MiB that holds
+      unsafe code, uses standard tools only, reads one stdin payload and the written file, and has no network access,
+      secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["structured-output"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-closed-object-schema.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads a JSON schema file written under
+      a schemas directory, refuses one over 1 MiB, parses it as data with jq or python3 -I, and reports object schemas
+      that lack additionalProperties false, using standard tools only, with no network access, secrets or eval. The
+      skill itself does not run it and its allowed-tools grant (Read, Glob, Grep) is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["otel-collector-pipeline-review"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/collector-memory-limiter.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reports a written collector configuration
+      whose pipeline lists processors but no memory_limiter, refuses to scan a file over 1 MiB, uses standard tools
+      only, reads one stdin payload and the written file, and has no network access, secrets or eval. The skill itself
+      does not run it and the allowed-tools grant (Read, Glob, Grep) is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["connection-exhaustion-hunt"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/connection-ceilings.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads the written sysctl file and reports a
+      net.ipv4.tcp_tw_recycle line or a conntrack or port-range ceiling with no evidence comment above it, refuses a
+      file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval.
+      The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["churn-analysis"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-churn-evidence.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: after a Write or Edit of a CSV under a churn/
+      directory the hook reads that file, refuses a file over 1 MiB, and reports coded rows that have no key evidence,
+      uses standard tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself
+      does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["slurm-job-failure-triage"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-memory-request.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written .sbatch file or slurm/
+      shell script from disk and reports one that has #SBATCH directives and none requesting memory, refuses a file
+      over 1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval. The
+      skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["monthly-bookkeeping-close"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/close-lock-date.sh, which the scanner reads as bash the skill
+      runs. It is a template the installer copies on purpose: the hook reports a month-close note that records the
+      period as locked with no date on the line, reads the written file from disk after the write, refuses a file over
+      1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval. The skill
+      itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["docs-drift-detection"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/drift-map-ignore-reason.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: after a Write or Edit of a drift-map.yaml the hook
+      reads that file from disk and reports ignore entries that give no reason, refuses a file over 1 MiB, uses
+      standard tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself does
+      not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["game-builder"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The finding comes from assets/hooks/game-data-json.sh alone (the scan is clean with that file removed). It is an
+      opt-in hook the user copies into their own project; the skill never runs it and allows Read/Grep/Glob only by
+      design. The script only parses a written .json file, makes no network call and reads no secret.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["test-design"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/no-fixed-sleep-in-tests.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written test file from disk and
+      reports a fixed sleep call outside a comment, refuses a file over 1 MiB, uses standard tools only, reads one
+      stdin payload, and has no network access, secrets or eval. The skill itself does not run it and the
+      allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["pipeline-hardening"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/flag-untrusted-field-in-run.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads a written workflow file under
+      .github/workflows/ from disk and reports a run or script block that expands a pull request, issue, comment,
+      review or commit field, refuses a file over 1 MiB, uses standard tools only, reads one stdin payload, and has no
+      network access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["distinctive-page-design"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/flag-viewport-width-css.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written .css file from disk and
+      reports one that sets width, min-width or max-width to a bare 100vw, refuses a file over 1 MiB, uses standard
+      tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself does not run
+      it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["family-workflow"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/slice-waiver-placement.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written docs/slices/<name>/
+      frame.md, plan.md, inspect.md or yield.md from disk and reports one that carries a "## Waiver" heading, refuses
+      a file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or
+      eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["decision-record"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-considered-options.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads a decision record written under
+      docs/decisions or docs/adr, refuses one over 1 MiB, counts the list items in its Considered Options section with
+      awk, and reports a record with fewer than two, using standard tools only, with no network access, secrets or
+      eval. The skill itself does not run it and its allowed-tools grant (Read, Write, Edit, Glob, Grep) is not
+      widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["runbook"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/runbook-stamp.sh, which the scanner reads as bash the skill
+      runs. It is a template the installer copies on purpose: after a Write or Edit of a runbook the hook reads that
+      file from disk and reports one with no owner or no valid last-verified date in its first 40 lines, refuses a
+      file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval.
+      The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["weekly-review"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/weekly-review-shape.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written weekly review under
+      reviews/ from disk and reports one with fewer than 3 or more than 5 commitments or no Consciously not doing
+      section, refuses a file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network
+      access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["security-review"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/tls-verification-off.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written yaml, json, toml, ini or
+      conf file from disk and reports one that switches off TLS certificate verification, refuses a file over 1 MiB,
+      uses standard tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself
+      does not run it and the allowed-tools grant (Read, Grep, Glob) is not widened.
+    expires: 2027-05-02
+
   # Subagent and slash-command definitions, scanned as one-file skills by scripts/definition_shims.py. Cisco matches
   # `skills` on the shim's frontmatter name, which the wrapper sets to the shim id for agents and commands alike.
   - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE

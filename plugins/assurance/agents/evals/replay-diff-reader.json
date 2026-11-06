@@ -1,0 +1,22 @@
+[
+  {"query": "bucket these replay diffs, there are 38,000 response differences between old and new and i can't read them", "should_trigger": true},
+  {"query": "which of these replay differences are just noise? old-against-old output and candidate diffs are attached", "should_trigger": true},
+  {"query": "are the buckets closed yet on the weekly replay run? read the diff output and tell me what's still open", "should_trigger": true},
+  {"query": "read the replay output for the rewrite and give me one example request per distinct difference", "should_trigger": true},
+  {"query": "the candidate-against-old diff has 12k entries, group them by route and json path and tell me which are real bugs", "should_trigger": true},
+  {"query": "here is the diffy output for the new billing service, which buckets need a signed decision?", "should_trigger": true},
+  {"query": "go through the replay diffs and rank buckets by distinct requests affected, not raw count", "should_trigger": true},
+  {"query": "i have the old-vs-old noise run and the old-vs-new run from the replay, classify every bucket", "should_trigger": true},
+  {"query": "summarise the response diffs from last week's traffic replay without pasting them at me", "should_trigger": true},
+  {"query": "the replay finished, tell me whether we are at zero unexplained buckets and which routes got no replayed requests", "should_trigger": true},
+  {"query": "how do we capture and sanitise production traffic for a replay against the rewrite", "should_trigger": false, "expected": "traffic-replay-diff"},
+  {"query": "write the normalisation rules for timestamps and generated ids in our replay diff", "should_trigger": false, "expected": "traffic-replay-diff"},
+  {"query": "diff old and new model answers case by case before we migrate to the new model", "should_trigger": false, "expected": "model-migration"},
+  {"query": "diff the served and replayed feature vectors column by column to find train and serve skew", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "the two reports disagree, diff the two row sets by key and tell me why the totals differ", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "prove telemetry parity on seven days of the same traffic across the old and new pipeline", "should_trigger": false, "expected": "telemetry-migration"},
+  {"query": "diff status codes and latency per route across the two gateway controllers", "should_trigger": false, "expected": "gateway-api-migration"},
+  {"query": "reconcile the old spreadsheet and the new report output line by line", "should_trigger": false, "expected": "spreadsheet-retirement"},
+  {"query": "will the new service hold up under production load? read the load test results", "should_trigger": false, "expected": "load-testing"},
+  {"query": "mirror live traffic to the new version as a shadow and compare against the canary", "should_trigger": false, "expected": "release-strategy"}
+]

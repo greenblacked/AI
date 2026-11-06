@@ -1,0 +1,22 @@
+[
+  {"query": "here is the sacct -P dump for array job 4821903 and the 900 slurm-*.err files, which index failed first and what killed it", "should_trigger": true},
+  {"query": "job 7710452 shows FAILED but the log is 40MB of MPI abort messages from 256 ranks, find the rank that failed first and quote the line", "should_trigger": true},
+  {"query": "read the saved sacct output and the batch stderr for this run and tell me if it was OUT_OF_MEMORY, TIMEOUT or the program, with the deciding step row", "should_trigger": true},
+  {"query": "300 of 2000 array tasks ended in a non-COMPLETED state, here are the accounting rows and the logs, do they share a node or an input", "should_trigger": true},
+  {"query": "sacct says ExitCode 0:0 for the job but DerivedExitCode is 1, go through the step rows and logs and tell me which step actually failed", "should_trigger": true},
+  {"query": "the job log just stops, no error, and I have the sacct rows saved, which State class is it and which line or row proves it", "should_trigger": true},
+  {"query": "here are the out files from 64 nodes of the failed srun, pull out the earliest error and say whether the others are just cascade", "should_trigger": true},
+  {"query": "I don't want to read these seff and sacct outputs for 40 jobs, summarise which ones were killed by the scheduler and which exited on their own", "should_trigger": true},
+  {"query": "read the slurmstepd lines in these task logs and the step MaxRSS in the sacct file, was the kernel oom-killer involved", "should_trigger": true},
+  {"query": "NODE_FAIL showed up on part of last night's array, read the accounting rows and the logs and say which nodes and which indices were hit", "should_trigger": true},
+  {"query": "job 4821903 died with exit code 137, what should I change in the request before I resubmit it", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "walk me through diagnosing a Slurm job that timed out after three hours and resubmitting it changed", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "how much memory and walltime should I request for these jobs, they sit in the queue for days", "should_trigger": false, "expected": "hpc-resource-sizing"},
+  {"query": "I need to run 10,000 configs across the cluster and rerun only the missing ones afterwards, how do I keep the bookkeeping", "should_trigger": false, "expected": "sweep-campaign-management"},
+  {"query": "my five day run keeps getting preempted, add checkpointing so it resumes where it died", "should_trigger": false, "expected": "checkpoint-restart-design"},
+  {"query": "the cluster admins say I am over the file quota with millions of small output files, how do I fix the layout", "should_trigger": false, "expected": "parallel-filesystem-hygiene"},
+  {"query": "here is the failed GitHub Actions run, which of the five classes is it and what line decided it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "pods went CrashLoopBackOff right after the deploy, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "my simulation segfaults when I run it by hand on the login node, help me find the bug in the C++ code", "should_trigger": false, "expected": "debugging"},
+  {"query": "write an sbatch script that runs my training with 4 GPUs and loads the right modules", "should_trigger": false}
+]

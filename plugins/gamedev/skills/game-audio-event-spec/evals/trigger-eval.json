@@ -1,0 +1,22 @@
+[
+  {"query": "can you build me a table of every sound event my game needs, with bus, priority and max instances", "should_trigger": true},
+  {"query": "my programmer calls it sfx.door.open and the sound designer made door_open_01, how do we stop this drifting", "should_trigger": true},
+  {"query": "write a script that finds audio event ids in our godot code that are not in the spreadsheet", "should_trigger": true},
+  {"query": "forty footsteps fire at once in a crowd scene, what max instances and steal rule should the footstep row in our event table have", "should_trigger": true},
+  {"query": "audit our project for audio events nobody ever triggers", "should_trigger": true},
+  {"query": "what columns should an audio event list have so designers and engineers share it", "should_trigger": true},
+  {"query": "dialogue keeps getting cut off by gunfire, how do i set priorities and steal rules per sound", "should_trigger": true},
+  {"query": "i want one source of truth for sound ids across unity code and fmod, how should i name them", "should_trigger": true},
+  {"query": "which sounds need to be 3d positional and which stay 2d, i want that decided per event in a list", "should_trigger": true},
+  {"query": "add a ci check that fails when code plays an audio id that is not in our event csv", "should_trigger": true},
+  {"query": "the music drowns out dialogue, how far should it duck and what loudness target do consoles want", "should_trigger": false, "expected": "game-audio-mix"},
+  {"query": "cap the total voices for the whole effects bus and decide which category gets stolen first when a big fight turns to noise", "should_trigger": false, "expected": "game-audio-mix"},
+  {"query": "what sample rate and codec should i use for footstep wavs to keep the build small", "should_trigger": false, "expected": "game-assets"},
+  {"query": "audio mixing is costing 4ms on the main thread on switch, how do i profile it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "translated voice lines run longer than the subtitles and overlap the next line", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "design the pause menu and settings screen layout with a volume sliders page", "should_trigger": false, "expected": "game-hud-menu-spec"},
+  {"query": "make the footsteps in my platformer feel punchier and the jump feel snappier", "should_trigger": false, "expected": "game-builder"},
+  {"query": "add structured logging events with consistent names across our backend services", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "players report the game has no sound at all on one model of android phone", "should_trigger": false, "expected": "game-bug-triage"},
+  {"query": "write a design document for the audio direction and tone of our horror game", "should_trigger": false, "expected": "game-design-doc"}
+]

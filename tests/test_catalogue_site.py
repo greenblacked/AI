@@ -3048,10 +3048,47 @@ def test_the_header_css_shows_the_menu_below_64rem_and_the_sections_from_it():
     wide = css.split("@media (min-width: 64rem) {\n  .bar > nav { display: flex; }", 1)[1]
     assert ".menu { display: none; }" in wide.split("\n}\n", 1)[0]
     assert ".menu summary:focus-visible { outline: 2px solid var(--ink)" in css
-    # The panel opens with a fade only for a visitor who has not asked for less motion.
+    # Below 64rem the open menu is a drawer on the left edge, over a backdrop that is the
+    # summary's own ::before, so a tap on it toggles the details with no script.
+    drawer = css.split("@media (max-width: 63.999rem) {", 1)[1].split("\n}\n", 1)[0]
+    panel = drawer.split(".menu[open] nav {", 1)[1].split("}", 1)[0]
+    for rule in (
+        "position: fixed",
+        "left: 0",
+        "width: min(20rem, 85vw)",
+        "height: 100vh;\n    height: 100dvh",
+        "overflow-y: auto",
+        "border-right: 1px solid var(--line)",
+        "background: var(--bg)",
+    ):
+        assert rule in panel, rule
+    assert ".menu[open] summary::before" in drawer and "position: fixed" in drawer
+    assert "html:has(.menu[open]) { overflow: hidden; scrollbar-gutter: stable; }" in drawer
+    # The dark themes raise the drawer off a black page; the day theme keeps the page colour.
+    for theme in ("night", "reactor"):
+        assert f'html[data-theme="{theme}"] .menu[open] nav' in drawer
+    raised = drawer.split('html[data-theme="reactor"] .menu[open] nav {', 1)[1].split("}", 1)[0]
+    assert "background: var(--card)" in raised and "box-shadow" in raised
+    # The slide runs only for a visitor who has not asked for less motion.
     motion = css.split("@media (prefers-reduced-motion: no-preference) {", 1)[1]
-    assert ".menu[open] nav { animation: menu-in" in motion
-    assert ".menu[open] nav" not in css.split("@media (prefers-reduced-motion: no-preference)")[0]
+    assert ".menu[open] nav { animation: menu-in 220ms var(--ease)" in motion
+    assert "@keyframes menu-in { from { transform: translateX(-100%); } }" in css
+    assert (
+        "animation: menu-in" not in css.split("@media (prefers-reduced-motion: no-preference)")[0]
+    )
+
+
+def test_the_page_script_closes_the_menu_on_escape_and_on_a_link():
+    script = site.site_style.PAGE_SCRIPT
+    assert 'event.key === "Escape"' in script and 'closest("nav a")' in script
+    assert "summary.focus()" in script
+    # A modified click opens the link elsewhere, so it leaves the menu as it was.
+    assert "event.metaKey || event.ctrlKey || event.shiftKey || event.altKey" in script
+    # An open menu keeps the header live; a hidden, inert header would hold the drawer.
+    assert "if (drawer && drawer.open) away(false);" in script
+    assert script.index("var drawer") < script.index('addEventListener("scroll"')
+    # Before the finder's early return, which pages without a finder take.
+    assert script.index("drawer.addEventListener") < script.index("if (!input ||")
 
 
 def test_a_block_wraps_on_a_phone_without_changing_its_text():

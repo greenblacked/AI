@@ -985,7 +985,9 @@ def test_the_default_run_uses_the_shipped_table_and_lists_its_manual_checks(tmp_
 
 
 def test_the_unfilled_decision_template_declares_no_waiver_or_override():
-    decisions = page_lint.parse_decisions((SKILL / "assets/decisions-template.md").read_text())
+    decisions = page_lint.parse_decisions(
+        (SKILL / "assets/templates/decisions-template.md").read_text()
+    )
     assert decisions.waivers == {}
     assert decisions.overrides == []
 

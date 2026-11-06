@@ -723,6 +723,26 @@ GOOD_MARKETPLACE = {"plugins": [{"name": "demo", "source": "./plugins/demo"}]}
 GOOD_PLUGIN = {"name": "demo", "description": "x"}
 
 
+KEYS = [
+    "agents",
+    "commands",
+    "skills",
+    "hooks",
+    "mcpServers",
+    "lspServers",
+    "outputStyles",
+    "settings",
+    "experimental",
+    # Added to Claude Code after the denylist this list began as; an allowlist refuses them
+    # without anyone having to name them first.
+    "monitors",
+    "workflows",
+    "themes",
+    "dependencies",
+    "userConfig",
+]
+
+
 def write_manifests(repo, marketplace=GOOD_MARKETPLACE, plugin=GOOD_PLUGIN):
     repo.write(".claude-plugin/marketplace.json", json.dumps(marketplace))
     repo.write("plugins/demo/.claude-plugin/plugin.json", json.dumps(plugin))
@@ -734,7 +754,7 @@ def test_ordinary_manifests_are_accepted(repo):
     assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
 
 
-@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+@pytest.mark.parametrize("key", KEYS)
 def test_a_plugin_manifest_that_adds_components_is_refused(repo, key):
     # `"agents": ["./extra/evil.md"]` loads a file the scan never enumerates.
     write_manifests(repo, plugin={**GOOD_PLUGIN, key: ["./extra/evil.md"]})
@@ -742,11 +762,63 @@ def test_a_plugin_manifest_that_adds_components_is_refused(repo, key):
         shims.list_definitions(repo.path)
 
 
-@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+@pytest.mark.parametrize("key", KEYS)
 def test_a_marketplace_entry_that_adds_components_is_refused(repo, key):
     entry = {"name": "demo", "source": "./plugins/demo", key: {"inline": "content"}}
     write_manifests(repo, marketplace={"plugins": [entry]})
     with pytest.raises(shims.DefinitionError, match=rf"marketplace\.json.*`{key}`"):
+        shims.list_definitions(repo.path)
+
+
+def test_a_plugin_manifest_may_carry_every_allowed_key(repo):
+    plugin = {
+        "$schema": "https://example.invalid/plugin.schema.json",
+        "name": "demo",
+        "description": "x",
+        "version": "1.0.0",
+        "author": {"name": "y"},
+        "homepage": "https://example.invalid",
+        "repository": "https://example.invalid/r",
+        "license": "MIT",
+        "keywords": ["a"],
+    }
+    entry = {
+        "name": "demo",
+        "source": "./plugins/demo",
+        "category": "coding",
+        "tags": ["a"],
+        "description": "x",
+        "version": "1.0.0",
+        "author": {"name": "y"},
+        "homepage": "https://example.invalid",
+        "repository": "https://example.invalid/r",
+        "license": "MIT",
+        "keywords": ["a"],
+    }
+    marketplace = {
+        "$schema": "https://example.invalid/m.json",
+        "name": "m",
+        "description": "d",
+        "owner": {"name": "o"},
+        "plugins": [entry],
+    }
+    write_manifests(repo, marketplace=marketplace, plugin=plugin)
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"metadata": {"pluginRoot": "./elsewhere"}},
+        {"metadata": {}},
+        {"allowCrossMarketplaceDependenciesOn": ["other"]},
+        {"hooks": {}},
+    ],
+)
+def test_a_marketplace_top_level_key_outside_the_allowlist_is_refused(repo, extra):
+    # `metadata.pluginRoot` redirects where relative plugin sources resolve.
+    write_manifests(repo, marketplace={**GOOD_MARKETPLACE, **extra})
+    with pytest.raises(shims.DefinitionError, match=rf"marketplace\.json.*`{next(iter(extra))}`"):
         shims.list_definitions(repo.path)
 
 
@@ -775,6 +847,9 @@ def test_a_marketplace_source_outside_plugins_is_refused(repo, source):
         "plugins/demo/nested/.claude-plugin/plugin.json",
         "plugins/demo/.claude-plugin/extra.json",
         "plugins/Bad_Name/.claude-plugin/plugin.json",
+        "plugins/demo/.Claude-Plugin/plugin.json",
+        "Plugins/demo/.claude-plugin/plugin.json",
+        ".Claude-Plugin/marketplace.json",
     ],
 )
 def test_a_manifest_in_an_unexpected_place_is_refused(repo, path):
@@ -847,3 +922,108 @@ def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo
     assert "frontmatter does not parse" in err
     assert "##[" not in err
     assert "## [warning]" in err
+
+
+# A plugin root holds `.claude-plugin`, `skills`, `agents` and `commands` and nothing else, so
+# whatever Claude Code loads or runs on enabling a plugin and the repository never named is
+# refused here too, and the security workflow fails closed even if the validator is bypassed.
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "hooks/hooks.json",
+        "hooks/anything.sh",
+        "hooks.json",
+        ".mcp.json",
+        ".lsp.json",
+        "monitors/monitors.json",
+        "bin/tool",
+        "settings.json",
+        "output-styles/terse.md",
+        "Hooks/hooks.json",
+        "monitors",
+        "output-styles",
+        ".MCP.json",
+        "Settings.json",
+        "bin",
+        "hooks",
+        "workflows/w.yml",
+        "workflows",
+        "themes/t.json",
+        "themes",
+        "Agents/helper.md",
+        "Commands/run-it.md",
+        "Skills/alpha/SKILL.md",
+        "README.md",
+        "LICENSE",
+    ],
+)
+def test_a_plugin_root_entry_outside_the_allowlist_is_refused(repo, rel):
+    write_manifests(repo)
+    repo.write(f"plugins/demo/{rel}", "{}\n")
+    repo.commit("root entry")
+    with pytest.raises(shims.DefinitionError, match=r"plugin-root.*assets/hooks"):
+        shims.list_definitions(repo.path)
+
+
+def test_every_allowed_plugin_root_entry_is_accepted(repo):
+    write_manifests(repo)
+    repo.write("plugins/demo/skills/beta/SKILL.md", "---\nname: beta\n---\n")
+    repo.commit("more of the shape")
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "skills/alpha/assets/hooks/guard.json",
+        "skills/alpha/assets/settings.json",
+        "skills/alpha/scripts/bin/tool",
+        "agents/hooks.json",
+    ],
+)
+def test_the_same_names_deeper_in_a_plugin_are_not_auto_components(repo, rel):
+    write_manifests(repo)
+    repo.write(f"plugins/demo/{rel}", "{}\n")
+    repo.commit("kit file")
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
+
+
+def test_an_auto_component_under_a_differently_cased_plugins_folder_is_refused(repo):
+    write_manifests(repo)
+    repo.write("Plugins/demo/hooks/hooks.json", "{}\n")
+    repo.commit("auto component")
+    with pytest.raises(shims.DefinitionError, match=r"plugin-root.*assets/hooks"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "Plugins/demo/skills/alpha/SKILL.md",
+        "Plugins/demo/agents/x.md",
+        "PLUGINS/demo/agents/x.md",
+        "Plugins/demo/.claude-plugin/plugin.json",
+    ],
+)
+def test_a_differently_cased_first_segment_is_refused_on_its_own(repo, rel):
+    write_manifests(repo)
+    repo.write(rel, "---\nname: x\n---\n")
+    repo.commit("case variant")
+    with pytest.raises(shims.DefinitionError, match="differs from 'plugins' only in case"):
+        shims.check_plugin_roots(repo.path)
+
+
+@pytest.mark.parametrize("name", ["skill.md", "Skill.md", "SKILL.MD"])
+def test_a_differently_cased_skill_file_is_refused(repo, name):
+    write_manifests(repo)
+    repo.write(f"plugins/demo/skills/alpha/{name}", "---\nname: alpha\n---\n")
+    repo.commit("skill case")
+    with pytest.raises(shims.DefinitionError, match="SKILL.md"):
+        shims.check_plugin_roots(repo.path)
+
+
+def test_a_nested_lower_case_skill_md_is_not_a_skill_file(repo):
+    write_manifests(repo)
+    repo.write("plugins/demo/skills/alpha/references/skill.md", "# notes\n")
+    repo.commit("reference")
+    shims.check_plugin_roots(repo.path)

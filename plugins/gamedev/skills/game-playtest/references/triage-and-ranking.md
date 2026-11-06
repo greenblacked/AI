@@ -30,21 +30,14 @@ Edge cases, in order:
 
 1. A bug that exposes a design weakness is filed as a bug and linked from the finding. Fixing the bug will not fix the weakness.
 2. When it is unclear what the author intended, ask the author. If nobody knows, treat it as a design finding, because an unspecified behaviour is a design gap.
-3. A blocker bug during a session makes that session partial for the question it affected. Keep its other lines, and exclude its timings from the group.
+3. An S1 bug during a session makes that session partial for the question it affected. Keep its other lines, and exclude its timings from the group.
 4. Feature requests are neither. Keep the complaint behind them, as a design finding, and drop the proposed solution.
 
 ## Severity and reproducibility
 
-Two scales, kept separate, because one number for both hides the case that matters: a bug that is severe and rare.
+Two things, kept separate, because one number for both hides the case that matters: a bug that is severe and rare.
 
-**Severity, by what the player loses:**
-
-| Level | The player | Examples |
-| --- | --- | --- |
-| Blocker | Cannot continue, or loses progress or data | Crash, soft-lock, corrupted or lost save, no way to leave a room |
-| Major | Can continue only by a workaround, or a main feature does not work | Objective does not register until a restart, a core ability fails |
-| Minor | Notices, and is not stopped | Wrong animation, mis-sorted inventory, stuck UI element that clears itself |
-| Cosmetic | Notices only if looking | Texture seam, typo |
+**Severity** uses the S1 to S4 scale in `game-bug-triage`, the one scale this plugin has, so a bug found in a session is ranked the same way as one found by a bot or a customer. Do not rate on a second scale here, and do not copy the scale into the ticket: `game-bug-triage` owns the severity call, the full record (save file or hash, seed, input log, measured repro rate) and the release gate. In the session you only need to recognise an S1 (the player cannot continue, or loses progress or data) to mark the session partial and to file the bug whatever its reproducibility.
 
 **Reproducibility, by what you have seen:**
 
@@ -55,7 +48,7 @@ Two scales, kept separate, because one number for both hides the case that matte
 | Once | Seen once, not retried | File as unconfirmed with the recording timestamp; do not drop it |
 | Unknown | Not enough information | Ask the tester after the session, then reclassify |
 
-The triage rule: severity decides priority, reproducibility decides how much work is needed before a fix can begin. A blocker seen once outranks a cosmetic fault seen always, and goes to the front of the queue as something to investigate rather than something to fix. A crash, soft-lock or lost save is filed regardless of reproducibility. Do not ask a tester to reproduce a bug during the session; it changes the session, and the recording usually holds what you need.
+The triage rule, which `game-bug-triage` applies in full: severity decides priority, reproducibility decides how much work is needed before a fix can begin. An S1 seen once outranks an S4 seen always, and goes to the front of the queue as something to investigate rather than something to fix. A crash, soft-lock or lost save is filed regardless of reproducibility. Do not ask a tester to reproduce a bug during the session; it changes the session, and the recording usually holds what you need.
 
 ## Filing a bug
 
@@ -71,7 +64,7 @@ Steps:           1. ...
 Expected:        <what should happen, from the design>
 Actual:          <what happened>
 Frequency:       <x of y attempts, or "seen once, not retried">
-Severity:        <blocker | major | minor | cosmetic>
+Severity:        <S1 to S4, as game-bug-triage defines them>
 Evidence:        <recording file and timestamp, log, screenshot>
 Found in:        playtest <date>, tester <number, not a name>
 ```
