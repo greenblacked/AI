@@ -154,9 +154,6 @@ TOC_RE = re.compile(r"^#{1,3}\s+(?:table of contents|contents|in this file)\b", 
 
 ERROR = "error"
 WARNING = "warning"
-# Printed, annotated and never failing, strict or not. It exists so a check can report
-# a gap the whole catalogue has today without turning every run red.
-NOTICE = "notice"
 
 
 @dataclass(frozen=True)
@@ -1801,10 +1798,6 @@ def check_trigger_collisions(
     return findings
 
 
-# Whether a plugin that lacks the shape (a subagent and a complete project kit) is a
-# warning, which `--strict` fails, or only a notice. Flipped once every plugin has it.
-PLUGIN_SHAPE_ENFORCED = False
-
 # The only entries a plugin root may hold, compared case-sensitively (a case-insensitive
 # filesystem resolves `Agents/` to `agents/` on the installer's machine, where it is something
 # else here). Claude Code loads or runs further entries the moment a plugin is enabled, with
@@ -2042,7 +2035,7 @@ def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
     if missing:
         findings.append(
             Finding(
-                WARNING if PLUGIN_SHAPE_ENFORCED else NOTICE,
+                WARNING,
                 (plugin / ".claude-plugin" / "plugin.json").relative_to(repo_root),
                 1,
                 "plugin-incomplete",

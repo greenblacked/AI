@@ -15,7 +15,6 @@ from pathlib import Path
 
 from .frontmatter import FrontmatterError, parse
 from .rules import (
-    NOTICE,
     WARNING,
     Finding,
     check_agent,
@@ -38,7 +37,7 @@ from .rules import (
 
 
 def _annotate(finding: Finding) -> str:
-    level = "error" if finding.failed else "notice" if finding.level == NOTICE else "warning"
+    level = "error" if finding.failed else "warning"
     return (
         f"::{level} file={finding.path},line={finding.line},title={finding.code}::{finding.message}"
     )
@@ -197,7 +196,6 @@ def main(argv: list[str] | None = None) -> int:
 
     errors = [item for item in findings if item.failed]
     warnings = [item for item in findings if item.level == WARNING]
-    notices = [item for item in findings if item.level == NOTICE]
 
     for item in sorted(findings, key=lambda f: (not f.failed, str(f.path), f.line)):
         label = "ERROR  " if item.failed else item.level.ljust(7)
@@ -209,7 +207,6 @@ def main(argv: list[str] | None = None) -> int:
         f"\n{len(plugins)} plugin(s), {len(skills)} skill(s), {len(agents)} subagent(s), "
         f"{len(commands)} command(s) and {len(rules)} rule(s) checked — "
         f"{len(errors)} error(s), {len(warnings)} warning(s)"
-        + (f", {len(notices)} notice(s)" if notices else "")
     )
     # Always reported, never a finding on its own: the number is the point. Every
     # description a plugin ships is resident in context for the whole session, and the
