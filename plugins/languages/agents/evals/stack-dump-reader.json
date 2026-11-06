@@ -1,0 +1,22 @@
+[
+  {"query": "here are three jstack dumps taken 10 seconds apart from the stuck order service, tell me which threads never moved and what they are waiting on", "should_trigger": true},
+  {"query": "the goroutine dump from SIGQUIT is 40k entries long, read it and give me the one cause plus the line that proves it", "should_trigger": true},
+  {"query": "attached: five thread dumps from the hung checkout pod, don't paste them back, just the frames that stayed put and your single best cause", "should_trigger": true},
+  {"query": "read this AddressSanitizer report and the two before it and tell me which allocation the use-after-free points at", "should_trigger": true},
+  {"query": "i have dotnet-stack output from three captures of the frozen worker, which stacks are identical across all of them", "should_trigger": true},
+  {"query": "gdb bt all from the wedged daemon, 600 threads, find the group that's blocked and say on what", "should_trigger": true},
+  {"query": "ThreadSanitizer printed a 3000 line report from the integration run, summarise which two accesses race and quote the deciding stack", "should_trigger": true},
+  {"query": "three goroutine dumps from before, during and after the stall are in /tmp/dumps, find what is stuck in all of them", "should_trigger": true},
+  {"query": "this jcmd Thread.print output is 2 MB, i just need to know whether it is a lock holder or a slow dependency and the line that shows it", "should_trigger": true},
+  {"query": "a panic trace and the goroutine dump that followed it are in the attachment, name the cause without sending me the whole trace", "should_trigger": true},
+  {"query": "our java service stops responding with low cpu, how do i capture dumps and work out where it is hanging", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "go test -race fails intermittently and i need to decide how to fix the data race in our cache", "should_trigger": false, "expected": "go-race-triage"},
+  {"query": "the number of goroutines in our go service grows every hour, how do i find the leak", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "set up an asan and ubsan build for our c++ test suite and triage what it reports", "should_trigger": false, "expected": "cpp-sanitizer-triage"},
+  {"query": "i have a core file from a segfault in production and the binary, how do i get a backtrace out of it", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "dotnet api times out under load with low cpu and a growing threadpool queue, how do i confirm starvation", "should_trigger": false, "expected": "dotnet-threadpool-starvation"},
+  {"query": "here are 800 android ANR traces from the play console export, cluster them by what the main thread waited on", "should_trigger": false, "expected": "anr-trace-reader"},
+  {"query": "our ios app crashes at launch after the update, here is the crash report with the exception and stack, what should i do", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "the github actions run is red, here is the 50 MB log, which step failed first", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "the postgres log has thousands of deadlock detected entries, which patterns repeat and how often", "should_trigger": false, "expected": "deadlock-log-reader"}
+]

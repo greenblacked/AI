@@ -1,0 +1,22 @@
+[
+  {"query": "flash is at 97 percent, read the linker map and tell me which regions are over budget", "should_trigger": true},
+  {"query": "here's firmware.map from the PR build and main's, which modules grew and by how much", "should_trigger": true},
+  {"query": "run bloaty on the new elf against base and give me the top three modules that grew", "should_trigger": true},
+  {"query": "derive the worst-case stack per task from the .su files, i don't want to read them all", "should_trigger": true},
+  {"query": "RAM region is nearly full after the last merge, what section ate it, the map is 80k lines", "should_trigger": true},
+  {"query": "compare the size output of the two builds and tell me if we crossed the 90 percent flash budget", "should_trigger": true},
+  {"query": "read the -fstack-usage output for the rtos tasks and give me a depth table with margins", "should_trigger": true},
+  {"query": "how much headroom is left in FLASH and RAM according to the print-memory-usage block in this build log", "should_trigger": true},
+  {"query": "which object files contribute most to .bss in this map, just the numbers", "should_trigger": true},
+  {"query": "did this branch spend more than 2 percent of flash vs main, check the per-section diff", "should_trigger": true},
+  {"query": "our game peaks at 3.1 GB on the console during the boss level, fail CI when a checkpoint goes over its memory budget", "should_trigger": false, "expected": "game-memory-budget"},
+  {"query": "the device hard faulted after a stack overflow, decode the stacked registers and tell me which task", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "ld says undefined reference to foo_init and multiple definition of bar, why does the link fail", "should_trigger": false, "expected": "native-linking-errors"},
+  {"query": "where is the CPU time going in my main loop, I want a flame graph", "should_trigger": false, "expected": "profiling"},
+  {"query": "our dotnet service memory keeps growing until it gets OOM killed in the container", "should_trigger": false, "expected": "dotnet-memory-growth"},
+  {"query": "node process heap grows every hour and then crashes with out of memory", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "tune go gc, the heap doubles under load and we run out of memory", "should_trigger": false, "expected": "go-gc-tuning"},
+  {"query": "write the CI job that fails a pull request when the firmware crosses 90 percent of flash", "should_trigger": false, "expected": "memory-footprint-budget"},
+  {"query": "shrink the build, we need 40 KB back, try nano printf and gc-sections", "should_trigger": false, "expected": "memory-footprint-budget"},
+  {"query": "review this driver for races and missing volatile", "should_trigger": false, "expected": "firmware-code-review"}
+]

@@ -14,6 +14,7 @@ from pathlib import Path
 
 from skillcheck.cli import _listing_sizes, main
 from skillcheck.rules import check_marketplace, check_skill, find_plugins, find_skills
+from tests.test_plugin_shape import write_kit
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -76,6 +77,9 @@ def test_the_fixture_repository_validates_clean(mini_repo):
     # proves nothing about the hook or the packager: an error attributed to another
     # skill hides in the noise. The first version of it shipped with colliding eval
     # queries and only the tests that happened not to look at the total passed.
+    # `plugin-incomplete` is a warning, so the plugin needs a kit as well as its subagent;
+    # it is added here rather than in the fixture, which other tests list file by file.
+    write_kit(mini_repo / "plugins" / "engineering" / "skills" / "alpha" / "assets")
     result = subprocess.run(  # noqa: S603
         [sys.executable, "-m", "skillcheck", str(mini_repo), "--strict"],
         capture_output=True,

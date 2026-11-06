@@ -92,6 +92,25 @@ On a harness with a relay or programmable supply, cut power at every write on th
 
 **Assuming A/B covers the bootloader.** It covers the slots. The bootloader needs its own protection.
 
+## Project kit
+
+Three opt-in files live under `${CLAUDE_SKILL_DIR}/assets/`. Install them when the project owns update-path code; a plugin cannot install them for you.
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/firmware-update-path.md` - a path-scoped rule for OTA and bootloader sources: write the inactive slot, flag last, confirm after a health check.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/block-whole-device-erase.json` and `.sh` - a PreToolUse hook that refuses a whole-device erase or readout-protection write from a debug probe, and says to dump flash and option bytes first. It refuses a probe command it cannot read plainly (a `$'...'` escape, a brace expansion, a variable or substitution as the command word, read right after a separator or after a wrapper such as sudo, exec, command or env, not after other wrappers, or a variable or substitution as the file name that a redirect or tee writes an erase to) and asks for it to be written out. It does not read a J-Link script file: the contents of a `-CommanderScript` file are not inspected, so a script that erases passes.
+- `${CLAUDE_SKILL_DIR}/assets/templates/power-cut-sweep-record.md` - one record per update release.
+
+Run from the root of the project:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/firmware-update-path.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/block-whole-device-erase.sh" .claude/hooks/
+chmod +x .claude/hooks/block-whole-device-erase.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/block-whole-device-erase.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the script first; it runs with your permissions on every Bash call.
+
 ## Reference files
 
 - `references/power-cut-sweep.md` — read at steps 1 and 9: the write inventory table, harness setup, offsets to try, fault cases and pass criteria.

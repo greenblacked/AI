@@ -104,7 +104,9 @@ before execution. State isolation does not prevent name collisions or an unsafe 
 from touching existing objects; use credentials and names scoped to disposable resources.
 
 Terraform test keeps separate test state and attempts cleanup after each test file. Read
-the cleanup output even when assertions pass. When cleanup fails, retain the diagnostics
+the cleanup output even when assertions pass. When the captured output is long, hand it to
+the `terraform-test-reader` subagent to list each run's result and the cleanup outcome
+before you act on it. When cleanup fails, retain the diagnostics
 and resource identifiers securely, report the orphan inventory and assign recovery before
 calling the suite complete. Interrupting the runner or losing its workspace can lose the
 most useful recovery evidence. Do not run a normal destroy against a production backend

@@ -86,6 +86,8 @@ Give the schema a version that travels with every stored result, and treat a cha
 
 Keep a fixture file per failure that production or evals actually produced: the raw reply, the stop condition and what the validator must say. Replay the fixtures in the unit tests without a model, so a schema or validator change that would have let a past failure through fails the build. Read `references/schema-and-fixtures.md` for the fixture format and the test.
 
+When the failing replies sit in a file too big to read inline, hand it to the `schema-failure-reader` subagent, which returns each failure class with its count, the schema version and one quoted example; the replies themselves stay out of this conversation.
+
 ### 7. Hand off
 
 Hand scoring of whether the extracted values are right, across prompts and models, to `agent-evaluation`. Hand the endpoint that exposes the result to `api-design`, and the storage of it to `schema-design`.
@@ -107,3 +109,32 @@ Hand scoring of whether the extracted values are right, across prompts and model
 **Free text where code branches.** A `category` string compared with `==` fails on the first synonym. Use an enum with an escape member.
 
 **Letting the prompt and the schema drift.** A prompt that restates the field list by hand is a second copy that goes stale. Generate it from the schema or leave the shape to the schema and the descriptions.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep a project's output schemas honest. Install
+them when the project keeps its schemas as JSON files under a `schemas/` directory and changes
+them often:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/output-schemas.md` loads when a file under `schemas/` is read
+  or edited and asks for closed objects, a full `required` list, enums with an escape member and
+  a new version for every change.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/require-closed-object-schema.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/require-closed-object-schema.sh`, reports an object schema
+  written under `schemas/` without `"additionalProperties": false`. It runs after the write, so
+  it feeds the findings back to the model rather than stopping the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/schema-change-record.md` is the record to fill in for one
+  schema change, matching step 6.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/output-schemas.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/require-closed-object-schema.sh" .claude/hooks/
+chmod +x .claude/hooks/require-closed-object-schema.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/require-closed-object-schema.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.

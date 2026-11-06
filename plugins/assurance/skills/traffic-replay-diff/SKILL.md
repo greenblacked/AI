@@ -123,6 +123,10 @@ bucket of 40,000 identical diffs is one finding; reading them individually is ho
 Rank buckets by number of distinct requests affected, not raw count, and record for each an
 example request, the first and last time seen, and the share of that route's traffic it covers.
 
+When the diff output runs to thousands of entries, hand the files to the `replay-diff-reader`
+subagent, which buckets and classes them read-only and returns the table; this skill has no
+shell, so the `jq` recipe runs there.
+
 `references/normalise-and-bucket.md` has the normaliser rules as `jq` filters, the signature
 recipe and the bucket-classification table.
 

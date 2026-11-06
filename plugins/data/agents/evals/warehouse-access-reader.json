@@ -1,0 +1,22 @@
+[
+  {"query": "attached is a 120-day snowflake access_history export, who read analytics.orders.customer_email", "should_trigger": true},
+  {"query": "here's the BigQuery jobs export for the last 6 months (csv.gz), list every person and job that touched the legacy_sessions table", "should_trigger": true},
+  {"query": "from this BI query log, which dashboards, extracts and service accounts hit the revenue_daily view? don't paste the rows, just the readers", "should_trigger": true},
+  {"query": "i have 90 days of access history in access.jsonl, tell me who reads the column orders.discount_code and classify each reader", "should_trigger": true},
+  {"query": "the export is 3 GB, find out which scheduled jobs and humans query finance.ledger_v1 so i can rename it", "should_trigger": true},
+  {"query": "read these two redshift audit log files and tell me which service accounts read the table stg_payments, and how many days they cover", "should_trigger": true},
+  {"query": "looker query log export attached, who is reading marts.customers.birth_date, people or extracts", "should_trigger": true},
+  {"query": "we want to drop the column users.legacy_flag; the access-history dump is in /data/exports, give me the classified list of readers", "should_trigger": true},
+  {"query": "go through this query_history csv and say who still selects from the deprecated reporting.old_orders view", "should_trigger": true},
+  {"query": "before the rename, read the 180-day jobs-by-project export and tell me which readers hit dim_product, with the window coverage", "should_trigger": true},
+  {"query": "who uses this table and how do we retire it safely, what is the announcement and brownout plan", "should_trigger": false, "expected": "consumer-discovery"},
+  {"query": "what date should we drop the legacy schema and how long should the brownout last", "should_trigger": false, "expected": "consumer-discovery"},
+  {"query": "can we drop this column? walk me through the whole retirement procedure", "should_trigger": false, "expected": "consumer-discovery"},
+  {"query": "this query history export shows 4 TB scanned a day, which queries and users are burning the credits", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "read the warehouse query log and tell me which warehouse is driving the cost spike last month", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "what breaks if I rename this function, trace the diff through the code for references", "should_trigger": false, "expected": "change-impact-reader"},
+  {"query": "which files and services import this helper if I change its signature in this pull request", "should_trigger": false, "expected": "change-impact-reader"},
+  {"query": "here is the cloud billing export, which services moved the bill this month", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "this schema dump has customer columns, which fields hold personal data", "should_trigger": false, "expected": "pii-reader"},
+  {"query": "here is the product usage export for the retired export-to-pdf feature, who still uses it among customers", "should_trigger": false, "expected": "feature-sunset"}
+]

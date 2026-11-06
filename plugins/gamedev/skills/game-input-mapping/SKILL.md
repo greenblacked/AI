@@ -1,6 +1,6 @@
 ---
 name: game-input-mapping
-description: "Build an input layer where gameplay reads named actions, never physical keys: contexts that switch on and off, bindings as data with player overrides kept apart from defaults, a rebind screen that swaps instead of stealing, glyphs that follow the last-used device the frame it changes, radial deadzones with rescale, and menus that own focus as state so every screen works without a pointer. Ends with a test list (unplug in-game, two pads, wake from sleep, a no-pointer walkthrough). Use for \"add controller support\", \"players want to remap keys\", \"show the right button icons\", \"stick drift deadzone\", \"switching between mouse and gamepad mid-game\", \"menu doesn't work with a controller\". Not for feel or input latency (game-builder), assists (game-accessibility-pass), platform disconnect tests (game-certification), or web forms (form-design)."
+description: "Build an input layer where gameplay reads named actions, never physical keys: contexts that switch on and off, bindings as data with player overrides kept apart from defaults, a rebind screen that swaps instead of stealing, glyphs that follow the last-used device the frame it changes, radial deadzones with rescale, and menus that own focus as state so every screen works without a pointer. Ends with a test list including a no-pointer walkthrough. Use for \"add controller support\", \"players want to remap keys\", \"show the right button icons\", \"stick drift deadzone\", \"switching between mouse and gamepad mid-game\", \"menu doesn't work with a controller\". Not for the screen spec and focus-graph check (game-hud-menu-spec), feel or input latency (game-builder), assists (game-accessibility-pass), platform disconnect tests (game-certification), or web forms (form-design)."
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is a layer that grew from `if (key == Space)`. Rebinding gets 
 
 Use for: the action and binding model, the rebind screen, glyphs and prompt tokens, analogue stick handling, menu focus and navigation, and device hot-swapping.
 
-Do not use for: how responsive or forgiving the controls feel (`game-builder`), accessibility options such as hold-to-toggle, one-handed schemes and assists (`game-accessibility-pass`), the disconnect behaviour a platform certifies (`game-certification`), or forms in a web page (`form-design`).
+Do not use for: writing the per-screen HUD and menu spec and checking its focus graph for unreachable controls, traps and modals with no way out (`game-hud-menu-spec`), how responsive or forgiving the controls feel (`game-builder`), accessibility options such as hold-to-toggle, one-handed schemes and assists (`game-accessibility-pass`), the disconnect behaviour a platform certifies (`game-certification`), or forms in a web page (`form-design`).
 
 ## Workflow
 

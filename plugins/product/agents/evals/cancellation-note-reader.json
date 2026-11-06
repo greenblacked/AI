@@ -1,0 +1,22 @@
+[
+  {"query": "here's the export of 240 cancellation notes and the ticket history for those accounts, code each one against our codebook and give me the line that decided it", "should_trigger": true},
+  {"query": "i don't want to read 300 cancellation tickets myself, read them and give me one primary code per churned account with revenue totals per code", "should_trigger": true},
+  {"query": "the dropdown says too expensive on most of these, read the notes and success-team write-ups and tell me what the accounts actually said, code by code", "should_trigger": true},
+  {"query": "churned_q3_notes.csv has 180 accounts, tag each with a reason from the ten codes in the codebook and quote the sentence that justifies it", "should_trigger": true},
+  {"query": "go through the cancellation survey comments and the last 90 days of tickets for these 60 lost accounts and tell me the revenue lost per reason code", "should_trigger": true},
+  {"query": "code the churn sample for me: account, dropdown answer, primary code, key evidence, then logos and ARR by code", "should_trigger": true},
+  {"query": "there's a folder of exit-call notes and zendesk exports for last quarter's cancellations, read it so I don't have to and return the coded sheet", "should_trigger": true},
+  {"query": "for each of these 120 churned customers pick the main reason from our codebook using the notes, flag the ones where two codes fit, and total logos per code", "should_trigger": true},
+  {"query": "read the success manager notes on the accounts that left in March and tell me how many were champion-left versus missing capability, with a quote for each", "should_trigger": true},
+  {"query": "compare what customers clicked in the cancel dropdown with what their tickets say, for this export of 90 cancellations, and give me the cross-tab", "should_trigger": true},
+  {"query": "why is gross retention falling, it was 92 percent and now 86 percent", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "help me design the codebook for coding churn reasons and run a second-coder agreement check", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "build a health score and back-test its lead time on last year's churners", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "our biggest customer is furious and says they won't renew, what do we do this week", "should_trigger": false, "expected": "escalated-account-recovery"},
+  {"query": "support tickets are up forty percent, which contact types should we remove at the source", "should_trigger": false, "expected": "contact-reduction-review"},
+  {"query": "here are 400 exported pull request review comments, which findings keep recurring", "should_trigger": false, "expected": "review-comment-miner"},
+  {"query": "here is the written peer feedback on one engineer, pull out the themes for her promotion case", "should_trigger": false, "expected": "feedback-synthesiser"},
+  {"query": "this customer export has names, emails and phone numbers in it, which fields are personal data", "should_trigger": false, "expected": "pii-reader"},
+  {"query": "card payments keep failing at renewal and we lose accounts that way, how do we recover them", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "why did we lose these enterprise deals before signature, here are the interview notes", "should_trigger": false, "expected": "win-loss-review"}
+]

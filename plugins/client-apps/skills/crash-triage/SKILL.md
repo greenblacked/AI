@@ -179,6 +179,37 @@ share of users; otherwise it waits behind signatures that hit everyone.
 [New version against previous at the same days since release, with users reached.]
 ```
 
+## Project kit
+
+Opt-in files for the project that owns the app, kept under `assets/` because a plugin
+cannot ship a rule or a hook. Install them when releases keep shipping unreadable crashes
+or when a clean-up script might delete symbols of a build that has shipped.
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/shipped-build-symbols.md` - a path-scoped rule for the
+  Gradle, Xcode and Fastlane files that decide whether symbols are uploaded.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/keep-shipped-symbols.json` and
+  `${CLAUDE_SKILL_DIR}/assets/hooks/keep-shipped-symbols.sh` - a `PreToolUse` hook that
+  refuses a command deleting a dSYM, an R8 `mapping.txt` or a `.symbols` archive (`rm`,
+  `unlink`, `find -delete`, `shred -u`, `truncate -s 0`), and one that names an artifact in a
+  spelling it cannot read, such as a `$'...'` escape, a brace list, or a variable as the verb (read
+  right after a separator or after a wrapper such as sudo, exec, command or env, not after other
+  wrappers). A script file or an interpreter one-liner is out of its reach.
+- `${CLAUDE_SKILL_DIR}/assets/templates/crash-review.md` - the per-release review in this
+  skill's output format.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/shipped-build-symbols.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/keep-shipped-symbols.sh" .claude/hooks/
+chmod +x .claude/hooks/keep-shipped-symbols.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/keep-shipped-symbols.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it.
+Read the script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/symbolication.md` — read at step 2 when any top frame is unreadable: the

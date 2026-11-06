@@ -163,6 +163,34 @@ supplied. Named, so nobody reads silence as clearance.]
 
 **Raising forty findings.** Everything blocks, so nothing does, and the author triages the list by choosing the cheap ones. Rank ruthlessly, block on the few that are reachable and severe, and file the rest where they will be picked up rather than in the same thread.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep committed config from quietly disabling
+certificate checks. Install them when the project keeps Kubernetes, CI, registry or client
+settings in YAML, JSON, TOML or INI files:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/tls-verification.md` loads when such a config file is read
+  or edited, and asks for the CA to be trusted instead of verification switched off.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/tls-verification-off.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/tls-verification-off.sh`, reports a written config file
+  that sets a skip-verification key to true or a verify key to false. It runs after the write,
+  so it feeds the finding back for the next edit and does not stop the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/tls-verification-exception.md` is the record for a
+  justified exception: one host, the reason, the control, an owner and an expiry.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/tls-verification.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/tls-verification-off.sh" .claude/hooks/
+chmod +x .claude/hooks/tls-verification-off.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/tls-verification-off.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/class-checks.md` — read when working step 2 on a class you are not fluent in, or when you need the full sink inventory for a language present in the diff: the per-class checks for access control, injection across SQL, command, template and LDAP, deserialisation, request forgery, secret exposure and unsafe defaults, each with the shapes it takes per language and the fix.

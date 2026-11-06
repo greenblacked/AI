@@ -23,6 +23,7 @@ from .rules import (
     check_duplicate_names,
     check_eval_conflicts,
     check_marketplace,
+    check_plugin_shape,
     check_rule,
     check_skill,
     check_trigger_collisions,
@@ -156,6 +157,8 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(check_duplicate_names(skills, root))
     findings.extend(check_eval_conflicts(skills, root, agents))
     findings.extend(check_trigger_collisions(skills, root, agents))
+    for plugin in plugins:
+        findings.extend(check_plugin_shape(plugin, root))
     for agent in agents:
         findings.extend(check_agent(agent, root, known))
         findings.extend(check_agent_evals(agent, root, known))
@@ -195,7 +198,7 @@ def main(argv: list[str] | None = None) -> int:
     warnings = [item for item in findings if item.level == WARNING]
 
     for item in sorted(findings, key=lambda f: (not f.failed, str(f.path), f.line)):
-        label = "ERROR  " if item.failed else "warning"
+        label = "ERROR  " if item.failed else item.level.ljust(7)
         print(f"{label} {item.path}:{item.line} [{item.code}] {item.message}")
         if github:
             print(_annotate(item))

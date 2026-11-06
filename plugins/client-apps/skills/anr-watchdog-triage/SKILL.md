@@ -97,6 +97,9 @@ work, or file and database I/O. The common shapes:
 - **iOS waiting on a semaphore or `DispatchQueue.main.sync`** — the main thread waiting
   for work that needs the main thread, or for a network call made synchronous.
 
+When there are more traces than fit in context, delegate the bulk reading to the
+`anr-trace-reader` subagent, which returns the clusters and the main-thread wait for each.
+
 `references/reading-anr-traces.md` covers the anatomy of an Android ANR trace, thread
 states, the iOS termination codes and what each demands, and the watchdog report fields.
 Read it with a trace open.
