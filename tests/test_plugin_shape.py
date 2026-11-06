@@ -1,11 +1,11 @@
-"""The plugin shape: an allowlisted root, a validated project kit, a completeness notice.
+"""The plugin shape: an allowlisted root, a validated project kit, a completeness warning.
 
 A plugin root holds `.claude-plugin`, `skills`, `agents` and `commands` and nothing else,
 because Claude Code keeps adding component types it loads on enabling a plugin. Hooks reach
 an installer only as opt-in templates under a skill's `assets/hooks/`, so the validator
 refuses every other plugin-root entry, validates the
-kit files themselves, and reports a plugin that lacks the shape as a notice that strict
-mode does not fail until `PLUGIN_SHAPE_ENFORCED` is flipped.
+kit files themselves, and reports a plugin that lacks the shape as a warning that strict
+mode fails.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import pytest
 
 from skillcheck import rules
 from skillcheck.cli import main
-from skillcheck.rules import ERROR, NOTICE, WARNING, check_kit, check_plugin_shape
+from skillcheck.rules import ERROR, WARNING, check_kit, check_plugin_shape
 from tests.test_rules import GOOD_DESCRIPTION, write_skill
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -405,12 +405,12 @@ def test_a_complete_plugin_has_no_shape_finding(tmp_path):
     assert check_plugin_shape(plugin, tmp_path) == []
 
 
-def test_a_plugin_without_a_subagent_or_kit_gets_a_notice_by_default(tmp_path):
+def test_a_plugin_without_a_subagent_or_kit_gets_a_warning(tmp_path):
     write_skill(tmp_path, "demo")
     plugin = make_plugin(tmp_path)
     found = check_plugin_shape(plugin, tmp_path)
     assert codes(found) == ["plugin-incomplete"]
-    assert found[0].level == NOTICE and not found[0].failed
+    assert found[0].level == WARNING and not found[0].failed
     assert "subagent" in found[0].message and "kit" in found[0].message
 
 
@@ -427,7 +427,7 @@ def test_a_kit_missing_any_part_is_incomplete(tmp_path, missing):
         script=None if missing == "script" else GOOD_SCRIPT,
         template=missing != "template",
     )
-    # A hook json with no script is also a kit-hook error; the notice is the point here.
+    # A hook json with no script is also a kit-hook error; the warning is the point here.
     assert "plugin-incomplete" in codes(check_plugin_shape(plugin, tmp_path))
 
 
@@ -440,33 +440,29 @@ def test_a_subagent_alone_does_not_complete_the_shape(tmp_path):
     assert "subagent" not in found[0].message
 
 
-def test_enforcing_the_shape_makes_the_finding_a_warning(tmp_path, monkeypatch):
-    write_skill(tmp_path, "demo")
-    plugin = make_plugin(tmp_path)
-    monkeypatch.setattr(rules, "PLUGIN_SHAPE_ENFORCED", True)
-    found = check_plugin_shape(plugin, tmp_path)
-    assert codes(found) == ["plugin-incomplete"] and found[0].level == WARNING
-
-
-def test_the_shape_is_not_enforced_yet():
-    assert rules.PLUGIN_SHAPE_ENFORCED is False
-
-
-def test_strict_mode_passes_on_a_notice_and_fails_once_enforced(tmp_path, monkeypatch, capsys):
+def test_strict_mode_fails_on_an_incomplete_plugin(tmp_path):
     write_clean_skills(tmp_path)
     make_plugin(tmp_path)
-    assert main([str(tmp_path), "--skip-marketplace", "--strict"]) == 0
-    assert "notice" in capsys.readouterr().out
-    monkeypatch.setattr(rules, "PLUGIN_SHAPE_ENFORCED", True)
     assert main([str(tmp_path), "--skip-marketplace", "--strict"]) == 1
+    assert main([str(tmp_path), "--skip-marketplace"]) == 0
 
 
-def test_a_notice_is_annotated_not_counted_as_a_warning(tmp_path, capsys):
+def test_a_complete_plugin_raises_no_incomplete_finding_under_strict(tmp_path, capsys):
+    # The helper skill and agent carry unrelated fixture findings, so strict's exit code
+    # is not the signal here; the absence of `plugin-incomplete` is.
+    complete_plugin(tmp_path)
+    main([str(tmp_path), "--skip-marketplace", "--strict"])
+    out = capsys.readouterr().out
+    assert "1 plugin(s)" in out and "plugin-incomplete" not in out
+
+
+def test_an_incomplete_plugin_is_annotated_as_a_warning(tmp_path, capsys):
     write_clean_skills(tmp_path)
     make_plugin(tmp_path)
     main([str(tmp_path), "--skip-marketplace", "--github"])
     out = capsys.readouterr().out
-    assert "::notice " in out and "0 warning(s)" in out and "1 notice(s)" in out
+    assert "::warning " in out and "title=plugin-incomplete::" in out
+    assert "1 warning(s)" in out and "notice(s)" not in out
 
 
 # template/

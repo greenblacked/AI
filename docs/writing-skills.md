@@ -649,7 +649,7 @@ failures, which is how `make validate` and CI both run it), `--skip-marketplace`
 manifest cross-check), `--github` (emit annotations and a job summary; implied under
 Actions). Exit code 1 means findings, 2 means the repository layout was unusable.
 
-Every code the validator can emit is below, grouped by what it is looking at. A `notice` is printed and annotated but is never counted as a warning and never fails a run.
+Every code the validator can emit is below, grouped by what it is looking at.
 
 ### Frontmatter and body
 
@@ -731,7 +731,7 @@ See [the project kit](#project-kit).
 | `skill-file-case` | error | A skill folder under `plugins/*/skills/` holds a file whose name is `SKILL.md` in any case but not exactly `SKILL.md` (`skill.md`, `Skill.md`). A case-insensitive filesystem loads it as a skill and a case-sensitive one does not, so the same checkout means two things, and `find_skills` never sees it. | Rename it to `SKILL.md`. `scripts/definition_shims.py` refuses the same paths, so `security` fails too. |
 | `kit-rule` | error | A file in `assets/rules/` has no `paths:` frontmatter, an empty or unparsable one, or no body. | Add a `paths:` list with at least one glob, and a body. The glob is not matched against this repository, because it scopes the installer's project. Every finding the `.claude/rules` checker would raise becomes a `kit-rule` error here, so the check is stricter than for the repository's own rules. |
 | `kit-hook` | error | A file in `assets/hooks/` is not valid JSON, is not shaped `{"hooks": {"<Event>": [{"matcher"?, "hooks": [{"type": "command", "command", "timeout"?}]}]}}`, uses an event outside PreToolUse, PostToolUse, UserPromptSubmit, Stop, SubagentStop, SessionStart, SessionEnd, Notification and PreCompact, has a command other than `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`, names a script that is not beside it or is not `<name>.sh` for `<name>.json`, has a key outside `hooks` (top level), `matcher` and `hooks` (group) or `type`, `command` and `timeout` (command), has a `timeout` that is not a positive integer, or the script lacks `#!/usr/bin/env bash` or `set -Eeuo pipefail`. | Follow the message; the hook-script rules are in [the project kit](#project-kit). |
-| `plugin-incomplete` | notice, warning once `PLUGIN_SHAPE_ENFORCED` is set in `rules.py` | The plugin has no subagent under `agents/`, or no skill with a complete kit: a rule, a hook JSON with its script and a template. | Add a read-only reader subagent and a kit to the anchor skill. A notice is printed and never fails, strict or not. |
+| `plugin-incomplete` | warning | The plugin has no subagent under `agents/`, or no skill with a complete kit: a rule, a hook JSON with its script and a template. | Add a read-only reader subagent and a kit to the anchor skill. A plugin without them fails strict validation. |
 
 ### Marketplace manifest
 

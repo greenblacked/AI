@@ -61,8 +61,8 @@ the bulky read to it by name; `disallowedTools: Write, Edit, NotebookEdit` keeps
 reader. `template/agent.md` is the starting point. Plugins never ship hooks: a plugin
 hook runs with the installer's permissions the moment the plugin is enabled, so a hook
 reaches an installer only as an opt-in kit template under a skill's `assets/hooks/`
-([the project kit](writing-skills.md#project-kit)). Until every plugin has its reader,
-`plugin-incomplete` reports the gap as a notice.
+([the project kit](writing-skills.md#project-kit)). `plugin-incomplete` fails strict
+validation for a plugin with no subagent or no complete kit.
 
 The allowlist key here is `tools`; in a `SKILL.md` it is `allowed-tools`, and each is
 rejected in the other file. That is not an inconsistency to work around — they are

@@ -7,6 +7,7 @@ from pathlib import PureWindowsPath
 
 from skillcheck.cli import _summary, main
 from skillcheck.rules import ERROR, Finding
+from tests.test_plugin_shape import write_kit
 from tests.test_rules import write_skill
 
 
@@ -79,9 +80,13 @@ def test_a_broken_repo_local_subagent_fails_the_run(mini_repo, capsys):
 def test_a_repo_local_subagent_without_evals_only_warns(mini_repo, capsys):
     # No eval set is a judgement call, not a rule, so it stays a warning here too —
     # and --strict is what makes the judgement call get made.
+    # The kit keeps `plugin-incomplete` out of it, so the strict failure is the missing evals.
+    write_kit(mini_repo / "plugins" / "engineering" / "skills" / "alpha" / "assets")
     _local_agent(mini_repo, "local-helper")
+    assert main([str(mini_repo)]) == 0
     assert main([str(mini_repo), "--strict"]) == 1
-    assert "[no-evals]" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "[no-evals]" in out and "plugin-incomplete" not in out
 
 
 def test_a_repo_local_subagent_may_not_steal_a_shipped_one_s_query(mini_repo, capsys):
