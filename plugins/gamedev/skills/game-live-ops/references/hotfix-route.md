@@ -55,7 +55,7 @@ A fix with no written rollback is a second incident waiting for its first bad re
 A reward event pays double the intended currency on one platform, and the loss compounds every hour. The client build that holds the reward table is in certification everywhere.
 
 1. Check route 1: the reward amount is read from server config. Set it to the intended value, or switch the event's payout off, scoped to the affected platform. No code ships.
-2. Write the rollback: previous value recorded, trigger is the payout rate per player-hour returning to the expected band within the first reading, owner is the on-call live-ops lead.
+2. Write the rollback: record the previous value, and name the on-call live-ops lead as its owner. The payout rate per player-hour back inside the expected band at the first reading is the check that the fix worked. The trigger is a separate condition meaning the fix is making things worse: the payout falling below the band, so players are now underpaid, or failed reward claims rising above baseline.
 3. Record the temporary change and the condition for lifting it.
 4. Hand the already-overpaid balances to `economy-exploit-response`, which quantifies them from the ledger; do not decide them here.
 5. Move the corrected table into the next scheduled client patch only if the config route cannot hold it permanently.
