@@ -4,7 +4,7 @@
 
 A skill is read and matched by the agent tool sitting in front of a model — Claude
 Code's runtime, Codex's — not by the model itself. The [provider table in the
-README](../README.md#chatgpt-grok-codex-and-everything-else) lists DeepSeek's own API as
+README](../README.md#other-tools) lists DeepSeek's own API as
 "not applicable" for exactly this reason: point one of the tools in that table at a
 DeepSeek model instead, and the skills keep loading the same way they do against any
 other model, because loading them was never the model's job.

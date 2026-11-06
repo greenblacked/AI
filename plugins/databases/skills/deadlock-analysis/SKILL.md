@@ -18,6 +18,8 @@ PostgreSQL logs every deadlock when it breaks one, with no setting needed. The e
 
 MySQL keeps only the most recent deadlock in `SHOW ENGINE INNODB STATUS`, in the `LATEST DETECTED DEADLOCK` section. Set `innodb_print_all_deadlocks = ON` so every one lands in the error log, then collect several: one report can be an outlier, and the class is the pattern across them. On 8.0 `performance_schema.data_locks` and `data_lock_waits` show live lock holders for reproducing the cycle.
 
+When the log holds many entries, delegate the bulky reading to the `deadlock-log-reader` subagent: it returns the cycle class of each distinct pattern with counts and the deciding line, and you then draw the grid for the patterns that matter.
+
 If the deadlock statements are truncated or parameterised, find the application code that issues them by grepping for the statement text, then read the whole transaction around it. The report shows the two statements that collided; the earlier statements in each transaction took the locks that matter.
 
 ## 2. Draw the lock-order grid

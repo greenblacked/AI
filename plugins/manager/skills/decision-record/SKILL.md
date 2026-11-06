@@ -88,7 +88,7 @@ MADR 4.x section order:
 
 The minimal variant keeps Context and Problem Statement, Considered Options, Decision Outcome, Consequences.
 
-Copy `assets/adr-template.md` for the full form or `assets/adr-template-minimal.md` for the short one, then fill it. Do not retype the structure from memory.
+Copy `assets/templates/adr-template.md` for the full form or `assets/templates/adr-template-minimal.md` for the short one, then fill it. Do not retype the structure from memory.
 
 ### 5. Enforce the three rules teams break
 
@@ -133,5 +133,35 @@ Two things carry most of the value and are the two most often skipped: **non-goa
 
 ## Assets
 
-- `assets/adr-template.md` — the full MADR 4.x fill-in template.
-- `assets/adr-template-minimal.md` — the four-section variant that fits most decisions.
+- `assets/templates/adr-template.md` — the full MADR 4.x fill-in template.
+- `assets/templates/adr-template-minimal.md` — the four-section variant that fits most decisions.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep decision records honest in a project.
+Install them when the project keeps its records under `docs/decisions/` or `docs/adr/`:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/decision-records.md` loads when a file under either
+  directory is read or edited, and asks for a labelled status, at least two considered options
+  with a rejection reason on each, a stated reversibility and a Confirmation that names a
+  check, a place and an owner.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/require-considered-options.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/require-considered-options.sh`, reports a written record
+  (`NNNN-title.md` or `ADR-NNNN-title.md`) whose `## Considered Options` section has fewer than
+  two list items or is missing. It runs after the write, so it feeds the finding back for the
+  next edit and does not stop the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/adr-template.md` is the full record to fill in,
+  matching the structure above; `adr-template-minimal.md` beside it is the short form.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/decision-records.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/require-considered-options.sh" .claude/hooks/
+chmod +x .claude/hooks/require-considered-options.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/require-considered-options.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.

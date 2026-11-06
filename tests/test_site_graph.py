@@ -510,7 +510,10 @@ def test_building_the_real_repository_puts_a_graph_on_plugin_pages_with_edges(tm
             pytest.fail(f"{plugin} has edges but no graph")
     assert drawn == wanted
     assert "coding" in drawn
-    # Plugins with no stated edge get no empty heading.
-    assert "career" not in drawn and 'class="rg"' not in (
-        output / "plugins" / "career" / "index.html"
-    ).read_text(encoding="utf-8")
+    # Every plugin other than the family plugin now has a stated edge, so none is left bare. The
+    # real tree has no bare plugin to check for an empty heading; the synthetic test
+    # `test_a_plugin_without_edges_renders_nothing` covers that rendering. A new plugin without
+    # an edge fails here, which is the point: the graph is meant to cover every plugin.
+    bare = sorted(p.parent.name for p in (output / "plugins").glob("*/index.html"))
+    bare = [name for name in bare if name not in wanted and name != site.FAMILY_PLUGIN]
+    assert not bare

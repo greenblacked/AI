@@ -20,6 +20,8 @@ Do not use for: designing a pipeline before it launches (`instrumentation`), cho
 
 ### 1. Read the collector's own metrics
 
+When the scrape is a saved file of more than a few hundred series, hand it to the `collector-metrics-reader` subagent, which returns the furthest-downstream unclean stage with its decisive series so the dump stays out of this context.
+
 The collector exposes its internal telemetry, by default as a Prometheus endpoint on port 8888. Metric names carry a signal (spans, metric points, log records), and some versions add a `_total` suffix; list what yours exposes with `curl -s http://collector:8888/metrics | grep otelcol_` and use those names. Read per pipeline instance, not as a fleet average, because one overloaded replica hides in a mean.
 
 Read all six stages in this order, then name the furthest-downstream stage that is not clean as the cause. Backpressure travels backwards, so receiver refusals are usually the symptom of a later stage, and stopping at the first unclean stage would stop at the symptom:

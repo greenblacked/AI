@@ -1,0 +1,22 @@
+[
+  {"query": "go through the gameplay scripts in Assets/Scripts and list every hardcoded damage, cooldown and speed number so we can move them to data", "should_trigger": true},
+  {"query": "i want an inventory of magic numbers in our combat code before the balance pass, which ones are tuning values and which are just structure", "should_trigger": true},
+  {"query": "find everywhere in the godot project where movement is added per frame without multiplying by delta", "should_trigger": true},
+  {"query": "the player runs faster on my 144hz monitor than on the laptop, scan the controller code for frame-rate dependent arithmetic", "should_trigger": true},
+  {"query": "the ability cooldown 1.5 seems to be written in three different files, find every copy of tuning numbers like that", "should_trigger": true},
+  {"query": "read through the enemy ai scripts and tell me which numeric literals are designer-facing and which are plumbing", "should_trigger": true},
+  {"query": "audit the c# for hardcoded spawn intervals, detection ranges and invulnerability timers and give me file and line for each", "should_trigger": true},
+  {"query": "which constants at the top of our weapon classes are really balance values that a designer should be able to change without a rebuild", "should_trigger": true},
+  {"query": "there is a lerp(x, target, 0.1) all over the camera and ui code, list them and say which ones depend on frame rate", "should_trigger": true},
+  {"query": "we are about to start a tuning pass on a codebase nobody documented, produce a table of the numbers that matter with unsure ones flagged", "should_trigger": true},
+  {"query": "what should the sword damage be, our win rate data says it is over-tuned", "should_trigger": false, "expected": "game-balance"},
+  {"query": "the bow is picked 40 percent of the time and wins 58, how big should the nerf be", "should_trigger": false, "expected": "game-balance"},
+  {"query": "fix the character so movement is the same at 30 and 144 fps, write the change", "should_trigger": false, "expected": "game-builder"},
+  {"query": "make the jump feel better, add coyote time and input buffering to my platformer", "should_trigger": false, "expected": "game-builder"},
+  {"query": "model our currency sources and sinks per hour for new and whale players", "should_trigger": false, "expected": "game-economy-flow"},
+  {"query": "verify that the crate drop rates in the code match the published odds", "should_trigger": false, "expected": "loot-odds-verification"},
+  {"query": "the profiler capture shows a 30ms frame, is it cpu or gpu bound", "should_trigger": false, "expected": "frame-capture-reader"},
+  {"query": "review this pull request for bugs before i merge it", "should_trigger": false, "expected": "code-review"},
+  {"query": "our api key leaked in a commit, walk me through rotating it", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "rename the magic numbers in our billing service into named constants", "should_trigger": false, "expected": "refactoring"}
+]

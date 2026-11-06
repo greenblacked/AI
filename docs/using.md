@@ -4,14 +4,14 @@ This library is a set of procedures written as Markdown. How you load them depen
 what you are using, and only a tool that loads skills natively gives you the thing that
 makes a skill worth having: automatic triggering, where the assistant recognises the
 situation and reaches for the procedure without being told. Claude Code is the first
-option below; the [table in the README](../README.md#chatgpt-grok-codex-and-everything-else) says which other agent tools do the same,
+option below; the [table in the README](../README.md#other-tools) says which other agent tools do the same,
 and where each one looks.
 
 - [First run with Codex](#first-run-with-codex) — preview, install and try a real task
 - [Claude Code](#claude-code) — install the plugins; skills fire on their own
 - [ChatGPT](#chatgpt) — upload the bundles to a Project or a Custom GPT
 - [Grok](#grok) — paste the skill, or attach a bundle
-- [Codex, Gemini CLI and other terminal agents](#terminal-agents-that-read-agentsmd) — several now load skills natively; see the [README table](../README.md#chatgpt-grok-codex-and-everything-else)
+- [Codex, Gemini CLI and other terminal agents](#terminal-agents-that-read-agentsmd) — several now load skills natively; see the [README table](../README.md#other-tools)
 - [Anything else, or nobody at all](#no-assistant-at-all)
 - Routing Claude Code to a DeepSeek model through OpenRouter instead of Claude:
   [`docs/deepseek.md`](deepseek.md), not covered below — the tool still loads the
@@ -57,7 +57,7 @@ It does not install this repository's Claude Code subagents or slash commands.
    Check that the response follows the [procedure](../plugins/coding/skills/codebase-orientation/SKILL.md)
    and names files and evidence from your repository. A successful symlink check proves
    installation, not model routing or completion of the task. If the skill is not
-   available, check the destination against the [tool table](../README.md#chatgpt-grok-codex-and-everything-else)
+   available, check the destination against the [tool table](../README.md#other-tools)
    and read the skill directly while investigating.
 
 To update this local installation, pull the checkout, rerun the same installation
@@ -105,7 +105,7 @@ install any of the other twenty-seven, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.49 }
+{ "skillListingBudgetFraction": 0.5 }
 ```
 
 ### How a skill fires
@@ -235,7 +235,7 @@ project text above with a bundle attached.
 
 Several terminal agents, Codex and Gemini CLI among them, now load `SKILL.md` skills
 natively and fire them on their own. That is the better route where it exists: the
-[table in the README](../README.md#chatgpt-grok-codex-and-everything-else) says which tools do and how to install for each.
+[table in the README](../README.md#other-tools) says which tools do and how to install for each.
 
 For one that does not, most terminal agents read `AGENTS.md` from the working directory,
 and what lands there has to fit inside what that tool actually reads. Codex's default is
@@ -340,7 +340,7 @@ someone who wanted the checklist more than the automation.
 Be clear about what you lose outside Claude Code, because it is the valuable part:
 
 - **Automatic triggering**, except in the agent tools that load skills natively — the
-  [README table](../README.md#chatgpt-grok-codex-and-everything-else) lists them. Everywhere else you either tell the assistant to check the
+  [README table](../README.md#other-tools) lists them. Everywhere else you either tell the assistant to check the
   library, or name the skill yourself. The instruction text above is the closest
   approximation and it is not the same thing.
 - **Tool restriction.** `allowed-tools` and a subagent's denied `Write` are enforced by

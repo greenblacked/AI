@@ -88,3 +88,30 @@ The slice that moved, the cause with the evidence that supports it, the change m
 **Blaming content first.** Authentication, complaints and list source explain most drops; wording rarely does on its own.
 
 **Measuring recovery with opens.** Proxy opens rise while real placement stays poor.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` make the discipline stick in a project. Install
+them when the project keeps email templates in its repository:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/email-template-rules.md` loads when an email template is
+  read or edited and asks for an unsubscribe reference, a plain-text alternative and tagged
+  external links.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/email-template-unsubscribe.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/email-template-unsubscribe.sh`, blocks a Write of a
+  marketing template that has no unsubscribe reference. It does not cover Edit or MultiEdit.
+- `${CLAUDE_SKILL_DIR}/assets/templates/deliverability-incident.md` is the record to fill in
+  for one placement or bounce drop, matching Hand back.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/email-template-rules.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/email-template-unsubscribe.sh" .claude/hooks/
+chmod +x .claude/hooks/email-template-unsubscribe.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/email-template-unsubscribe.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
