@@ -452,7 +452,8 @@ def test_a_complete_plugin_raises_no_incomplete_finding_under_strict(tmp_path, c
     # is not the signal here; the absence of `plugin-incomplete` is.
     complete_plugin(tmp_path)
     main([str(tmp_path), "--skip-marketplace", "--strict"])
-    assert "plugin-incomplete" not in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "1 plugin(s)" in out and "plugin-incomplete" not in out
 
 
 def test_an_incomplete_plugin_is_annotated_as_a_warning(tmp_path, capsys):
@@ -460,7 +461,8 @@ def test_an_incomplete_plugin_is_annotated_as_a_warning(tmp_path, capsys):
     make_plugin(tmp_path)
     main([str(tmp_path), "--skip-marketplace", "--github"])
     out = capsys.readouterr().out
-    assert "::warning " in out and "1 warning(s)" in out and "notice(s)" not in out
+    assert "::warning " in out and "title=plugin-incomplete::" in out
+    assert "1 warning(s)" in out and "notice(s)" not in out
 
 
 # template/
