@@ -218,3 +218,40 @@ def test_a_populated_row_with_no_id_is_reported(
     # The populated row is reported once, by its line; the all-blank row is not a finding.
     assert len(hits) == 1, out
     assert "line 3" in hits[0], out
+
+
+def test_an_unreadable_source_file_fails_the_check(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A file the scan could not read may hold the broken reference, so a clean table
+    # against a partial scan is not a pass: the run exits 2, like a missing directory.
+    real_open = open
+
+    def refuse(path, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        if str(path).endswith("locked.gd"):
+            raise PermissionError(13, "Permission denied", str(path))
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr("builtins.open", refuse)
+    table = HEADER + row("sfx.player.step")
+    code = {"ok.gd": 'play("sfx.player.step")\n', "locked.gd": 'play("sfx.ui.gone")\n'}
+    rc, out = run(tmp_path, table, code, capsys)
+    assert rc == 2
+    assert out == []
+
+
+def test_an_unreadable_directory_fails_the_check(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real_walk = os.walk
+
+    def walk(root, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        onerror = kwargs.get("onerror")
+        if onerror is not None:
+            onerror(PermissionError(13, "Permission denied", str(Path(root) / "private")))
+        yield from real_walk(root, *args, **kwargs)
+
+    monkeypatch.setattr(events.os, "walk", walk)
+    table = HEADER + row("sfx.player.step")
+    rc, _ = run(tmp_path, table, {"ok.gd": 'play("sfx.player.step")\n'}, capsys)
+    assert rc == 2
