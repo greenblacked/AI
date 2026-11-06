@@ -1,6 +1,6 @@
 ---
 name: game-audio-mix
-description: "Set up a game's audio mix so dialogue is intelligible, loudness is consistent across outputs and nothing clips, by measurement and priority rather than by ear on one pair of monitors. Builds a bus hierarchy with player volume controls, voice priority with sidechain ducking that never pumps, integrated LUFS targets per output mode from the platform holder's current guidance, a fixed reference route measured with a meter and true peak under -1 dBTP, a night or handheld compressor, voice limits, and an intelligibility check at full combat load. Use for \"the music drowns out the dialogue\", \"too quiet on handheld\", \"loudness target for consoles\", \"set up ducking\", \"mix sounds different on headphones and TV\". Not for per-sound import and compression (game-assets), voice and subtitle timing (game-localisation), or audio CPU cost (game-performance)."
+description: "Set up a game's audio mix so dialogue is intelligible, loudness is consistent across outputs and nothing clips, by measurement rather than by ear on one pair of monitors. Builds a bus hierarchy with player volume controls, voice priority with sidechain ducking that never pumps, integrated LUFS targets per output mode, a fixed reference route measured with a meter and true peak under -1 dBTP, a night or handheld compressor, voice limits per category and bus with mix-level stealing, and an intelligibility check at full combat load. Use for \"the music drowns out the dialogue\", \"too quiet on handheld\", \"loudness target for consoles\", \"set up ducking\", \"mix sounds different on headphones and TV\". Not for per-event limits and steal rules (game-audio-event-spec), per-sound import and compression (game-assets), voice and subtitle timing (game-localisation), or audio CPU cost (game-performance)."
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -12,9 +12,9 @@ The usual failure is a mix balanced by ear in the studio at one listening level.
 
 ## Scope
 
-Use for: the bus structure, ducking, loudness targets and measurement, dynamic range modes, voice limits and intelligibility checks.
+Use for: the bus structure, ducking, loudness targets and measurement, dynamic range modes, voice limits per category and bus, mix-level stealing policy and intelligibility checks.
 
-Do not use for: choosing sample rate, codec and compression for individual sounds (`game-assets`), the timing of translated voice and subtitles (`game-localisation`), or the CPU cost of the audio engine (`game-performance`).
+Do not use for: the per-event attributes in the event table (max instances, priority and steal rule on each event, `game-audio-event-spec`), choosing sample rate, codec and compression for individual sounds (`game-assets`), the timing of translated voice and subtitles (`game-localisation`), or the CPU cost of the audio engine (`game-performance`).
 
 ## Workflow
 

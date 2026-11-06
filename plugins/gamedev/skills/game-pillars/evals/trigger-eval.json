@@ -1,0 +1,92 @@
+[
+  {
+    "query": "we keep arguing about whether to add crafting to our game, how do we settle feature fights",
+    "should_trigger": true
+  },
+  {
+    "query": "write design pillars for my roguelike about a lighthouse keeper",
+    "should_trigger": true
+  },
+  {
+    "query": "our pillars are things like fun and immersive, how do we make them actually useful",
+    "should_trigger": true
+  },
+  {
+    "query": "run my next five feature ideas against our design pillars and tell me which to cut",
+    "should_trigger": true
+  },
+  {
+    "query": "we hit alpha, how do i re-check that the game still matches its pillars",
+    "should_trigger": true
+  },
+  {
+    "query": "how many pillars should a game have and how do i word them",
+    "should_trigger": true
+  },
+  {
+    "query": "does a rewind mechanic fit a game about irreversible consequences",
+    "should_trigger": true
+  },
+  {
+    "query": "help me write a vision statement the whole team can use to say no to features",
+    "should_trigger": true
+  },
+  {
+    "query": "every feature gets approved because it sounds good, we need a filter based on what the game is",
+    "should_trigger": true
+  },
+  {
+    "query": "turn our three core values into pillars that exclude something specific",
+    "should_trigger": true
+  },
+  {
+    "query": "which of these three game concepts should we make, we have a pitch for each",
+    "should_trigger": false,
+    "expected": "game-greenlight"
+  },
+  {
+    "query": "write the full spec for the inventory feature with acceptance criteria",
+    "should_trigger": false,
+    "expected": "game-design-doc"
+  },
+  {
+    "query": "the shotgun wins 60 percent of fights, how do i rebalance it",
+    "should_trigger": false,
+    "expected": "game-balance"
+  },
+  {
+    "query": "how do i run a playtest session with five strangers",
+    "should_trigger": false,
+    "expected": "game-playtest"
+  },
+  {
+    "query": "we are three months behind because the client keeps adding features, how do we respond",
+    "should_trigger": false,
+    "expected": "scope-creep-response"
+  },
+  {
+    "query": "build me a prototype of the core loop in godot",
+    "should_trigger": false,
+    "expected": "game-builder"
+  },
+  {
+    "query": "how do i prioritise my product roadmap by revenue impact",
+    "should_trigger": false,
+    "expected": "product-design"
+  },
+  {
+    "query": "our quest dialogue graph has unreachable nodes, check it",
+    "should_trigger": false,
+    "expected": "game-narrative-graph-check"
+  },
+  {
+    "query": "what should the hud show during combat and where",
+    "should_trigger": false,
+    "expected": "game-hud-menu-spec"
+  },
+  {
+    "query": "verify our crate drop rates match the published odds",
+    "should_trigger": false,
+    "expected": "loot-odds-verification"
+  }
+]

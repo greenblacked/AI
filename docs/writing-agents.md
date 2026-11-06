@@ -2,10 +2,8 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the 30 this repository ships today, five with `coding`, seven with
-`operations`, five with `security`, six with `family`, two with `manager`, two with
-`personal`, and one each with `design`, `gamedev` and `delivery` — and in `.claude/agents/`
-for the four that serve work on this repository rather than shipping to anyone,
+one of the agents this repository ships — and in `.claude/agents/`
+for the ones that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
 tool allowlist, invoked by the main agent and returning a result to it.
@@ -57,6 +55,14 @@ The key set is the documented one for a plugin-shipped subagent, not a house res
 project-level agent are refused here with the reason stated: `hooks`, `mcpServers` and
 `permissionMode`, because a plugin must not be able to register hooks, attach servers or
 change the permission mode for whoever installs it.
+
+Every plugin is to ship at least one read-only reader subagent, paired with a skill that hands
+the bulky read to it by name; `disallowedTools: Write, Edit, NotebookEdit` keeps it a
+reader. `template/agent.md` is the starting point. Plugins never ship hooks: a plugin
+hook runs with the installer's permissions the moment the plugin is enabled, so a hook
+reaches an installer only as an opt-in kit template under a skill's `assets/hooks/`
+([the project kit](writing-skills.md#project-kit)). `plugin-incomplete` fails strict
+validation for a plugin with no subagent or no complete kit.
 
 The allowlist key here is `tools`; in a `SKILL.md` it is `allowed-tools`, and each is
 rejected in the other file. That is not an inconsistency to work around — they are
@@ -258,7 +264,7 @@ procedure, for that reason.
 
 A plugin-shipped subagent is free to follow the same shape — a stated input, a first-line
 verdict, fixed headings — and a new one should. This is not a call to migrate the
-30 that ship today; none of them are rewritten by this.
+ones that ship today; none of them are rewritten by this.
 
 ## Failure modes
 
@@ -286,9 +292,10 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). 30 ship: five with
-`coding`, seven with `operations`, five with `security`, six with `family`, two with
-`manager`, two with `personal`, and one each with `design`, `gamedev` and `delivery`.
+[`marketplace.json`](../.claude-plugin/marketplace.json). The README lists every one that
+ships, by plugin, and `make catalogue` keeps that list in step with the tree. Each
+plugin's chapter opens with its subagents, ahead of its skills, with a sentence per agent
+on what to hand it and what it returns.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle

@@ -151,3 +151,22 @@ The next implementer should know exactly which evidence blocks deployment.
 - **Treat a plan as a sandbox.** Providers, external data sources and module code may
   execute with whatever access the planning runner holds.
 - **Unlock and retry after cancellation.** The original writer may still be running.
+
+## Project kit
+
+Three opt-in files under `${CLAUDE_SKILL_DIR}/assets/`, worth installing in a project that applies Terraform or OpenTofu from automation or from an agent session:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/terraform-apply-handoff.md` loads when a backend, lock file or Terraform workflow is read and states the saved-plan and approval rules.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.sh` refuse an apply that auto-approves or names no existing saved plan file, and a `destroy -auto-approve`; a plain `destroy` that prompts is allowed. A command it cannot read plainly (a `$'...'` escape, a brace list, a variable as the binary, read right after a separator or after a wrapper such as sudo, exec, command or env, not after other wrappers) is refused too, and a script file or an interpreter one-liner is out of its reach.
+- `${CLAUDE_SKILL_DIR}/assets/templates/apply-approval-record.md` is the record to fill in once per apply, matching the artifact and approval contract.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/terraform-apply-handoff.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/refuse-unsaved-terraform-apply.sh" .claude/hooks/
+chmod +x .claude/hooks/refuse-unsaved-terraform-apply.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/refuse-unsaved-terraform-apply.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the script first; it runs with your permissions on every matching tool call.

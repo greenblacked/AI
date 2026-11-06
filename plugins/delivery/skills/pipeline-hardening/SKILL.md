@@ -112,6 +112,36 @@ One row per finding, ranked so the row with the most credential exposure and the
 
 **A signature or attestation nobody verifies.** Signing and attesting cost nothing if the consumer never runs the verification step. Provenance is a control at the point of consumption, not an artefact to have produced.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep a project's workflows from regressing after an
+audit. Install them when the project owns GitHub Actions workflows that outsiders can trigger:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/untrusted-workflow-input.md` loads when a file directly under
+  `.github/workflows/` is read or edited, and asks that a value an outsider controls reaches a
+  `run:` or `script:` block only through `env:`, that privileged triggers never run the head, and
+  that `permissions:` and SHA pins are set.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/flag-untrusted-field-in-run.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/flag-untrusted-field-in-run.sh`, reports a written workflow
+  whose `run:` or `script:` block expands a pull request, issue, comment, review or commit field, or
+  `github.head_ref`. It runs after the write, so it feeds the finding back for the next edit and does
+  not stop the write, and it does not see indirection through inputs, outputs or `toJSON`.
+- `${CLAUDE_SKILL_DIR}/assets/templates/pipeline-change-record.md` is the record to fill in for one
+  workflow change, matching the Output format above.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/untrusted-workflow-input.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/flag-untrusted-field-in-run.sh" .claude/hooks/
+chmod +x .claude/hooks/flag-untrusted-field-in-run.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/flag-untrusted-field-in-run.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/triggers-and-injection.md` — read in step 1 and step 2: the full per-event table of attacker-controlled fields for GitHub Actions and GitLab CI, every known expansion sink, and the safe indirection for each.

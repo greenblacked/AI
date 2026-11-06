@@ -1,0 +1,22 @@
+[
+  {"query": "here's a 90MB conntrack -L dump from node ip-10-0-3-41, which destination has the most entries and how close is it to nf_conntrack_max", "should_trigger": true},
+  {"query": "i saved ss -tan output from the checkout pods' node, count the TIME_WAIT per peer and tell me which destination is nearest the local port range", "should_trigger": true},
+  {"query": "attached is the NAT gateway port allocation export for yesterday, give me connections per destination against the 55,000 limit", "should_trigger": true},
+  {"query": "read this conntrack table file and tell me the top five destination ip and port pairs by count, don't paste the rows", "should_trigger": true},
+  {"query": "the netstat -an dump is 400k lines, i just want established connections per remote address:port", "should_trigger": true},
+  {"query": "the Cloud NAT allocation csv is in the exports folder, which destination is eating the most ports per VM", "should_trigger": true},
+  {"query": "/tmp/conntrack.txt came off a node that was dropping packets, how full is the table and which dst dominates it", "should_trigger": true},
+  {"query": "count the TIME_WAIT sockets toward the partner API in this ss listing and say what share of the 28k ephemeral range that is", "should_trigger": true},
+  {"query": "here's the Azure SNAT connection export, which destination holds the most ports and how close to 64,512 per address", "should_trigger": true},
+  {"query": "before i dig in, summarise this socket listing: per-destination counts, the busiest source, and what's within half of its ceiling", "should_trigger": true},
+  {"query": "the NAT gateway keeps hitting ErrorPortAllocation and requests time out under load, work out why and what to change", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
+  {"query": "should we raise nf_conntrack_max or fix the client first, the table keeps filling", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
+  {"query": "pods went CrashLoopBackOff after the deploy and the service has no endpoints", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "dns lookups from the node are slow and resolv.conf looks odd, walk me through debugging resolution", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "the process hits too many open files, how do i find which limit it is", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "our postgres is out of connections after a failover and every app reconnects at once", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "here's a pcap of the handshake failing, what is the capture showing", "should_trigger": false, "expected": "packet-capture-triage"},
+  {"query": "the CI run is red and the log is 40MB, what killed it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "the load balancer returns 502 for a few requests every hour", "should_trigger": false, "expected": "intermittent-502-hunt"},
+  {"query": "our subnets are out of IP addresses and pods can't schedule", "should_trigger": false, "expected": "ip-exhaustion-recovery"}
+]

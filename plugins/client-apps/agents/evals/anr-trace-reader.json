@@ -1,0 +1,22 @@
+[
+  {"query": "here are 300 ANR traces from the Play Console export, tell me which clusters the main thread was waiting on", "should_trigger": true},
+  {"query": "read this folder of iOS crash reports with 0x8badf00d and tell me what the main thread was doing in each group", "should_trigger": true},
+  {"query": "i have a MetricKit payload dump from last week, how many are watchdog vs jetsam vs hangs, don't paste the payloads back", "should_trigger": true},
+  {"query": "the bugreport zip has 40 traces.txt files, classify each ANR and quote the line where the main thread is blocked", "should_trigger": true},
+  {"query": "go through these Organizer hang reports and give me the clusters by what the main thread waits on", "should_trigger": true},
+  {"query": "a thousand ApplicationExitInfo dumps from the field, split them by exit reason and give me the top wait for REASON_ANR", "should_trigger": true},
+  {"query": "which of these traces are main thread blocked on a monitor and who holds the lock, I only want counts and the deciding stack lines", "should_trigger": true},
+  {"query": "read the attached anr traces and tell me how many are binder transactions vs QueuedWork.waitToFinish vs idle in nativePollOnce", "should_trigger": true},
+  {"query": "here are the watchdog termination reports from 8.4, group them by launch, resume or scene transition and quote the stack", "should_trigger": true},
+  {"query": "summarize this directory of hang diagnostics, one line per cluster with the termination class and the wait", "should_trigger": true},
+  {"query": "our ANR rate is over the Play threshold, how should we approach it", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "the crash-free rate dropped after 8.4, which crash do we fix first", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "here is a crash report with a NullPointerException stack, symbolicate it and tell me the cause", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "the app takes 6 seconds to open on older phones, why", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "it freezes and closes with no crash report and I have no logs at all", "should_trigger": false, "expected": "debugging"},
+  {"query": "classify this 50MB CI log into flake or real failure", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "read these OpenTelemetry spans and tell me which service is slow", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "this JVM thread dump shows two threads blocked on locks, is it a deadlock", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "here is a native tombstone from a SIGSEGV, find the faulting frame", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "the device watchdog reset in the field, read the logs and say which task starved", "should_trigger": false, "expected": "field-failure-triage"}
+]

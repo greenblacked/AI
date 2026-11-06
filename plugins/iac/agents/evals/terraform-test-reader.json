@@ -1,0 +1,22 @@
+[
+  {"query": "the terraform test output is 3000 lines, tell me which runs failed and which passed", "should_trigger": true},
+  {"query": "here's the captured -verbose output from terraform test, list each run and whether it failed on an assertion or a provider error", "should_trigger": true},
+  {"query": "read this terraform test -json stream and give me the pass/fail per run block", "should_trigger": true},
+  {"query": "did cleanup succeed in this terraform test log? list any resource addresses it says were left behind", "should_trigger": true},
+  {"query": "our integration tests.tftest.hcl run errored, is that an assertion failing or an auth error from the provider? quote the line", "should_trigger": true},
+  {"query": "summarise this local terraform test run: how many runs, which files, what did the cleanup step print", "should_trigger": true},
+  {"query": "the saved terraform test output has three files in it, read the cleanup sections and tell me which orphaned resources were reported", "should_trigger": true},
+  {"query": "I ran terraform test -verbose locally and piped it to a file, which run blocks failed", "should_trigger": true},
+  {"query": "go through this terraform test log and say if any failure was a configuration error rather than a check that failed", "should_trigger": true},
+  {"query": "tofu test finished with errors, read the capture and list the runs that passed and the cleanup result", "should_trigger": true},
+  {"query": "the terraform test job in CI is red, which of the five classes is it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "which triage bucket does this failing terraform test pipeline step belong to", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "write .tftest.hcl tests for my vpc module with mock providers", "should_trigger": false, "expected": "terraform-module-tests"},
+  {"query": "how do I clean up after a failed terraform test that created real resources, and what should the test boundary be", "should_trigger": false, "expected": "terraform-module-tests"},
+  {"query": "are these terraform tests any good, is the coverage meaningful", "should_trigger": false, "expected": "test-design"},
+  {"query": "how do I test this without it being flaky", "should_trigger": false, "expected": "test-design"},
+  {"query": "read this plan.json and tell me whether anything gets destroyed", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "review this terraform plan before we apply to production", "should_trigger": false, "expected": "iac-review"},
+  {"query": "show how often each terraform test has failed across the last 40 runs", "should_trigger": false, "expected": "test-history-reader"},
+  {"query": "the orphaned bucket from the test is in the state of a backend we lost, how do I recover it", "should_trigger": false, "expected": "terraform-state"}
+]

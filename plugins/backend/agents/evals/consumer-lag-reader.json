@@ -1,0 +1,22 @@
+[
+  {"query": "here are lag-t0.txt and lag-t1.txt for group orders-writer, classify the pattern from the per-partition deltas", "should_trigger": true},
+  {"query": "read the two --describe dumps in /tmp/snap and tell me which lag class it is, don't paste the tables back", "should_trigger": true},
+  {"query": "snapshot-1.txt and snapshot-2.txt are a minute apart, partition 7 looks frozen, give me the deltas and the log line that explains it", "should_trigger": true},
+  {"query": "consumer.log is 80MB and gc.log is next to it, find the line that shows why this member dropped out of the group", "should_trigger": true},
+  {"query": "diff these two saved describe outputs per partition and return the one class with the deltas that decide it", "should_trigger": true},
+  {"query": "i saved the group state before and after, check whether produce is even across partitions and say if it is a slow member", "should_trigger": true},
+  {"query": "read the client logs from the three consumers plus the snapshot pair and return just the deciding line", "should_trigger": true},
+  {"query": "go through client-app.log and the t0/t1 snapshots for group billing-sync, which of the lag classes is it, quote the evidence", "should_trigger": true},
+  {"query": "the gc logs from the owning host and the two offsets files are in the incident folder, read them and return the class", "should_trigger": true},
+  {"query": "summarise the saved lag snapshots without running anything against the broker, one class and the partition deltas", "should_trigger": true},
+  {"query": "our consumer lag keeps growing and I do not know where to start", "should_trigger": false, "expected": "consumer-lag-triage"},
+  {"query": "the group keeps rebalancing and we get CommitFailedException, what do we change", "should_trigger": false, "expected": "consumer-lag-triage"},
+  {"query": "one shard is hot because of a celebrity key, how do we spread it", "should_trigger": false, "expected": "hot-partition-hunt"},
+  {"query": "design the retry and dead-letter policy for poison messages", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "how many consumers do we need to survive double the expected load", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "we have an incident, lag is climbing in production right now, run it with me", "should_trigger": false, "expected": "incident-response"},
+  {"query": "read the trace bundle for the slow request path and tell me where the time goes", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "here is a captured k8s bundle, which pod is being CPU throttled", "should_trigger": false, "expected": "k8s-evidence-reader"},
+  {"query": "the Java service stops responding, here is a thread dump, what is it blocked on", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "long GC pauses are hurting our service, how do I tune the collector", "should_trigger": false, "expected": "jvm-gc-tuning"}
+]

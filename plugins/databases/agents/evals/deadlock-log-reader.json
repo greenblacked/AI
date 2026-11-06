@@ -1,0 +1,22 @@
+[
+  {"query": "here is 40 MB of postgres log from last night, count the deadlock detected entries and group them by pattern", "should_trigger": true},
+  {"query": "read /var/log/postgresql/postgresql-16-main.log and tell me which deadlock patterns repeat and how many times each", "should_trigger": true},
+  {"query": "innodb_print_all_deadlocks has been on for a week, the error log is huge, classify every deadlock in it and give me counts", "should_trigger": true},
+  {"query": "i don't want the log pasted back, just the cycle class per distinct deadlock pattern and the line that decided it", "should_trigger": true},
+  {"query": "error.log has 3000 LATEST DETECTED DEADLOCK blocks, how many are gap lock versus unique index races", "should_trigger": true},
+  {"query": "go through this postgres log excerpt and tell me which of the deadlocks are opposite-order batch updates", "should_trigger": true},
+  {"query": "after the release the 40P01 entries spiked, read the server log and say which statement pairs account for the most deadlocks", "should_trigger": true},
+  {"query": "summarise the deadlocks in the mysql error log by class with counts, quote the deciding line for each", "should_trigger": true},
+  {"query": "scan the pg log for 'deadlock detected' between 02:00 and 04:00 and tell me whether it is one pattern or several", "should_trigger": true},
+  {"query": "here are 12 deadlock reports from the mysql error log, are they all the same cycle or different ones", "should_trigger": true},
+  {"query": "i have the deadlock report and the two statements, turn it into a code change that stops the cycle", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "what is the right lock order for my batch update so two workers stop deadlocking", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "everything is hanging on one table and nothing has been rolled back, who is blocking whom", "should_trigger": false, "expected": "lock-queue-triage"},
+  {"query": "queries piled up behind an ALTER, cancel what first", "should_trigger": false, "expected": "lock-queue-triage"},
+  {"query": "two requests booked the same seat, find the race in the checkout code", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "the backfill batch hit a deadlock and i want it to retry safely while migrating a column", "should_trigger": false, "expected": "db-migration"},
+  {"query": "the CI job failed with a deadlock error in the integration tests, read the run", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "here is a jvm thread dump with two threads waiting on each other's monitors", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "the postgres query is slow, explain analyze output attached, why is it scanning", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "autovacuum is not keeping up and the table is bloated", "should_trigger": false, "expected": "vacuum-bloat-triage"}
+]

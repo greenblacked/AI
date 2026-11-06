@@ -252,7 +252,7 @@ html[data-theme="reactor"]::before {
 }
 /* The section links sit in the bar from 64rem up: the sections left of the mark, the links
    off the site right of it. Below that they are behind the Menu disclosure, which is a
-   details element so it opens by Enter or Space with no script. */
+   details element so it opens by Enter or Space with no script, and opens as a drawer. */
 .bar > nav {
   display: none;
   align-items: center;
@@ -275,19 +275,53 @@ html[data-theme="reactor"]::before {
 .menu summary svg { width: 1rem; height: 1rem; }
 .menu summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .menu nav {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-  padding: 0.5rem 1.25rem 1rem;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg);
   font-size: 0.875rem;
   line-height: 1.4286;
+}
+/* Below 64rem the open menu is a drawer on the left edge. The summary stays in the bar as
+   the toggle, so the header's own Menu control sits at the top of the drawer and closes
+   it; its icon and label are lifted above the panel, while the summary's ::before is the
+   dimmed backdrop, so a tap on the rest of the page lands on the summary and toggles the
+   details with no script. The header's blur and slide are switched off while it is open,
+   because either would make the header the containing block of the fixed drawer. */
+@media (max-width: 63.999rem) {
+  .menu summary svg, .menu summary span { position: relative; z-index: 3; }
+  .menu[open] summary::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: color-mix(in srgb, var(--ink) 40%, transparent);
+  }
+  html[data-theme="night"] .menu[open] summary::before,
+  html[data-theme="reactor"] .menu[open] summary::before { background: var(--glass-shadow); }
+  .menu[open] nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: min(20rem, 85vw);
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 4rem 1.25rem 1rem;
+    border-right: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .site-header:has(.menu[open]) {
+    transform: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  html:has(.menu[open]) { overflow: hidden; scrollbar-gutter: stable; }
+  html[data-theme="night"] .menu[open] nav,
+  html[data-theme="reactor"] .menu[open] nav {
+    background: var(--card);
+    box-shadow: 0.75rem 0 2rem -0.5rem var(--glass-edge);
+  }
 }
 .menu-else { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--line); }
 .bar .menu nav a { display: flex; }
@@ -1347,7 +1381,9 @@ MOTION_CSS = """
       transform 200ms var(--ease), box-shadow 200ms var(--ease), outline-offset 160ms ease;
   }
   :focus-visible { outline-offset: 3px; }
-  .menu[open] nav { animation: menu-in 160ms var(--ease) both; }
+  @media (max-width: 63.999rem) {
+    .menu[open] nav { animation: menu-in 220ms var(--ease) both; }
+  }
   .skills a { transition: color 160ms ease, padding-left 240ms var(--ease); }
   .skills a::after {
     transform: translateX(-0.5rem);
@@ -1402,7 +1438,7 @@ MOTION_CSS = """
   }
 }
 @keyframes page-out { to { opacity: 0; } }
-@keyframes menu-in { from { opacity: 0; transform: translateY(-0.5rem); } }
+@keyframes menu-in { from { transform: translateX(-100%); } }
 @keyframes page-in { from { opacity: 0; transform: translateY(0.75rem); } }
 @keyframes rise-in { from { opacity: 0; transform: translateY(1.5rem); } }
 @keyframes tick {
@@ -2147,6 +2183,7 @@ PAGE_SCRIPT = """
     }
   });
   var banner = document.getElementById("banner");
+  var drawer = document.querySelector(".menu");
   var last = window.scrollY;
   function away(on) {
     banner.classList.toggle("away", on);
@@ -2155,7 +2192,10 @@ PAGE_SCRIPT = """
   window.addEventListener("scroll", function () {
     var y = window.scrollY;
     var delta = y - last;
-    if (y <= 64) away(false);
+    // The open drawer lives in the header, and overflow:hidden does not stop a script or a
+    // focus from scrolling the page, so an open menu keeps the header live and drawn.
+    if (drawer && drawer.open) away(false);
+    else if (y <= 64) away(false);
     else if (delta > 8) away(true);
     else if (delta < -8) away(false);
     last = y;
@@ -2209,6 +2249,34 @@ PAGE_SCRIPT = """
     away(false);
     home.focus({ preventScroll: true });
   });
+
+  // The menu already works without this: Escape, a tap on a link and keeping Tab inside the
+  // drawer are what a details element does not give a drawer for free.
+  if (drawer) {
+    var summary = drawer.querySelector("summary");
+    drawer.addEventListener("toggle", function () {
+      if (drawer.open) away(false);
+    });
+    drawer.addEventListener("click", function (event) {
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (event.target.closest("nav a")) drawer.removeAttribute("open");
+    });
+    document.addEventListener("keydown", function (event) {
+      if (!drawer.open) return;
+      if (event.key === "Escape") {
+        drawer.removeAttribute("open");
+        summary.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !summary.getClientRects().length) return;
+      var links = drawer.querySelectorAll("nav a");
+      var end = event.shiftKey ? summary : links[links.length - 1];
+      if (document.activeElement !== end) return;
+      event.preventDefault();
+      (event.shiftKey ? links[links.length - 1] : summary).focus();
+    });
+  }
 
   var input = document.getElementById("find");
   var tally = document.getElementById("count");

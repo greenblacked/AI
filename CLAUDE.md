@@ -34,7 +34,8 @@ Claude-specific notes:
   Opus at medium effort reviews (`reviewer`) and Fable at medium effort reviews security
   (`security-reviewer`, which `/ship` runs beside `reviewer` when the diff touches a
   security trigger). When a model or effort changes, change the
-  agent's `model:` or `effort:` line, this sentence, and `docs/writing-agents.md`'s tier
+  agent's `model:` or `effort:` line, this sentence, the agent table in `README.md` (which
+  `scripts/check_readme.py` fails on when it disagrees) and `docs/writing-agents.md`'s tier
   tables together. Claude Code's documentation says an agent file change applies from
   the next delegation without a restart; in a cloud session a newly added file has been
   seen to take a while to appear, so if an agent is not found yet, check again later or

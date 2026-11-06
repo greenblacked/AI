@@ -45,9 +45,11 @@ place whose name breaks the pattern, a symbolic link or a submodule (mode 160000
 anywhere in the repository, a file that is not regular on disk, or an id used twice
 fails the run: a definition that is skipped is a definition nobody scanned.
 
-The scan can only see the default folders, so the run also fails on a manifest that points
-Claude Code anywhere else (`check_manifests`): `agents`, `commands`, `skills` or `hooks` in a
-plugin manifest or marketplace entry, or a `source` that is not `./plugins/<plugin>`.
+The scan can only see the default folders, so the run also fails closed on anything that could
+point Claude Code anywhere else or run something on enabling a plugin (`check_manifests`):
+a key outside the allowlists in a plugin manifest, a marketplace entry or the marketplace top
+level, a `source` that is not `./plugins/<plugin>`, and a tracked path whose first segment
+under `plugins/<plugin>/` is not `.claude-plugin`, `skills`, `agents` or `commands`.
 
 Standard library only, like the checks it sits beside.
 """
@@ -181,11 +183,51 @@ def tracked(repo: Path) -> dict[str, str]:
     return found
 
 
-# Keys with which a manifest points Claude Code at components outside the default places.
-# Claude Code loads them for the plugin (and, on a marketplace entry, appends them to it), so
-# a file they name is a definition this script would never enumerate.
-COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
+# The only keys a manifest may carry, and the only entries a plugin root may hold. Mirrors
+# PLUGIN_MANIFEST_KEYS, MARKETPLACE_KEYS, MARKETPLACE_ENTRY_KEYS and PLUGIN_ROOT_ENTRIES in the
+# validator, so the security workflow fails closed even when the validator is skipped.
+# Claude Code keeps adding keys and folders it loads or runs on enabling a plugin (`agents`,
+# `hooks`, inline servers, `monitors`, `themes`, `workflows`, a marketplace
+# `metadata.pluginRoot`, ...), so the lists name what is allowed and everything else fails.
+# `metadata` is left out of the marketplace on purpose: `pluginRoot` redirects where plugins load.
+PLUGIN_KEYS = frozenset(
+    {
+        "$schema",
+        "name",
+        "description",
+        "version",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    }
+)
+MARKETPLACE_KEYS = frozenset({"$schema", "name", "description", "owner", "plugins"})
+ENTRY_KEYS = frozenset(
+    {
+        "name",
+        "source",
+        "category",
+        "tags",
+        "description",
+        "version",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    }
+)
 MARKETPLACE = ".claude-plugin/marketplace.json"
+PLUGIN_ROOT_ENTRIES = (".claude-plugin", "skills", "agents", "commands")
+# `plugins` is matched in any case so a differently cased folder is found, and then refused
+# outright by `check_plugin_roots` (it is the same folder on a case-insensitive filesystem and
+# `find_plugins` never reads it); what sits directly under a plugin is matched exactly.
+PLUGIN_ENTRY_RE = re.compile(r"(?P<top>(?i:plugins))/[^/]+/(?P<entry>[^/]+)(?:/.*)?", re.DOTALL)
+# A skill file spelt other than `SKILL.md` is a skill on a case-insensitive filesystem and
+# not one on a case-sensitive one, so the same checkout means two things.
+SKILL_FILE_RE = re.compile(r"plugins/[^/]+/skills/[^/]+/(?P<file>[^/]+)", re.DOTALL)
 SOURCE_RE = re.compile(rf"\./plugins/{PART}")
 PLUGIN_MANIFEST_RE = re.compile(rf"plugins/{PART}/\.claude-plugin/plugin\.json")
 
@@ -200,16 +242,47 @@ def load_manifest(repo: Path, path: str) -> dict:
     return data
 
 
-def check_manifests(repo: Path) -> None:
-    """Refuse every manifest shape that could load a definition the scan does not wrap.
+def check_plugin_roots(repo: Path) -> None:
+    """Refuse a tracked path under a plugin root outside the allowed shape.
 
-    The four default places are not the only ones Claude Code reads: `agents`, `commands`,
-    `skills` and `hooks` in a plugin manifest or a marketplace entry add paths (or inline
-    content), and a marketplace `source` can name any directory. Rather than widen the
-    globs to follow them, the run fails on a manifest that uses either, so the default
-    layout is the only layout there is to scan.
+    That is an entry that is not allowed, a first segment spelt `Plugins` or the like, or a skill
+    file whose name matches `SKILL.md` only in case.
     """
-    listing = git(repo, "ls-files", "-z", "--", ":(glob)**/.claude-plugin/**")
+    for raw in git(repo, "ls-files", "-z", "--", ":(glob,icase)plugins/**").split(b"\0"):
+        path = raw.decode("utf-8", "surrogateescape")
+        match = PLUGIN_ENTRY_RE.fullmatch(path) if path else None
+        if match and match["entry"] not in PLUGIN_ROOT_ENTRIES:
+            raise DefinitionError(
+                f"{safe(path)} is not under an allowed plugin-root entry (only "
+                f"{', '.join(PLUGIN_ROOT_ENTRIES)}, in that case): Claude Code loads or runs "
+                f"entries it knows at a plugin root without a prompt, so the root is an "
+                f"allowlist; hooks ship as opt-in kit templates under a skill's assets/hooks/"
+            )
+        if match and match["top"] != "plugins":
+            raise DefinitionError(
+                f"{safe(path)} differs from 'plugins' only in case: it is the same folder on a "
+                f"case-insensitive filesystem, so the definitions in it are scanned by no one"
+            )
+        skill = SKILL_FILE_RE.fullmatch(path) if path else None
+        if skill and skill["file"].lower() == "skill.md" and skill["file"] != "SKILL.md":
+            raise DefinitionError(
+                f"{safe(path)} is a skill file not spelt exactly SKILL.md: a case-insensitive "
+                f"filesystem loads it as a skill and a case-sensitive one does not"
+            )
+
+
+def check_manifests(repo: Path) -> None:
+    """Refuse every manifest shape that could load or run what the scan does not wrap.
+
+    The four default places are not the only ones Claude Code reads: a key such as `agents`,
+    `skills`, `hooks`, an inline server, `monitors` or a marketplace `metadata.pluginRoot`
+    adds paths or inline content, and a marketplace `source` can name any directory. Rather
+    than widen the globs to follow them, or list the keys known to do it, the run fails on a
+    manifest key outside the allowlists above and on a `source` outside `plugins/`, so the
+    default layout is the only layout there is to scan and a key added to Claude Code
+    tomorrow fails until someone decides it is safe.
+    """
+    listing = git(repo, "ls-files", "-z", "--", ":(glob,icase)**/.claude-plugin/**")
     for raw in listing.split(b"\0"):
         path = raw.decode("utf-8", "surrogateescape")
         if path and path != MARKETPLACE and not PLUGIN_MANIFEST_RE.fullmatch(path):
@@ -219,17 +292,25 @@ def check_manifests(repo: Path) -> None:
             )
         if path and PLUGIN_MANIFEST_RE.fullmatch(path):
             plugin = load_manifest(repo, path)
-            for key in COMPONENT_KEYS:
-                if key in plugin:
-                    raise DefinitionError(
-                        f"{safe(path)} sets `{key}`, which loads components from paths the "
-                        f"scan does not enumerate; use the default folders"
-                    )
+            for key in sorted(set(plugin) - PLUGIN_KEYS):
+                raise DefinitionError(
+                    f"{safe(path)} sets `{safe(key)[1:-1]}`, which is not an allowed plugin.json "
+                    f"key ({', '.join(sorted(PLUGIN_KEYS))}); anything else can load "
+                    f"components the scan does not enumerate"
+                )
+    check_plugin_roots(repo)
     if not any(
         raw.decode("utf-8", "surrogateescape") == MARKETPLACE for raw in listing.split(b"\0")
     ):
         return
-    entries = load_manifest(repo, MARKETPLACE).get("plugins", [])
+    marketplace = load_manifest(repo, MARKETPLACE)
+    for key in sorted(set(marketplace) - MARKETPLACE_KEYS):
+        raise DefinitionError(
+            f"{MARKETPLACE} sets `{safe(key)[1:-1]}`, which is not an allowed top-level key "
+            f"({', '.join(sorted(MARKETPLACE_KEYS))}); `metadata.pluginRoot`, for one, "
+            f"redirects where plugins load from"
+        )
+    entries = marketplace.get("plugins", [])
     if not isinstance(entries, list):
         raise DefinitionError(f"{MARKETPLACE} 'plugins' is not a list")
     for entry in entries:
@@ -241,12 +322,12 @@ def check_manifests(repo: Path) -> None:
                 f"{MARKETPLACE} entry has source {safe(str(source))}; the scan only reads "
                 f"plugins listed as ./plugins/<plugin>"
             )
-        for key in COMPONENT_KEYS:
-            if key in entry:
-                raise DefinitionError(
-                    f"{MARKETPLACE} entry sets `{key}`, which loads components from paths "
-                    f"the scan does not enumerate; use the default folders"
-                )
+        for key in sorted(set(entry) - ENTRY_KEYS):
+            raise DefinitionError(
+                f"{MARKETPLACE} entry sets `{safe(key)[1:-1]}`, which is not an allowed entry "
+                f"key ({', '.join(sorted(ENTRY_KEYS))}); anything else can load components "
+                f"the scan does not enumerate"
+            )
 
 
 def list_definitions(repo: Path) -> list[str]:

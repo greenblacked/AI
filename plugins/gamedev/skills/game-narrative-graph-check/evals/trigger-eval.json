@@ -1,0 +1,22 @@
+[
+  {"query": "check our dialogue tree for dead ends and orphaned nodes before we lock content", "should_trigger": true},
+  {"query": "are there any quest steps that can soft-lock the player in our branching story", "should_trigger": true},
+  {"query": "write a script that exports our quest graph to a node and edge list and reports unreachable nodes", "should_trigger": true},
+  {"query": "a quest condition reads a flag that I think nothing ever sets, how do I find all of those", "should_trigger": true},
+  {"query": "find conversation loops with no exit in our NPC dialogue", "should_trigger": true},
+  {"query": "verify every dialogue line key exists in the string table and fits the text box in German", "should_trigger": true},
+  {"query": "we are doing a narrative pass before the release candidate, what can be checked automatically in the branching dialogue", "should_trigger": true},
+  {"query": "which dialogue nodes can never be reached from any start node", "should_trigger": true},
+  {"query": "conditions on our choice branches that can never be true, can we detect them automatically", "should_trigger": true},
+  {"query": "add a CI check that fails when the dialogue graph has a node that is not marked as an ending but has no replies", "should_trigger": true},
+  {"query": "translate our dialogue into Japanese and manage the translators' string export", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "write the design document section for the main quest and its branching outcomes", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "run a playtest session to see whether testers understand the quest story", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "have a bot play through the built game from start to finish and report where it gets stuck", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "design the layout of the first dungeon so players find the key", "should_trigger": false, "expected": "game-level-design"},
+  {"query": "our save file loses quest flags after an update, how should we version the save", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "how do I test that a Python function handles empty input, design the test cases", "should_trigger": false, "expected": "test-design"},
+  {"query": "review this pull request that changes the dialogue loader for bugs", "should_trigger": false, "expected": "code-review"},
+  {"query": "tune enemy damage values because the boss feels too hard", "should_trigger": false, "expected": "game-balance"},
+  {"query": "check the odds of our loot drops match the published rates", "should_trigger": false, "expected": "loot-odds-verification"}
+]

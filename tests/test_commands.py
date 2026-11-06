@@ -210,3 +210,10 @@ def test_the_family_command_carries_the_slice_templates_unchanged():
     templates = pattern.findall(reference)
     assert len(templates) == 6
     assert pattern.findall(command) == templates
+    # The shipped plan.md kit template is a third copy of the plan block.
+    shipped = (root / "skills" / "family-workflow" / "assets" / "templates" / "plan.md").read_text(
+        encoding="utf-8"
+    )
+    plans = [t for t in templates if "# Plan: <name>" in t]
+    assert len(plans) == 1
+    assert shipped == plans[0]

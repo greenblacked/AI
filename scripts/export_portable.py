@@ -1875,7 +1875,7 @@ documents no size cap on a project instruction file, unlike Codex below.
 
 Several of these now load skills natively and fire them on their own, which beats any
 file here: the table in the repository README says which, and how to install for each —
-<https://github.com/greenblacked/AI#chatgpt-grok-codex-and-everything-else>
+<https://github.com/greenblacked/AI#other-tools>
 
 For one that does not, most read `AGENTS.md` from the working directory, and what you put
 there has to fit inside what that tool actually reads. Codex's default is
