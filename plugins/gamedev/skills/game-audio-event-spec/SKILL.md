@@ -56,7 +56,7 @@ Code calls the event by its id and the middleware or the audio manager resolves 
 python3 -I "${CLAUDE_SKILL_DIR}/scripts/check_events.py" audio/events.csv src/ --ext .gd .cs .json
 ```
 
-Each finding is one line, `id: code: reason`, and the exit status is 1 when there is any (2 when the code directory does not exist, so a wrong path is never read as every row unused):
+Each finding is one line, `id: code: reason`, and the exit status is 1 when there is any (2 when the code directory does not exist or a file or directory under it cannot be read, so a wrong path or a partial scan is never read as a pass):
 
 - `missing-from-table`: code names an id the table does not have. Add the row, or fix the typo. The script reports where it was first seen.
 - `unused-row`: no string literal names the row. Either the event is dead and the row goes, or it is fired by a built id (`"sfx.step." + surface`) the script cannot see.

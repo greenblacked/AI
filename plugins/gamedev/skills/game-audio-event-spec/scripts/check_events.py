@@ -15,6 +15,9 @@ strings that merely contain a dot are ignored.
 
 Prints one "id: code: reason" line per finding and exits 1 if there are any.
 Codes: missing-from-table, unused-row, duplicate-id, empty-field, bad-value.
+Exits 2 when the check could not be completed: the code directory does not exist,
+or a file or directory under it could not be read. A partial scan is never a pass,
+because the file it skipped may hold the reference that is broken.
 """
 
 import argparse
@@ -94,8 +97,13 @@ def read_table(path):
 
 
 def scan(root, exts, prefixes):
-    used = {}
-    for here, dirs, files in os.walk(root):
+    used, unread = {}, []
+
+    def walk_error(exc):
+        unread.append(exc.filename or root)
+        print(f"{exc.filename or root}: unreadable: {exc}", file=sys.stderr)
+
+    for here, dirs, files in os.walk(root, onerror=walk_error):
         dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for name in files:
             if not name.endswith(exts):
@@ -111,8 +119,9 @@ def scan(root, exts, prefixes):
                             if m.group(1).split(".")[0] in prefixes:
                                 used.setdefault(m.group(1), f"{path}:{n}")
             except OSError as exc:
+                unread.append(path)
                 print(f"{path}: unreadable: {exc}", file=sys.stderr)
-    return used
+    return used, unread
 
 
 def main(argv=None):
@@ -129,7 +138,14 @@ def main(argv=None):
         ap.error(f"{args.code_dir}: not a directory; every row would be reported unused")
     rows, findings = read_table(args.table)
     prefixes = {i.split(".")[0] for i in rows} | set(args.prefix)
-    used = scan(args.code_dir, tuple(args.ext), prefixes)
+    used, unread = scan(args.code_dir, tuple(args.ext), prefixes)
+    if unread:
+        print(
+            f"{len(unread)} path(s) could not be read; the scan is incomplete, "
+            "so no finding is reported from it",
+            file=sys.stderr,
+        )
+        return 2
     for eid, where in sorted(used.items()):
         if eid not in rows:
             findings.append((eid, "missing-from-table", f"used at {where}"))
