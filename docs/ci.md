@@ -559,11 +559,18 @@ its `###` subheadings intact; the tagger is the user who dispatched the run.
 
 Triggers only on `push` to `stage` or `main`: no pull request event of any kind, no tag,
 no `workflow_dispatch`, and never `pull_request_target`. Top-level `permissions: {}`; the
-one job, `back-merge`, grants itself `contents: read` and `pull-requests: write` and
-nothing else. It creates no branch, pushes no commit and moves no ref, because each
-back-merge pull request uses the source long-lived branch as its own head: `stage` into
-`dev`, `main` into `stage`, `main` into `dev`. A merged promotion into `stage` leaves one,
-a merged promotion into `main` leaves two.
+one job, `back-merge`, grants the workflow token `contents: read` and nothing else, only
+for the checkout. Everything that writes is done with the App's token: the job creates the
+branch `chore/back-merge-<source>-to-<destination>-<shortsha>` through the API
+(`POST git/refs`) at the pushed commit, and opens a pull request from it. The name is the
+fixed pair plus the first seven characters of that commit, never event text. The branch
+holds only commits the source already has: the job makes no commit, no push and no merge
+commit. It never updates, moves or forces a ref, and never touches `dev`, `stage` or
+`main`. A branch that already exists is never reused: with an open back-merge pull request
+for the pair the run skips it, and without one the run fails with a message, because a
+branch nobody is merging needs a person to look at it. The pairs are `stage` into `dev`, `main` into
+`stage` and `main` into `dev`. A merged promotion into `stage` leaves one, a merged
+promotion into `main` leaves two.
 
 **Why a push, and why that is still "only after merge".** `stage` and `main` take changes
 only through a merged pull request, so a push to either branch is the merge. The workflow
@@ -595,13 +602,14 @@ that runs is the one in the pushed commit, so it first acts on the promotion tha
 introduces it; the App has to be in place by then (see below).
 
 The job's `if:` is only `github.event_name == 'push'` on those two refs, in case the
-trigger is ever widened. No event value reaches a `run:` block: the branch names come from
-a fixed table in the script, and the pushed commit is checked to be 40 hex characters
-before it is placed in an API path. Runs are serialised per branch by the
+trigger is ever widened. No event value reaches a `run:` block: the source and destination
+names come from a fixed table in the script, and the pushed commit is checked to be 40 hex
+characters before it is placed in an API path. Runs are serialised per branch by the
 `back-merge-<branch>` concurrency group, without cancelling one in flight.
 
-**The App is required; there is no `GITHUB_TOKEN` fallback.** Pull requests opened with
-`GITHUB_TOKEN` start no workflow, so `ci` and `security` would never report on them. When
+**The App is required; there is no `GITHUB_TOKEN` fallback.** The App's token creates the
+branch and opens the pull request, and pull requests opened with `GITHUB_TOKEN` start no
+workflow, so `ci` and `security` would never report on them. When
 `BACK_MERGE_APP_CLIENT_ID` is not in the `back-merge` environment the job does nothing but
 print a notice (and write it to the job summary) telling the owner to configure the App.
 When it is set but the token cannot be minted (a wrong key, the App not installed here)
@@ -609,7 +617,7 @@ the job fails.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `back-merge` | `back-merge` | The App token could not be minted although the client id is configured (wrong or missing private key, App not installed on the repository), or the API refused to read or open a pull request, for instance because the App lacks a permission. Open the pull request by hand with the commands under [Back-merges after a promotion](#back-merges-after-a-promotion). A run that only prints the not-configured notice is green. |
+| `back-merge` | `back-merge` | The App token could not be minted although the client id is configured (wrong or missing private key, App not installed on the repository), or the API refused to create the branch, read or open a pull request, for instance because the App lacks a permission, or the branch for this commit already exists and no pull request from it is open (delete it, or open the pull request from it by hand). Open the pull request by hand with the commands under [Back-merges after a promotion](#back-merges-after-a-promotion). A run that only prints the not-configured notice is green. |
 
 Not a required check. [`tests/test_back_merge.py`](../tests/test_back_merge.py) reads the
 trigger and the `if:` out of the real file, evaluates the `if:` over push and non-push
@@ -632,38 +640,43 @@ a person merges it:
 Each is titled `Merge <source> into <destination> after the promotion in #<number>`, and
 its body says to merge it with a merge commit, not squashed. **Merge it with a merge
 commit.** A squash would leave the source's history unmerged and the two branches
-drifting again. Nothing enforces this: the `stage` and `main` rulesets allow merge,
-squash and rebase for every pull request, and `dev` has no ruleset, so it is the body and
-this section that say so. The workflow never merges, enables auto-merge or uses a bypass.
+drifting again. Nothing enforces this: the `dev`, `stage` and `main` rulesets all allow
+merge, squash and rebase for every pull request, so it is the body and this section that
+say so. The workflow never merges, enables auto-merge or uses a bypass.
 
-- **No duplicates.** If a pull request from that head into that base is already open, the
-  run leaves it alone and says so. If the destination already has everything on the
-  source (the compare API reports `ahead_by` of zero), the run skips that pair.
+- **No duplicates.** If a back-merge pull request for that pair is already open, whatever
+  commit its branch was cut at, the run leaves it alone and says so; it looks at the open
+  pull requests into the destination, up to a thousand. If the destination already has
+  everything on the source (the compare API reports `ahead_by` of zero), the run skips
+  that pair.
 - **Conflicts are never resolved by the workflow.** After opening a pull request it waits
   for GitHub to say whether it merges, and if it does not, it adds a Conflicts section to
-  the body, raises a warning annotation and writes it in the job summary. `stage` and
-  `main` are protected, so resolve on a branch of your own and replace the pull request:
+  the body, raises a warning annotation and writes it in the job summary. The branch is not
+  protected, so resolve on it and push without force:
 
   ```shell
   git fetch origin
-  git switch -c chore/back-merge-stage-into-dev origin/stage
+  git switch chore/back-merge-stage-to-dev-<shortsha>
   git merge origin/dev
   # resolve the conflicts, keeping newer work on the destination
   git commit
-  git push origin chore/back-merge-stage-into-dev
-  gh pr create --base dev --head chore/back-merge-stage-into-dev \
-    --title 'Merge stage into dev after the promotion in #NNN'
+  git push origin chore/back-merge-stage-to-dev-<shortsha>
   ```
 
-  Close the pull request the workflow opened, and merge the new one with a merge commit.
-  Keep what the destination has gained since the promotion; never drop one of its commits
-  to make the trees match.
-- **A back-merge is not a feature pull request.** Its head is `stage` or `main`, so
-  [`scripts/check_naming.py`](../scripts/check_naming.py) accepts those two as head branch
-  names, and skips the commit-subject check for commits already on `origin/stage` or
-  `origin/main` when the head is that branch: those were judged when they landed, and
-  some predate the check. A commit that is not on origin's branch is checked as usual, so
-  a fork's own `stage` is not exempt.
+  Then merge the pull request with a merge commit. Keep what the destination has gained
+  since the promotion; never drop one of its commits to make the trees match.
+- **The naming check reads a back-merge's commits.** The branch name passes
+  [`scripts/check_naming.py`](../scripts/check_naming.py) (`chore/` is an allowed prefix),
+  but the check judges every commit in `origin/<destination>..HEAD`, and a back-merge's
+  commits are the source's existing ones. One of them, `5a91a7d` ("feat: restyle the
+  catalogue a release publishes"), is on `stage` and predates the subject rules, so it is
+  named by its full 40-character SHA in the script's `_PRE_RULE_COMMITS`, on any branch.
+  The match is the whole SHA and nothing else: a new commit with the same subject, or an
+  abbreviated SHA, is still checked. There is no branch-based exemption. Add an entry
+  only for a commit already released on `stage` or `main`.
+- **Clean up the branch.** The workflow deletes nothing. Delete each merged
+  `chore/back-merge-*` branch, or leave **Automatically delete head branches** on (it is
+  on for this repository), which removes the branch when its pull request merges.
 
 #### What you set in GitHub
 
@@ -674,9 +687,15 @@ following, once. None of it is in the repository, and none of it is created by t
 workflow.
 
 1. Create a GitHub App owned by the repository owner with repository permissions
-   **Pull requests: Read and write** and **Contents: Read-only** and no other permission,
-   no webhook, and install it on `greenblacked/AI` only, not on every repository. Generate
-   a private key.
+   **Contents: Read and write** (it creates the `chore/back-merge-*` branch) and
+   **Pull requests: Read and write**, and no other permission, no webhook, and install it
+   on `greenblacked/AI` only, not on every repository. Generate a private key. The `stage`
+   and `main` rulesets block non-fast-forward updates and deletion and require a pull
+   request, so the App's write access cannot be used to move or push to them. The
+   `dev branch protection` ruleset also requires a pull request on `dev`, with no bypass
+   actor, so the App cannot write to `dev` directly either: all three long-lived branches
+   take changes only through a pull request. Keep the key in the environment and rotate it
+   (step 3).
 2. Under **Settings → Environments**, create `back-merge` and set the deployment branch
    policy to **Selected branches**, allowing `stage` and `main` only. Add the secrets
    `BACK_MERGE_APP_CLIENT_ID` (the App's client ID) and `BACK_MERGE_APP_PRIVATE_KEY`.
@@ -686,9 +705,14 @@ workflow.
 3. Rotate the private key on a schedule: generate a new one, replace the secret, delete
    the old key in the App's settings. Review the App's permissions and installation then
    too; they should still be exactly the two above, on this repository alone.
-4. Pull requests the App opens show the App as their author, not a person. They carry
-   no commit of their own, since the head is an existing branch, so no commit is
-   attributed to the App.
+4. Pull requests the App opens show the App as their author, not a person, and the branch
+   is created by the App. This is approved. They carry no commit of their own: the branch
+   is cut at an existing commit, so no commit is attributed to the App.
+5. After the App is in place, confirm the whole path on the first promotion that merges,
+   as the repository's review rules require for a new write (`AGENTS.md`): the
+   `back-merge` run for that push should open the pull request, and the pull request
+   should show `ci` and `security` starting. The read half of the path was run against the
+   real API for #396 and #394 before merge; see the pull request.
 
 No personal access token, no ruleset bypass actor and no auto-merge are involved, and
 **Allow GitHub Actions to create and approve pull requests** is not needed and should stay
@@ -1126,8 +1150,8 @@ since the release, the merged tree equals `main` and `git diff origin/main` on t
 is empty. When `dev` has moved on, that diff is the work not yet released: every file it
 lists should be one a pull request into `dev` changed after the release was promoted.
 Keep that newer work; never drop a `dev` commit to make the two trees match. If the
-workflow did not run, open the same pull request by hand from a `chore/back-merge-*` branch
-cut from `origin/dev` with `origin/main` merged into it, as for a conflict.
+workflow did not run, open the same pull request by hand, as before it existed: from a
+`chore/back-merge-*` branch cut from `origin/dev` with `origin/main` merged into it.
 
 `scripts/release.py notes x.y.z` prints one version's section body and nothing else; it is
 what `release.yml` writes into a file for `gh release create --notes-file`, and what a

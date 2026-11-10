@@ -23,18 +23,21 @@
 # against the branch and means something, and the checkout is the protected branch's tip,
 # never a pull request's merge ref. `pull_request_target` is not used.
 #
-# The job only opens pull requests whose head is the source branch itself (stage into dev,
-# main into stage, main into dev), so it needs no write access to contents: it creates no
-# branch and pushes nothing. It never merges, never enables auto-merge, never force-pushes
-# and never resolves a conflict; see scripts/back_merge.py and
-# docs/ci.md#back-merges-after-a-promotion.
+# Each back-merge is a pull request from a branch of its own, chore/back-merge-<source>-to-
+# <destination>-<shortsha>, which the job creates with `POST git/refs` at the pushed commit.
+# The job's GITHUB_TOKEN is read-only: the branch and the pull request are both made with the
+# App's token. There is no commit, push or merge commit in CI; an existing ref is never
+# moved, forced, reused or deleted, and dev, stage and main are never written. The job never
+# merges, never enables auto-merge and never resolves a conflict; see scripts/back_merge.py
+# and docs/ci.md#back-merges-after-a-promotion. A push to a chore/back-merge-* branch cannot
+# start this workflow: the trigger is the two branches below and nothing else.
 #
 # Pull requests made with GITHUB_TOKEN start no workflow, so the required checks `ci` and
 # `security` would never report on one. A token minted from a GitHub App does start them,
-# so the App is required: when its client id is not in the `back-merge` environment the job
-# does nothing but print a notice saying so, and when it is configured but cannot mint a
-# token (a wrong key, an App not installed here) the job fails. There is no fallback to
-# GITHUB_TOKEN.
+# and it is also what creates the branch, so the App is required: when its client id is not
+# in the `back-merge` environment the job does nothing but print a notice saying so, and
+# when it is configured but cannot mint a token (a wrong key, an App not installed here)
+# the job fails. There is no fallback to GITHUB_TOKEN.
 name: Back-merge
 
 on:
@@ -61,10 +64,10 @@ jobs:
     # `stage` and `main`. GITHUB_REF is the pushed branch, so that policy admits exactly the
     # two branches this job runs for.
     environment: back-merge
-    # Nothing here pushes, and the App token below is asked for exactly these two grants.
+    # The workflow token only checks out the branch. Everything that writes is done with the
+    # App's token below, which is asked for contents and pull requests, write, and nothing else.
     permissions:
-      contents: read  # the checkout, and reading the branches being compared
-      pull-requests: write  # reading the pushed commit's pull request, and opening the new one
+      contents: read  # the checkout
     env:
       # Whether the App is configured. `secrets` is not available to a step's `if:`, so the
       # test is made once here, as a string.
@@ -90,7 +93,7 @@ jobs:
         if: ${{ env.APP_CONFIGURED == 'true' }}
         with:
           python-version: '3.13'
-      - name: Mint an App token so the pull requests start the required checks
+      - name: Mint an App token that creates the branch and opens the pull requests
         id: app
         # A client id that is set while the key is missing or wrong fails here, loudly.
         if: ${{ env.APP_CONFIGURED == 'true' }}
@@ -98,7 +101,7 @@ jobs:
         with:
           client-id: ${{ secrets.BACK_MERGE_APP_CLIENT_ID }}
           private-key: ${{ secrets.BACK_MERGE_APP_PRIVATE_KEY }}
-          permission-contents: read
+          permission-contents: write
           permission-pull-requests: write
       - name: Open the back-merge pull requests for a merged promotion
         if: ${{ env.APP_CONFIGURED == 'true' }}

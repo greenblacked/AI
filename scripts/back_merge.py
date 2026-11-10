@@ -24,24 +24,32 @@ anything a promotion did not merge, and a later push to a branch an earlier prom
 once reached all fail one of those and do nothing. So does the merge of a back-merge
 pull request itself, whose head is `main` or `stage`, which is what stops a loop.
 
-Each back-merge is a pull request whose head is the source long-lived branch itself
-(`--head stage --base dev`). So the workflow needs no write access to repository contents:
-it creates no branch, pushes no commit and moves no ref. It only reads, through the API,
-and opens pull requests. GitHub makes the merge commit when a person merges the pull
-request with the merge commit method, never a squash, because a squash would leave the
-source's history unmerged and the two branches drifting again.
+Each back-merge is a pull request from a branch of its own,
+`chore/back-merge-<source>-to-<destination>-<shortsha>`, created through the API
+(`POST git/refs`) at the pushed commit, so it carries only commits the source already has
+and the job makes no commit, no push and no merge commit. The name is built from the
+fixed table and the first seven characters of that commit, never from event text. A
+branch that already exists is never moved, forced or reused: with an open back-merge pull
+request for the pair the run stops there; without one it fails with a message, because
+a branch nobody is merging is something a person should look at. Nothing here ever
+writes to `dev`, `stage` or `main`, and nothing is ever deleted. GitHub makes the merge
+commit when a person merges the pull request with the merge commit method, never a
+squash, because a squash would leave the source's history unmerged and the two branches
+drifting again.
 
 What it deliberately does not do:
 
 - Resolve a conflict. When GitHub reports the pull request as not mergeable, the body
   says so and gives the commands for resolving it by hand on a separate branch.
-- Open a duplicate. An open pull request for the same head and base is left exactly as
-  it is, and so is a pair with nothing to merge (`ahead_by == 0`).
+- Open a duplicate. An open back-merge pull request from `<source>` into `<destination>`,
+  whatever commit it was cut at, is left exactly as it is, and so is a pair with nothing to
+  merge (`ahead_by == 0`).
 - Merge anything, enable auto-merge, or use a bypass.
 - Take a branch name from the event. The branches come from the fixed table below; the
   push only says which row to look at.
-- Act without a GitHub App token. Pull requests opened with the workflow token start no
-  workflow, so the required checks would never report on them. The token arrives in
+- Act without a GitHub App token. The App's token creates the branch and opens the pull
+  request: a pull request opened with the workflow token starts no workflow, so the
+  required checks would never report on it. The token arrives in
   `GH_TOKEN`, and `BACK_MERGE_TOKEN=app` says it is the App's; anything else is a
   notice and no action.
 
@@ -72,6 +80,9 @@ DOCS_PATH = "docs/ci.md#back-merges-after-a-promotion"
 # How long to wait for GitHub to compute whether a new pull request merges cleanly.
 MERGEABLE_POLLS = 10
 MERGEABLE_PAUSE = 3.0
+
+# Open pull requests into one branch that are scanned for an existing back-merge.
+OPEN_PULL_PAGES = 10
 
 Api = Callable[..., Any]
 
@@ -124,11 +135,29 @@ def resolve(api: Api, repo: str, branch: str, sha: str) -> tuple[int, list[tuple
     return None
 
 
+class BranchExistsError(ApiError):
+    """The back-merge branch is already there and no pull request is open for it."""
+
+
+BRANCH_NAMESPACE = "chore/back-merge-"
+
+
+def branch_prefix(source: str, destination: str) -> str:
+    return f"{BRANCH_NAMESPACE}{source}-to-{destination}-"
+
+
+def branch_for(source: str, destination: str, sha: str) -> str:
+    return f"{branch_prefix(source, destination)}{sha[:7]}"
+
+
 def title_for(source: str, destination: str, number: int) -> str:
     return f"Merge {source} into {destination} after the promotion in #{number}"
 
 
-def body_for(source: str, destination: str, number: int, *, conflict: bool = False) -> str:
+def body_for(
+    source: str, destination: str, number: int, sha: str, *, conflict: bool = False
+) -> str:
+    branch = branch_for(source, destination, sha)
     lines = [
         MARKER,
         f"This merges `{source}` back into `{destination}` after #{number} was promoted into "
@@ -137,31 +166,26 @@ def body_for(source: str, destination: str, number: int, *, conflict: bool = Fal
         f"- **What it carries:** everything on `{source}` that `{destination}` does not have "
         f"yet, and so the promotion commit itself. It makes `{source}`'s history an ancestor "
         f"of `{destination}`, so the next promotion starts from a common base.",
-        f"- **Head:** `{source}` itself, so the branch is not copied and the workflow "
-        "pushes nothing.",
+        f"- **Head:** `{branch}`, cut from `{source}` at `{sha[:7]}`, with no commit of its own.",
         "- **Merge method:** merge with a merge commit, not squashed. A squash would leave "
         f"`{source}`'s history unmerged and the two branches drifting again.",
         "- **Conflicts:** never resolved automatically.",
     ]
     if conflict:
-        branch = f"chore/back-merge-{source}-into-{destination}"
         lines += [
             "",
             "## Conflicts",
             "",
-            f"GitHub reports that `{source}` does not merge cleanly into `{destination}`. "
-            f"`{source}` is protected, so resolve it on a branch of your own, merge that "
-            "branch with a merge commit, and close this pull request:",
+            f"GitHub reports that `{branch}` does not merge cleanly into `{destination}`. "
+            "Resolve it by hand, on the branch, with a merge commit, and push without force:",
             "",
             "```shell",
             "git fetch origin",
-            f"git switch -c {branch} origin/{source}",
+            f"git switch {branch}",
             f"git merge origin/{destination}",
             "# resolve the conflicts, keeping newer work on the destination",
             "git commit",
             f"git push origin {branch}",
-            f"gh pr create --base {destination} --head {branch} \\",
-            f"  --title 'Merge {source} into {destination} after the promotion in #{number}'",
             "```",
             "",
             f"Keep what `{destination}` has gained since the promotion; never drop one of its "
@@ -198,12 +222,44 @@ def annotate(level: str, message: str) -> None:
 
 
 def open_pull(api: Api, repo: str, source: str, destination: str) -> dict[str, Any] | None:
-    """The open pull request from `source` into `destination`, if there is one."""
-    owner = repo.split("/", 1)[0]
-    pulls = api(
-        "GET", f"repos/{repo}/pulls?state=open&base={destination}&head={owner}:{source}&per_page=5"
-    )
-    return pulls[0] if pulls else None
+    """An open back-merge pull request from `source` into `destination`, at whatever commit
+    it was cut, if there is one: a branch of this repository named for that pair."""
+    prefix = branch_prefix(source, destination)
+    for page in range(1, OPEN_PULL_PAGES + 1):
+        pulls = api(
+            "GET", f"repos/{repo}/pulls?state=open&base={destination}&per_page=100&page={page}"
+        )
+        for pull in pulls or []:
+            head = pull.get("head") or {}
+            ref = head.get("ref")
+            if (head.get("repo") or {}).get("full_name") == repo and (
+                isinstance(ref, str) and ref.startswith(prefix)
+            ):
+                return pull
+        if not pulls or len(pulls) < 100:
+            break
+    return None
+
+
+def ensure_branch(api: Api, repo: str, branch: str, sha: str) -> None:
+    """Create `branch` at `sha` with `POST git/refs`. Never moves, forces or reuses one:
+    a branch that exists, whatever it points at, is a BranchExistsError. Refuses any name outside
+    the back-merge namespace, so `dev`, `stage` and `main` can never be written."""
+    if not branch.startswith(BRANCH_NAMESPACE) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError(f"refusing to create {branch!r} at {sha!r}")
+    try:
+        api("GET", f"repos/{repo}/git/ref/heads/{branch}")
+    except ApiError as error:
+        if error.status != 404:
+            raise
+    else:
+        raise BranchExistsError(None, f"{branch} already exists")
+    try:
+        api("POST", f"repos/{repo}/git/refs", {"ref": f"refs/heads/{branch}", "sha": sha})
+    except ApiError as error:
+        if error.status != 422:
+            raise
+        raise BranchExistsError(None, f"{branch} already exists") from error
 
 
 def mergeable(api: Api, repo: str, number: int, sleep: Callable[[float], None]) -> bool | None:
@@ -224,37 +280,48 @@ def back_merge(
     source: str,
     destination: str,
     number: int,
+    sha: str,
     *,
     sleep: Callable[[float], None] = time.sleep,
 ) -> dict[str, str]:
-    """One back-merge. Returns what happened, for the summary."""
+    """One back-merge of the pushed commit `sha` on `source`. Returns what happened."""
     pair = {"back_merge": f"{source} into {destination}"}
     existing = open_pull(api, repo, source, destination)
     if existing is not None:
         annotate("notice", f"#{existing['number']} already merges {source} into {destination}")
         return {**pair, "pull_request": f"#{existing['number']}", "result": "already open"}
-    ahead = api("GET", f"repos/{repo}/compare/{destination}...{source}")["ahead_by"]
+    ahead = api("GET", f"repos/{repo}/compare/{destination}...{sha}")["ahead_by"]
     if ahead == 0:
         annotate("notice", f"{destination} already has everything on {source}; nothing to merge")
         return {**pair, "result": "nothing to merge"}
 
+    branch = branch_for(source, destination, sha)
     title = title_for(source, destination, number)
     try:
+        ensure_branch(api, repo, branch, sha)
         created = api(
             "POST",
             f"repos/{repo}/pulls",
             {
                 "title": title,
-                "head": source,
+                "head": branch,
                 "base": destination,
-                "body": body_for(source, destination, number),
+                "body": body_for(source, destination, number, sha),
                 "maintainer_can_modify": False,
             },
         )
+    except BranchExistsError:
+        annotate(
+            "error",
+            f"{branch} already exists and no pull request from it into {destination} is open, "
+            "so it was left as it is. Delete the branch, or open the pull request by hand "
+            f"from it; see {DOCS_PATH}",
+        )
+        raise
     except ApiError as error:
         annotate(
             "error",
-            f"could not open {source} into {destination}: {error}. Check that the App is "
+            f"could not open {branch} into {destination}: {error}. Check that the App is "
             f"installed on this repository with the permissions in {DOCS_PATH}.",
         )
         raise
@@ -264,11 +331,11 @@ def back_merge(
         api(
             "PATCH",
             f"repos/{repo}/pulls/{pull_number}",
-            {"body": body_for(source, destination, number, conflict=True)},
+            {"body": body_for(source, destination, number, sha, conflict=True)},
         )
         annotate(
             "warning",
-            f"#{pull_number} ({source} into {destination}) has conflicts; resolve them by "
+            f"#{pull_number} ({branch} into {destination}) has conflicts; resolve them by "
             f"hand, see {DOCS_PATH}",
         )
         result = "opened, conflicts"
@@ -327,7 +394,7 @@ def main(argv: list[str] | None = None, api: Api = gh_api) -> int:
     failed = False
     for source, destination in targets:
         try:
-            rows.append(back_merge(api, repo, source, destination, number))
+            rows.append(back_merge(api, repo, source, destination, number, sha))
         except ApiError as error:
             failed = True
             annotate("error", f"{source} into {destination}: {error}")
