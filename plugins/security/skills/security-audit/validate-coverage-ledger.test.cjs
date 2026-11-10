@@ -490,6 +490,19 @@ test("rejects reassignment owner reuse and evidence mixing", () => {
   assert(errorsFor([unordered]).some((error) => error.includes("strictly increasing")));
 });
 
+test("accepts two checks in one archived attempt that share an output file", () => {
+  const sharedArtifact = unit({
+    attempts: [
+      archivedAttempt({ local_checks: [localCheck(), localCheck()] }),
+    ],
+    wave: 2,
+    status: "in_progress",
+    agent_id: "hunter-2",
+  });
+  const errors = errorsFor([sharedArtifact]);
+  assert(!errors.some((error) => error.includes("cannot be reused")), errors.join("\n"));
+});
+
 test("rejects unsafe paths and malformed fingerprints", () => {
   for (const value of [
     "/etc/passwd",

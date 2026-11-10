@@ -49,7 +49,10 @@ CC BY 4.0. That file is not covered by the MIT licence above.
 plugins/security/skills/security-audit/ is vendored from cloudflare/security-audit-skill at
 commit c1c8a8c1471069fb0e188eeaff69b8e8db6564a8, Copyright (c) 2025-2026 Cloudflare, Inc., used
 under the MIT licence. Its licence text is plugins/security/skills/security-audit/LICENSE,
-and that directory is not covered by this repository's copyright notice above.
+and that directory is not covered by this repository's copyright notice above. Local changes
+to it: the guides moved to references/ with their file names lowercased in pointers and a
+contents list added to six of them, and validate-coverage-ledger.cjs fixed for artifact reuse
+across checks of one attempt, with a test added; everything else is unchanged.
 
 The catalogue website serves two typefaces from its own domain, both under the SIL Open
 Font License, Version 1.1. They are the latin subsets, in WOFF2, that Google Fonts

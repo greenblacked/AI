@@ -194,4 +194,4 @@ Do not end the run before one of exactly two terminal states: (a) all Phase 6 ar
 
 ## Note
 
-Vendored from cloudflare/security-audit-skill at c1c8a8c (MIT); guides moved to references/, unchanged; see LICENSE in this directory.
+Vendored from cloudflare/security-audit-skill at c1c8a8c (MIT); see LICENSE in this directory. Local changes: the guides moved to references/ with their file names lowercased in pointers and a contents list added to six of them, and validate-coverage-ledger.cjs fixed for artifact reuse across checks of one attempt, with a test added; everything else is unchanged.
