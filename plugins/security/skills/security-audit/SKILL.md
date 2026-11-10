@@ -1,7 +1,7 @@
 ---
 name: security-audit
 description: "Run a full, source-first security audit of a whole codebase, service, library, CLI or daemon: map trust boundaries and a coverage ledger, hunt with isolated sub-agents, validate every candidate independently, and write findings.json plus a report, executing target code only in an OS-enforced no-network sandbox and never probing deployed systems. Use when someone asks to audit or pen-test a repository from source, wants a full, comprehensive or end-to-end security review of a codebase, or wants audit report artifacts. Not for one diff or PR (security-review), a design-time threat model (threat-model), scoping or running a live pentest engagement (security-test-engagement), IAM audits (access-review), dependency CVE triage (dependency-triage), Terraform (iac-review), or a leaked credential (secret-rotation)."
-allowed-tools: "Read, Grep, Glob, Write, Task"
+allowed-tools: "Read, Grep, Glob, Task"
 ---
 
 # Security Audit
