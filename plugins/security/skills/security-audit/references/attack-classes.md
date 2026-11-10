@@ -6,25 +6,25 @@ Select attack classes relevant to the application type. Not every class applies 
 
 Use `confirmed` only when source evidence and bounded validation establish the full boundary and meaningful result. Use `needs_validation` when a specific deployment, provider, platform, identity, or runtime fact is unavailable; state the missing fact and the safe owner-observed or local check that resolves it.
 
-> **Native / binary / kernel targets** (C/C++/Rust-unsafe, kernel modules, parsers and decoders, FFI, concurrent runtimes, binary loaders, JITs, firmware): use the memory-safety, integer/ABI, concurrency, binary-loader, and privileged-interface classes in [MEMORY-SAFETY-AND-BINARY.md](MEMORY-SAFETY-AND-BINARY.md).
+> **Native / binary / kernel targets** (C/C++/Rust-unsafe, kernel modules, parsers and decoders, FFI, concurrent runtimes, binary loaders, JITs, firmware): use the memory-safety, integer/ABI, concurrency, binary-loader, and privileged-interface classes in [memory-safety-and-binary.md](memory-safety-and-binary.md).
 >
-> **AI / LLM / agent targets** (chatbots, RAG, persistent memory, tool-calling agents, MCP servers/clients, prompt assembly, or model-controlled actions): use the context, memory-poisoning, action-binding, tool-schema, MCP-identity, and output classes in [AI-AND-LLM.md](AI-AND-LLM.md).
+> **AI / LLM / agent targets** (chatbots, RAG, persistent memory, tool-calling agents, MCP servers/clients, prompt assembly, or model-controlled actions): use the context, memory-poisoning, action-binding, tool-schema, MCP-identity, and output classes in [ai-and-llm.md](ai-and-llm.md).
 >
-> **HTTP, web, and identity targets** (ordinary web apps, APIs, reverse proxies, CDNs, gateways, custom HTTP parsers, sessions, CSRF, JWT, OAuth/OIDC, SAML, MFA, passkeys, account recovery/linking, API keys, or mTLS): use [WEB-PROTOCOL-AND-AUTH.md](WEB-PROTOCOL-AND-AUTH.md).
+> **HTTP, web, and identity targets** (ordinary web apps, APIs, reverse proxies, CDNs, gateways, custom HTTP parsers, sessions, CSRF, JWT, OAuth/OIDC, SAML, MFA, passkeys, account recovery/linking, API keys, or mTLS): use [web-protocol-and-auth.md](web-protocol-and-auth.md).
 >
-> **Client-side and browser targets** (SPAs, browser extensions, embedded webviews, service workers, browser storage, cross-window messaging, CORS, WebSockets, or DOM rendering): use [CLIENT-SIDE.md](CLIENT-SIDE.md).
+> **Client-side and browser targets** (SPAs, browser extensions, embedded webviews, service workers, browser storage, cross-window messaging, CORS, WebSockets, or DOM rendering): use [client-side.md](client-side.md).
 >
-> **Supply-chain and release targets** (dependency resolution, generated inputs, CI, release/signing/promotion, updates, plugins, or extensions): use [SUPPLY-CHAIN-AND-RELEASE.md](SUPPLY-CHAIN-AND-RELEASE.md).
+> **Supply-chain and release targets** (dependency resolution, generated inputs, CI, release/signing/promotion, updates, plugins, or extensions): use [supply-chain-and-release.md](supply-chain-and-release.md).
 >
-> **Cloud and deployment targets** (IAM, infrastructure as code, containers/Kubernetes, service mesh, serverless/edge, ingress, provider events, or runtime configuration): use [CLOUD-AND-DEPLOYMENT.md](CLOUD-AND-DEPLOYMENT.md).
+> **Cloud and deployment targets** (IAM, infrastructure as code, containers/Kubernetes, service mesh, serverless/edge, ingress, provider events, or runtime configuration): use [cloud-and-deployment.md](cloud-and-deployment.md).
 >
-> **Protocol, RPC, and messaging targets** (gRPC, GraphQL transports, Protobuf/Cap'n Proto/Thrift, custom protocols, queues, brokers, pub/sub, webhooks, or streaming RPC): use [PROTOCOLS-RPC-AND-MESSAGING.md](PROTOCOLS-RPC-AND-MESSAGING.md).
+> **Protocol, RPC, and messaging targets** (gRPC, GraphQL transports, Protobuf/Cap'n Proto/Thrift, custom protocols, queues, brokers, pub/sub, webhooks, or streaming RPC): use [protocols-rpc-and-messaging.md](protocols-rpc-and-messaging.md).
 >
-> **Resource-exhaustion and availability targets** (untrusted work can consume shared CPU, memory, disk, connections, workers, queues, quotas, or operator-owned spend): use [RESOURCE-EXHAUSTION-AND-AVAILABILITY.md](RESOURCE-EXHAUSTION-AND-AVAILABILITY.md).
+> **Resource-exhaustion and availability targets** (untrusted work can consume shared CPU, memory, disk, connections, workers, queues, quotas, or operator-owned spend): use [resource-exhaustion-and-availability.md](resource-exhaustion-and-availability.md).
 >
-> **Data-isolation and lifecycle targets** (multi-tenant stores, caches/search, object links, analytics, export/backup, migration, deletion, retention, or restore): use [DATA-ISOLATION-AND-LIFECYCLE.md](DATA-ISOLATION-AND-LIFECYCLE.md).
+> **Data-isolation and lifecycle targets** (multi-tenant stores, caches/search, object links, analytics, export/backup, migration, deletion, retention, or restore): use [data-isolation-and-lifecycle.md](data-isolation-and-lifecycle.md).
 >
-> **Desktop, mobile, and local-IPC targets** (native apps, deep links, webview bridges, exported components, privileged helpers, local daemons, Unix sockets/XPC/Binder/D-Bus): use [DESKTOP-MOBILE-AND-LOCAL-IPC.md](DESKTOP-MOBILE-AND-LOCAL-IPC.md).
+> **Desktop, mobile, and local-IPC targets** (native apps, deep links, webview bridges, exported components, privileged helpers, local daemons, Unix sockets/XPC/Binder/D-Bus): use [desktop-mobile-and-local-ipc.md](desktop-mobile-and-local-ipc.md).
 
 **Injection** (subagent_type: `general`)
 Trace untrusted input from entry point to dangerous sink. What counts as a "dangerous sink" depends on the application:
@@ -32,7 +32,7 @@ Trace untrusted input from entry point to dangerous sink. What counts as a "dang
 - Libraries: any function that processes caller-supplied data without validation — buffer operations, parsers, format strings
 - CLI tools: shell command construction, file path handling, environment variable interpolation
 - Services: query construction, message serialization, log injection, LDAP/XPATH queries
-- Client-side (browser/JS): DOM XSS, prototype pollution, `postMessage`/origin trust, and other browser-side classes — covered by the [CLIENT-SIDE.md](CLIENT-SIDE.md) companion blocks when selected
+- Client-side (browser/JS): DOM XSS, prototype pollution, `postMessage`/origin trust, and other browser-side classes — covered by the [client-side.md](client-side.md) companion blocks when selected
 
 Do not stop at the obvious direct paths. Look for indirect injection: data stored safely, then retrieved and used in a dangerous context by different code. Look for injection through field names, keys, headers, and metadata — not just values. Look for injection into secondary systems (logs, caches, search indexes, analytics).
 

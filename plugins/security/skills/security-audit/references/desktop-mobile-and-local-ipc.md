@@ -4,7 +4,7 @@
 
 Reach for this file when the target is a desktop or mobile app, privileged helper, updater, local daemon, webview host, deep-link handler, browser native-messaging host, or local IPC client/server. Relevant untrusted actors may be a downloaded document, remote web content, another local app, another OS user, a sandboxed process, or a lower-privilege account. State that starting capability instead of treating all local users as equivalent.
 
-Use `CLIENT-SIDE.md` for browser-side webview behavior, `MEMORY-SAFETY-AND-BINARY.md` for native memory and loader safety, and `SUPPLY-CHAIN-AND-RELEASE.md` for update authenticity.
+Use `client-side.md` for browser-side webview behavior, `memory-safety-and-binary.md` for native memory and loader safety, and `supply-chain-and-release.md` for update authenticity.
 
 ## Core discipline (include in every agent prompt for this domain)
 
@@ -61,7 +61,7 @@ A low-privilege caller can select a privileged command, file, service, user, or 
 A privileged installer/helper reads manifests, scripts, packages, symlinks, working directories, or repair state writable by a lower-trust actor after authorization. Bind authorization to immutable content and safe destination paths.
 
 **Local file ownership and TOCTOU**
-The app checks a file/path then follows replacement, symlink, mount, or case/normalization changes during a privileged read/write. Use descriptor-relative operations and verify final ownership. Focus `MEMORY-SAFETY-AND-BINARY.md` on parsing after the file is opened.
+The app checks a file/path then follows replacement, symlink, mount, or case/normalization changes during a privileged read/write. Use descriptor-relative operations and verify final ownership. Focus `memory-safety-and-binary.md` on parsing after the file is opened.
 
 **Credential-store and local-secret boundary mismatch**
 A keychain/keystore item, token file, backup, log, clipboard, notification preview, or local config is readable by another app/profile/user with less authority. Plaintext readable only by the same intended OS account is not automatically a vulnerability; state the lower-trust reader and credential power.

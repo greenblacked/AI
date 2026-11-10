@@ -81,7 +81,7 @@ The parent synthesizes `<output-dir>/architecture.md`, with a hard cap of about 
 5. Trust boundaries and the strongest source-visible control on each.
 6. Repository-relative starting paths.
 7. Prior coverage gaps, changed-source and blocked revalidation targets, and same-source confirmed exclusions.
-8. A short companion-selection summary derived from [ATTACK-CLASSES.md](ATTACK-CLASSES.md): selected files and the source-visible boundaries that require them.
+8. A short companion-selection summary derived from [attack-classes.md](attack-classes.md): selected files and the source-visible boundaries that require them.
 
 Keep the assignment-level ordinary block, selected companion blocks, and excluded blocks with reasons in each ledger unit, not in `architecture.md`. This keeps the architecture cap valid for large runs and makes the exact hunter prompt map machine-checkable.
 
@@ -110,14 +110,14 @@ Each unit records:
     "surface": "src/router.ts#POST /users/:id",
     "boundary": "src/authz.ts#requireOwner",
     "subsystem": "packages/api",
-    "attack_class": "ATTACK-CLASSES.md#Access control"
+    "attack_class": "attack-classes.md#Access control"
   },
   "surface": "...",
   "boundary": "...",
   "subsystem": "...",
   "attack_class": "...",
   "starting_paths": ["repo/relative/path"],
-  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "ordinary_attack_class_block": "attack-classes.md#Access control",
   "selected_companion_blocks": ["FILE.md#section"],
   "excluded_blocks": [{"block": "FILE.md#section", "reason": "..."}],
   "prior_status": "new|prior_confirmed_same_source|prior_confirmed_changed_source|prior_needs_validation|prior_deferred|prior_blocked|prior_out_of_scope|prior_covered_same_source|prior_covered_changed_source|prior_rejected_claim_changed|none",

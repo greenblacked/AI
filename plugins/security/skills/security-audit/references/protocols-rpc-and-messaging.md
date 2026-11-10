@@ -2,7 +2,7 @@
 
 #### When to use this file
 
-Reach for this file when the target uses gRPC, GraphQL transports, Cap'n Proto, Thrift, Protobuf, custom binary protocols, streaming RPC, webhooks, brokers, queues, pub/sub, or event buses. It covers peer identity, logical message interpretation, routing, replay, ordering, and delivery semantics. Use `MEMORY-SAFETY-AND-BINARY.md` for parser memory safety, `WEB-PROTOCOL-AND-AUTH.md` for HTTP framing, and `RESOURCE-EXHAUSTION-AND-AVAILABILITY.md` for availability impact.
+Reach for this file when the target uses gRPC, GraphQL transports, Cap'n Proto, Thrift, Protobuf, custom binary protocols, streaming RPC, webhooks, brokers, queues, pub/sub, or event buses. It covers peer identity, logical message interpretation, routing, replay, ordering, and delivery semantics. Use `memory-safety-and-binary.md` for parser memory safety, `web-protocol-and-auth.md` for HTTP framing, and `resource-exhaustion-and-availability.md` for availability impact.
 
 Split large systems by producer/consumer pair, external/internal peer role, synchronous RPC, streaming, and asynchronous message path.
 

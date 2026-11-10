@@ -4,7 +4,7 @@
 
 Reach for this file when a language model participates in a trust-sensitive decision: chatbots and assistants, RAG pipelines, persistent agent memory, agent/tool-calling loops, MCP servers and clients, code that builds prompts from untrusted input, or code that consumes model output and acts on it. The important data flow is *untrusted content → model or memory → capability, authority, or sink*.
 
-Use this alongside `ATTACK-CLASSES.md`, not instead of it. Transport, access control, query construction, filesystem use, and output rendering remain ordinary trust boundaries. This file covers the model-specific delegation layer. Split large targets by retrieval, memory, tool dispatch, MCP, and output handling.
+Use this alongside `attack-classes.md`, not instead of it. Transport, access control, query construction, filesystem use, and output rendering remain ordinary trust boundaries. This file covers the model-specific delegation layer. Split large targets by retrieval, memory, tool dispatch, MCP, and output handling.
 
 ## Core discipline (include in every agent prompt for this domain)
 
@@ -62,7 +62,7 @@ Tool descriptions, resource metadata, prompts, completion hints, or schemas supp
 ## Output and disclosure attack classes (subagent_type: `general`)
 
 **Insecure output rendering**
-Model output reaches an executing HTML, Markdown, template, URL, or command sink without the sink's required encoding and policy. For browser rendering, verify auto-loaded resources and CSP or sanitization in `CLIENT-SIDE.md`; renderer behavior outside the repository makes the candidate `needs_validation`.
+Model output reaches an executing HTML, Markdown, template, URL, or command sink without the sink's required encoding and policy. For browser rendering, verify auto-loaded resources and CSP or sanitization in `client-side.md`; renderer behavior outside the repository makes the candidate `needs_validation`.
 
 **Sensitive context extraction**
 The assembled context contains credentials, another user's data, private source, or policy values that themselves grant access, and user-influenced output exposes them. Read prompt assembly and data-fetch code. Disclosure of generic instructions or behavior that does not cross a data boundary is not a finding.

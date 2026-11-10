@@ -2,7 +2,7 @@
 
 #### When to use this file
 
-Reach for this file when the target processes untrusted bytes in a memory-unsafe or privileged context: C/C++/Objective-C, Rust `unsafe`, FFI, kernel modules and drivers, parsers and decoders, network daemons, firmware, binary loaders, language runtimes, and JITs. Use `PROTOCOLS-RPC-AND-MESSAGING.md` for protocol authorization and state-machine logic, and this file for process integrity, memory safety, ABI boundaries, and loader behavior.
+Reach for this file when the target processes untrusted bytes in a memory-unsafe or privileged context: C/C++/Objective-C, Rust `unsafe`, FFI, kernel modules and drivers, parsers and decoders, network daemons, firmware, binary loaders, language runtimes, and JITs. Use `protocols-rpc-and-messaging.md` for protocol authorization and state-machine logic, and this file for process integrity, memory safety, ABI boundaries, and loader behavior.
 
 Pick relevant classes from Phase 1 and split large targets by parser, allocator/lifetime, FFI, concurrency, loader, runtime, or privileged interface.
 
@@ -64,7 +64,7 @@ Exceptions or panics cross an ABI that forbids unwinding, callbacks run after te
 A privileged process loads a library, plugin, runtime image, or helper from a path writable by a less-trusted principal, or resolves a bare name through an attacker-influenceable working directory or environment. Compare intended installation ownership with each fallback and compatibility search path. A user loading their own plugin into their own process is not a boundary violation.
 
 **Missing artifact identity or signature binding**
-A loader verifies one file or metadata record but maps a different image because path resolution, file replacement, architecture slices, or embedded resources are not bound to the check. Supply-channel authenticity belongs in `SUPPLY-CHAIN-AND-RELEASE.md`; this class covers the local verification-to-map gap.
+A loader verifies one file or metadata record but maps a different image because path resolution, file replacement, architecture slices, or embedded resources are not bound to the check. Supply-channel authenticity belongs in `supply-chain-and-release.md`; this class covers the local verification-to-map gap.
 
 **Malformed binary metadata and relocation handling**
 Offsets, counts, sections, relocations, symbols, bytecode, or debug metadata are trusted before range, overlap, and representation checks. Test parsers with bounded local fixtures and sanitizers. Separate memory corruption from a safely rejected malformed file.

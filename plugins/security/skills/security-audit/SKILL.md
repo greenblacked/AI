@@ -80,7 +80,7 @@ Before execution, the parent opens and retains trusted, non-inheritable director
 10. Never recursively copy or glob scratch, extract an archive into artifacts, or open or promote a symlink, FIFO, socket, device, directory, hard-linked file, changing file, or file that exceeds its bound.
 11. If any check is unavailable, cannot be enforced, or fails, discard the scratch entry; if it is decisive evidence, retain `needs_validation` with the exact promotion blocker.
 
-[HUNTING.md](HUNTING.md) and [VALIDATION-AND-REPORTING.md](VALIDATION-AND-REPORTING.md) carry this procedure as one identical fenced block for hunter and verifier prompts; it states the same rules in the same order as this list.
+[references/hunting.md](references/hunting.md) and [references/validation-and-reporting.md](references/validation-and-reporting.md) carry this procedure as one identical fenced block for hunter and verifier prompts; it states the same rules in the same order as this list.
 
 For a reproduced check, record the command, exact test input, sandbox limits, and only the allowlisted environment variable names plus safe non-secret values needed to reproduce it. Never capture or copy the ambient environment, inherited variables, credential values, authentication state, or unrelated host paths. Launch from an empty environment rather than trying to redact one after execution.
 
@@ -92,7 +92,7 @@ The coverage, prior-run, profile, and budget requirements in this section apply 
 
 ### Coverage and prior runs
 
-No one pass is complete. Build a deterministic coverage plan before hunting and update it after every agent result. [RECONNAISSANCE.md](RECONNAISSANCE.md) defines the stable coverage units and [HUNTING.md](HUNTING.md) defines coverage-critic waves. The parent alone updates the ledger.
+No one pass is complete. Build a deterministic coverage plan before hunting and update it after every agent result. [references/reconnaissance.md](references/reconnaissance.md) defines the stable coverage units and [references/hunting.md](references/hunting.md) defines coverage-critic waves. The parent alone updates the ledger.
 
 If prior runs exist, read every compatible `coverage-ledger.json` and `findings.json` before planning the current run:
 
@@ -170,9 +170,9 @@ For each confirmed finding, identify the invariant the code must enforce and the
 
 In full audit mode, follow all six phases in order:
 
-1. **Reconnaissance** — map the source, trust boundaries, local build paths, companion selections, prior evidence, and initial deterministic coverage ledger with [RECONNAISSANCE.md](RECONNAISSANCE.md).
-2. **Coverage-led hunting waves** — assign isolated hunters from the ledger and collect structured candidate results with [HUNTING.md](HUNTING.md), [ATTACK-CLASSES.md](ATTACK-CLASSES.md), and the selected domain companions.
-3. **Candidate validation** — consolidate fingerprints and give every candidate to a fresh source verifier as defined in [VALIDATION-AND-REPORTING.md](VALIDATION-AND-REPORTING.md).
+1. **Reconnaissance** — map the source, trust boundaries, local build paths, companion selections, prior evidence, and initial deterministic coverage ledger with [references/reconnaissance.md](references/reconnaissance.md).
+2. **Coverage-led hunting waves** — assign isolated hunters from the ledger and collect structured candidate results with [references/hunting.md](references/hunting.md), [references/attack-classes.md](references/attack-classes.md), and the selected domain companions.
+3. **Candidate validation** — consolidate fingerprints and give every candidate to a fresh source verifier as defined in [references/validation-and-reporting.md](references/validation-and-reporting.md).
 4. **Structured output** — write all final `confirmed`, `needs_validation`, and `rejected` records to `findings.json`; validate it with `report-schema.json` and `validate-findings.cjs`, and validate the coverage claim with `validate-coverage-ledger.cjs`.
 5. **Independent record verification** — use fresh agents to verify final source claims and reconcile corrections or state changes.
 6. **Target-neutral report** — derive `REPORT.md`, `FINDINGS-DETAIL.md`, and `NEEDS-VALIDATION.md` from the final records, with no live-probe instructions.
@@ -194,4 +194,4 @@ Do not end the run before one of exactly two terminal states: (a) all Phase 6 ar
 
 ## Note
 
-Vendored from cloudflare/security-audit-skill at c1c8a8c (MIT); see LICENSE in this directory.
+Vendored from cloudflare/security-audit-skill at c1c8a8c (MIT); guides moved to references/, unchanged; see LICENSE in this directory.

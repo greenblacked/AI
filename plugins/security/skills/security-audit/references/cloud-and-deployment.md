@@ -4,7 +4,7 @@
 
 Reach for this file when the repository defines cloud identity, infrastructure, containers, Kubernetes, service mesh, serverless functions, edge workers, ingress, object storage, managed services, or environment-specific configuration. This domain asks whether deployed components receive the intended identity, isolation, network reachability, secrets, and policy. Source often expresses intent rather than live fact, so separate source-confirmed defects from deployment validation needs.
 
-Use `SUPPLY-CHAIN-AND-RELEASE.md` for build and promotion trust, `WEB-PROTOCOL-AND-AUTH.md` for HTTP proxy semantics, and `DATA-ISOLATION-AND-LIFECYCLE.md` for data-store tenant scope.
+Use `supply-chain-and-release.md` for build and promotion trust, `web-protocol-and-auth.md` for HTTP proxy semantics, and `data-isolation-and-lifecycle.md` for data-store tenant scope.
 
 ## Core discipline (include in every agent prompt for this domain)
 
@@ -36,7 +36,7 @@ An ingress, service, listener, security group, load-balancer annotation, port ma
 A backend accepts forwarded identity, mTLS subject, or authorization metadata from peers outside the intended ingress/sidecar, or an alternate port and health/legacy path bypasses the mesh. Verify header stripping, peer reachability, and fail-open behavior when the proxy is absent.
 
 **Metadata and internal-service reachability**
-An untrusted URL, destination, or protocol selection reaches instance/container metadata, control-plane sockets, or internal APIs with workload credentials. Trace URL parsing and redirect handling under `ATTACK-CLASSES.md`; here establish deployed network, metadata-version, and identity boundaries.
+An untrusted URL, destination, or protocol selection reaches instance/container metadata, control-plane sockets, or internal APIs with workload credentials. Trace URL parsing and redirect handling under `attack-classes.md`; here establish deployed network, metadata-version, and identity boundaries.
 
 ## Container and orchestration attack classes (subagent_type: `general`)
 

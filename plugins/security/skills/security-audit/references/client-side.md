@@ -4,7 +4,7 @@
 
 Reach for this file when meaningful trust decisions or untrusted rendering happen in a browser: single-page apps, browser extensions, embedded webviews, service workers, offline applications, and code that renders attacker-influenceable content into the DOM, receives cross-window messages, or uses browser storage. These paths include sources the server never sees, such as URL fragments, `window.name`, `postMessage`, and previously cached content.
 
-Use alongside `ATTACK-CLASSES.md`. This file covers browser sources and sinks, origin boundaries, browser persistence, and cross-site state oracles. Use `DESKTOP-MOBILE-AND-LOCAL-IPC.md` for the native side of a webview bridge, and `WEB-PROTOCOL-AND-AUTH.md` for server-side CSRF, sessions, and auth callbacks.
+Use alongside `attack-classes.md`. This file covers browser sources and sinks, origin boundaries, browser persistence, and cross-site state oracles. Use `desktop-mobile-and-local-ipc.md` for the native side of a webview bridge, and `web-protocol-and-auth.md` for server-side CSRF, sessions, and auth callbacks.
 
 ## Core discipline (include in every agent prompt for this domain)
 
