@@ -10,9 +10,10 @@ touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the t
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
 `cut-release.yml` creates that tag from the Actions tab and hands it to `release.yml`,
-and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
-the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `cut-release.yml`, `release.yml` or
-`deploy.yml` is a required check.
+`back-merge.yml` opens the pull requests that merge `stage` and `main` back down once a
+promotion has merged, and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
+the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `cut-release.yml`, `back-merge.yml`,
+`release.yml` or `deploy.yml` is a required check.
 
 ## Execution flow
 
@@ -322,7 +323,8 @@ it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
 in `security.yml` also writes, but only `security-events`, to publish its scan
 results, not to change anything a person reads as the repository's content).
 `ci-triage.yml`'s job also holds `pull-requests: write`, but spends it only on the one
-triage comment and the `ci-failed` label, never on merging or pushing anything. Not a
+triage comment and the `ci-failed` label, never on merging or pushing anything, and
+`back-merge.yml`'s holds it only to open a back-merge pull request, beside `contents: read`. Not a
 required check — it names no other job and has no
 aggregator, the same as `scheduled.yml` and `evals.yml` — because nothing depends on it
 and the two gates that do matter, `ci` and `security`, do the deciding. A `concurrency:`
@@ -552,6 +554,121 @@ one pushed by hand.
 Not a required check — nothing merges against it. The tag message is the changelog
 section, sent to the API as a JSON string built by Python so it arrives verbatim, with
 its `###` subheadings intact; the tagger is the user who dispatched the run.
+
+## `.github/workflows/back-merge.yml` — Back-merge
+
+Triggers only on `pull_request` `closed` into `stage` or `main`: not on open,
+synchronize or reopen, not on a push, not on `workflow_dispatch`, and never on
+`pull_request_target`, whose privileges nothing here needs. `closed` also fires for a
+pull request closed without merging, so the one job, `back-merge`, carries an `if:` that
+needs all of: `merged == true`; a head branch in this repository; and the exact pair
+base `stage` with a head starting `release/promote-dev-to-stage`, or base `main` with a
+head starting `release/promote-stage-to-main`. Every other pull request into those
+branches skips the job, which is the intended outcome and blocks nothing, since nothing
+requires it. The head is matched by prefix because that is how promotions are made here:
+a promotion is a squash-merged `release/promote-*` branch (`release/promote-dev-to-stage-0.6.0-live-ops`,
+`release/promote-stage-to-main-0.6.0`), never `dev` or `stage` themselves, so matching the
+base alone would also fire for a pull request that is not a promotion.
+
+Top-level `permissions: {}`; the job grants itself `contents: read` and
+`pull-requests: write` and nothing else. It creates no branch, pushes no commit and moves
+no ref, because each back-merge pull request uses the source long-lived branch as its own
+head: `stage` into `dev`, `main` into `stage`, `main` into `dev`. A merged promotion into
+`stage` leaves one, a merged promotion into `main` leaves two. The job's `environment` is
+`back-merge`, and for a merged pull request `GITHUB_REF` is the branch it merged into, so
+an environment limited to `stage` and `main` admits exactly the runs this job can have.
+The checkout is of that base branch with `persist-credentials: false`, so the script that
+runs is the reviewed one, never one from a pull request. No event-derived value reaches a
+`run:` block: the branch names come from a fixed table in
+[`scripts/back_merge.py`](../scripts/back_merge.py), and the event only decides whether a
+row of it applies. Runs are serialised per base branch by the `back-merge-<base>`
+concurrency group, without cancelling one in flight.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `back-merge` | `back-merge` | The App token could not be minted although the client id is configured (wrong or missing private key, App not installed on the repository), or the API refused to open a pull request. A repository whose Actions settings forbid workflows opening pull requests fails here with that message; either allow it or set up the App. Open the pull request by hand with the commands under [Back-merges after a promotion](#back-merges-after-a-promotion). |
+
+Not a required check. [`scripts/back_merge.py`](../scripts/back_merge.py) does the work;
+[`tests/test_back_merge.py`](../tests/test_back_merge.py) reads the trigger and the `if:`
+out of the real file and evaluates the `if:` over merged and unmerged closes for both
+bases, a wrong head, a fork head and opened and synchronize events.
+
+### Back-merges after a promotion
+
+Promotions are squash merges, so after one the branch it came from lacks the commit that
+landed on the branch it went to. The workflow opens the pull request that fixes that, and
+a person merges it:
+
+| A promotion merged into | Pull requests opened |
+| --- | --- |
+| `stage`, from `release/promote-dev-to-stage*` | `stage` into `dev` |
+| `main`, from `release/promote-stage-to-main*` | `main` into `stage`, and `main` into `dev` |
+
+Each is titled `Merge <source> into <destination> after the promotion in #<number>`, and
+its body says to merge it with a merge commit, not squashed. **Merge it with a merge
+commit.** A squash would leave the source's history unmerged and the two branches
+drifting again. Nothing enforces this: the `stage` and `main` rulesets allow merge,
+squash and rebase for every pull request, and `dev` has no ruleset, so it is the body and
+this section that say so. The workflow never merges, enables auto-merge or uses a bypass.
+
+- **No duplicates.** If a pull request from that head into that base is already open, the
+  run leaves it alone and says so. If the destination already has everything on the
+  source (the compare API reports `ahead_by` of zero), the run skips that pair.
+- **Conflicts are never resolved by the workflow.** After opening a pull request it waits
+  for GitHub to say whether it merges, and if it does not, it adds a Conflicts section to
+  the body, raises a warning annotation and writes it in the job summary. `stage` and
+  `main` are protected, so resolve on a branch of your own and replace the pull request:
+
+  ```shell
+  git fetch origin
+  git switch -c chore/back-merge-stage-into-dev origin/stage
+  git merge origin/dev
+  # resolve the conflicts, keeping newer work on the destination
+  git commit
+  git push origin chore/back-merge-stage-into-dev
+  gh pr create --base dev --head chore/back-merge-stage-into-dev \
+    --title 'Merge stage into dev after the promotion in #NNN'
+  ```
+
+  Close the pull request the workflow opened, and merge the new one with a merge commit.
+  Keep what the destination has gained since the promotion; never drop one of its commits
+  to make the trees match.
+- **A back-merge is not a feature pull request.** Its head is `stage` or `main`, so
+  [`scripts/check_naming.py`](../scripts/check_naming.py) accepts those two as head branch
+  names, and skips the commit-subject check for commits already on `origin/stage` or
+  `origin/main` when the head is that branch: those were judged when they landed, and
+  some predate the check. A commit that is not on origin's branch is checked as usual, so
+  a fork's own `stage` is not exempt.
+
+#### What you set in GitHub
+
+Pull requests opened with `GITHUB_TOKEN` start no workflow, so the required checks `ci`
+and `security` never report on them and the pull request cannot merge without a bypass.
+A GitHub App installation token does start them. This needs the following, once. None of
+it is in the repository, and none of it is created by the workflow.
+
+1. Create a GitHub App owned by the repository owner, with repository permissions
+   **Pull requests: Read and write** and **Contents: Read-only** and nothing else, no
+   webhook, and install it on `greenblacked/AI` only. Generate a private key.
+2. Under **Settings → Environments**, create `back-merge` and set the deployment branch
+   policy to **Selected branches**, allowing `stage` and `main` only. Add the secrets
+   `BACK_MERGE_APP_CLIENT_ID` (the App's client ID) and `BACK_MERGE_APP_PRIVATE_KEY`.
+   Keep them on the environment and not in the repository secrets: a pull request from
+   this repository can read a repository secret by editing the workflow, and this
+   environment hands them only to a run on `stage` or `main`.
+3. Pull requests the App opens show the App as their author, not a person. They carry
+   no commit of their own, since the head is an existing branch, so no commit is
+   attributed to the App.
+
+No personal access token, no ruleset bypass actor and no auto-merge are involved.
+
+Without the App the job still runs: `BACK_MERGE_APP_CLIENT_ID` is empty, it falls back to
+`GITHUB_TOKEN`, and it says so in a warning, in the job summary and in the pull
+request. That needs **Settings → Actions → General → Allow GitHub Actions to create and
+approve pull requests** on, or the API refuses and the job fails with a message naming
+the setting. Close and reopen each such pull request so the required checks start. A
+client ID that is set with a missing or wrong key does not fall back: the token step
+fails and the job fails with it.
 
 ## `.github/workflows/deploy.yml` — Cloudflare
 
@@ -971,16 +1088,21 @@ second has two routes, and the Actions one is the usual path.
    credential fails the deploy job and leaves the GitHub Release in place; fix the
    environment and re-run the workflow.
 
-After every release, merge `main` back into `dev`. Open a pull request from a
-`chore/back-merge-main-x.y.z` branch cut from `origin/dev` with `origin/main` merged into
-it, and merge it with a merge commit, never a squash. That carries the dated changelog
+After each promotion [`back-merge.yml`](#githubworkflowsback-mergeyml--back-merge) opens
+the back-merge pull requests, so a release needs no hand-made one: merging the promotion
+into `main` leaves `main` into `stage` and `main` into `dev`, and merging the promotion
+into `stage` leaves `stage` into `dev`. Merge each with a merge commit, never a squash;
+[Back-merges after a promotion](#back-merges-after-a-promotion) covers what they carry,
+conflicts and the one-time setup. That carries the dated changelog
 section and any Dependabot bumps that landed only on `main` into `dev`, and makes
 `main`'s history an ancestor of `dev`, so the next promotion starts from a common base
 instead of re-resolving the same changelog conflict. When nothing has merged into `dev`
 since the release, the merged tree equals `main` and `git diff origin/main` on the branch
 is empty. When `dev` has moved on, that diff is the work not yet released: every file it
 lists should be one a pull request into `dev` changed after the release was promoted.
-Keep that newer work; never drop a `dev` commit to make the two trees match.
+Keep that newer work; never drop a `dev` commit to make the two trees match. If the
+workflow did not run, open the same pull request by hand from a `chore/back-merge-*` branch
+cut from `origin/dev` with `origin/main` merged into it, as for a conflict.
 
 `scripts/release.py notes x.y.z` prints one version's section body and nothing else; it is
 what `release.yml` writes into a file for `gh release create --notes-file`, and what a
@@ -1086,7 +1208,7 @@ build script pulls in — can read it and push with it. None of these jobs push,
 them need the credential to survive the checkout step.
 
 Every job sets `timeout-minutes` — five for most, ten for `validate-plugin`, `test`,
-`package`, `cut-release.yml`'s job and the three `scheduled.yml` jobs, fifteen for the release job, twenty for
+`package`, `cut-release.yml`'s and `back-merge.yml`'s jobs and the three `scheduled.yml` jobs, fifteen for the release job, twenty for
 CodeQL, two hours for the monthly eval job, and forty-five for the pull request eval
 job. The default is six hours, which is long enough that a hung step looks like a slow
 one for most of a working day, and it holds a runner the whole time. A timeout turns
