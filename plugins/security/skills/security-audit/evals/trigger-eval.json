@@ -1,19 +1,23 @@
-{
-  "queries_that_should_trigger": [
-    "security audit this codebase",
-    "find security vulnerabilities in the repo",
-    "do a full security review of the API",
-    "pen-test this service",
-    "run a comprehensive security audit",
-    "audit the code for vulnerabilities",
-    "security review of the authentication flow",
-    "check this project for security issues"
-  ],
-  "queries_that_should_not_trigger": [
-    "write a unit test",
-    "deploy to production",
-    "format the code",
-    "explain this function",
-    "add a new feature for user profiles"
-  ]
-}
+[
+  {"query": "do a full security audit of this repository and write up a report for the owners", "should_trigger": true},
+  {"query": "pen-test this service from source and give me each finding with a safe reproduction", "should_trigger": true},
+  {"query": "find vulnerabilities across the whole codebase, not just one pull request", "should_trigger": true},
+  {"query": "run a comprehensive end-to-end security review of our API", "should_trigger": true},
+  {"query": "audit this CLI tool for vulnerabilities and produce a findings file", "should_trigger": true},
+  {"query": "hunt for exploitable bugs in this library's source and rank them by severity", "should_trigger": true},
+  {"query": "I want a source-level security assessment of this daemon, every trust boundary", "should_trigger": true},
+  {"query": "security audit this codebase and mark what still needs validation", "should_trigger": true},
+  {"query": "vulnerability research on this open-source project, report only confirmed issues", "should_trigger": true},
+  {"query": "give me a security audit report with evidence and the smallest fix for each issue", "should_trigger": true},
+
+  {"query": "look over my diff for anything an attacker could abuse", "should_trigger": false, "expected": "security-review"},
+  {"query": "threat model the new file upload feature before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "scope a pentest and write the rules of engagement and stop conditions", "should_trigger": false, "expected": "security-test-engagement"},
+  {"query": "npm audit shows forty alerts, which of them matter for us", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "check this terraform plan before I apply it", "should_trigger": false, "expected": "iac-review"},
+  {"query": "a researcher emailed us a bug in our library, how do we respond", "should_trigger": false, "expected": "vulnerability-disclosure"},
+  {"query": "our agent reads web pages and can send email, test it for prompt injection", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "prove tenant A can never read tenant B's data", "should_trigger": false, "expected": "tenant-isolation-testing"},
+  {"query": "a live api key got pushed to github an hour ago, what now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "review this diff for bugs and anything that could be simpler", "should_trigger": false, "expected": "code-review"}
+]
