@@ -1263,6 +1263,55 @@
       "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
     },
     {
+      "rule_id": "AE1",
+      "path": "plugins/security/skills/security-audit/SKILL.md",
+      "match": "validate-coverage-ledger.cjs (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "Pointer to the bundled local validator that checks the run's own coverage-ledger.json; it uses only fs, path and util, reads only, and has no child_process, network, eval or Function. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/security/skills/security-audit/SKILL.md",
+      "match": "validate-findings.cjs (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "Pointer to the bundled local validator that checks the run's own findings.json; it uses only fs, path and util, reads only, and has no child_process, network, eval or Function. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/security/skills/security-audit/references/ai-and-llm.md",
+      "match": "delete memory",
+      "class": "FP-defensive",
+      "reason": "An auditor's review question under Persistent memory poisoning: it asks who may create, update, merge and delete memory, and does not instruct deleting memory. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/references/attack-classes.md",
+      "match": "credentials.json",
+      "class": "FP-defensive",
+      "reason": "A checklist question asking whether credential files such as credentials.json, .env, *.pem or *.key are committed to the target repo; it detects exposure and reads, collects and sends nothing. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/references/desktop-mobile-and-local-ipc.md",
+      "match": "keychain",
+      "class": "FP-defensive",
+      "reason": "Names keychain ACLs as a platform control to evaluate when visible; no instruction to access a keychain. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/validate-coverage-ledger.test.cjs",
+      "match": "/etc/passwd",
+      "class": "FP-defensive",
+      "reason": "/etc/passwd is a negative test input in the unsafe-path cases, which the ledger validator must refuse; the test never opens or reads it. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/validate-findings.test.cjs",
+      "match": "/etc/passwd",
+      "class": "FP-defensive",
+      "reason": "/etc/passwd is a negative test input that the findings validator must reject as an unsafe absolute source path; the test never opens or reads it. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
       "rule_id": "PE3",
       "path": "plugins/smallbiz/skills/client-offboarding/SKILL.md",
       "match": "access tokens",
