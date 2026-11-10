@@ -1,0 +1,20 @@
+[
+  {"query": "run a full security audit of this repo and give me a findings report", "should_trigger": true},
+  {"query": "audit this codebase end to end for vulnerabilities", "should_trigger": true},
+  {"query": "do a comprehensive security review of the whole service source", "should_trigger": true},
+  {"query": "pen-test this library from its source, no live targets", "should_trigger": true},
+  {"query": "hunt for auth bypasses and injection across the entire monorepo", "should_trigger": true},
+  {"query": "I want findings.json and a report for a security audit of this daemon", "should_trigger": true},
+  {"query": "rerun the security audit and compare with the previous run", "should_trigger": true},
+  {"query": "end-to-end vulnerability review of this CLI before we open-source it", "should_trigger": true},
+  {"query": "can you security review this PR before I merge it", "should_trigger": false, "expected": "security-review"},
+  {"query": "we are designing a webhook service, what could an attacker do", "should_trigger": false, "expected": "threat-model"},
+  {"query": "write rules of engagement for the external pentest next month", "should_trigger": false, "expected": "security-test-engagement"},
+  {"query": "scan our production API for open ports and vulns", "should_trigger": false, "expected": "security-test-engagement"},
+  {"query": "a researcher emailed us a vulnerability report, how do we respond", "should_trigger": false, "expected": "vulnerability-disclosure"},
+  {"query": "is this lodash CVE actually reachable in our app", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "who has admin on our GCP project", "should_trigger": false, "expected": "access-review"},
+  {"query": "check this terraform plan before apply", "should_trigger": false, "expected": "iac-review"},
+  {"query": "an API key leaked to a public repo, what now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "review this diff for bugs and simplifications", "should_trigger": false, "expected": "code-review"}
+]

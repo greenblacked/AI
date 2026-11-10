@@ -18,3 +18,22 @@ ignores:
   # lints. Linting the output too reports the same prose twice and fails on the
   # indentation that inlining a reference inside a list necessarily produces.
   - "dist/**"
+  # The upstream companion guides of security-audit, vendored byte for byte from
+  # cloudflare/security-audit-skill at c1c8a8c and not ours to reflow: their heading levels,
+  # bare fences and compact tables are the upstream house style, and fixing them here would
+  # make the copy differ from the pinned commit. Listed by name, so SKILL.md beside them,
+  # the eval set and any file added later stay linted.
+  - "plugins/security/skills/security-audit/references/ai-and-llm.md"
+  - "plugins/security/skills/security-audit/references/attack-classes.md"
+  - "plugins/security/skills/security-audit/references/client-side.md"
+  - "plugins/security/skills/security-audit/references/cloud-and-deployment.md"
+  - "plugins/security/skills/security-audit/references/data-isolation-and-lifecycle.md"
+  - "plugins/security/skills/security-audit/references/desktop-mobile-and-local-ipc.md"
+  - "plugins/security/skills/security-audit/references/hunting.md"
+  - "plugins/security/skills/security-audit/references/memory-safety-and-binary.md"
+  - "plugins/security/skills/security-audit/references/protocols-rpc-and-messaging.md"
+  - "plugins/security/skills/security-audit/references/reconnaissance.md"
+  - "plugins/security/skills/security-audit/references/resource-exhaustion-and-availability.md"
+  - "plugins/security/skills/security-audit/references/supply-chain-and-release.md"
+  - "plugins/security/skills/security-audit/references/validation-and-reporting.md"
+  - "plugins/security/skills/security-audit/references/web-protocol-and-auth.md"

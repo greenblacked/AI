@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- `security-audit` in the `security` plugin: a generic, source-first audit of a whole codebase with no Cloudflare-specific checks, adapted from Cloudflare's security-audit skill (cloudflare/security-audit-skill at c1c8a8c, MIT, licence kept beside it). The body and companion files are the upstream text unchanged; the description and tool grant are this repository's. It maps trust boundaries and a coverage ledger, hunts with isolated sub-agents, validates every candidate independently, and writes `findings.json` and a report, running target code only in a sandbox with no network. The upstream companion guides, `report-schema.json` and the two findings validators come with it. The `security` listing ceiling in `listing-budget.json` rises from 27,000 to 28,000 characters for its description.
+
 ## [0.6.0] - 2026-11-06
 
 ### Added

@@ -9,10 +9,10 @@
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-527 agent skills, 51 subagents, eleven slash commands and 29 project kits, in
+528 agent skills, 51 subagents, eleven slash commands and 29 project kits, in
 twenty-nine plugins you install separately.
 
-[![Skills](https://img.shields.io/badge/skills-527-7c3aed)](#plugins)
+[![Skills](https://img.shields.io/badge/skills-528-7c3aed)](#plugins)
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
@@ -73,7 +73,7 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`gamedev`](#gamedev) | Making games, and shipping them | 39 skills, 2 subagents, 2 commands | 1 |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands | 1 |
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent | 1 |
-| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 1 |
+| [`security`](#security) | The defensive side of shipping software | 32 skills, 5 subagents, 2 commands | 1 |
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands | 1 |
 | [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 1 |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills, 1 subagent | 1 |
@@ -186,6 +186,23 @@ whose only change since a passing run is its title or body. A failed or cancelle
 | ruff with flake8-bandit, and CodeQL | Python security findings in the validator and the scripts | `security` |
 | Cisco skill-scanner | A high or critical finding in any skill, subagent or command definition that no reviewed baseline accepts | `security` |
 | NVIDIA SkillSpector | The same, on the skills a pull request changes (every skill when the pull request changes the scan configuration), and on all of them for other events | `security` |
+
+The two skill scanners read every skill and every subagent and command definition, and they
+work differently. Cisco's cisco-ai-skill-scanner 2.3.1, installed from hash-pinned wheels,
+scans all of them on every run and fails on a high or critical finding unless
+`cisco-policy.yaml` suppresses it, each suppression naming one rule, the skills and the file;
+it also fails if it scanned fewer skills than the tree holds. NVIDIA's SkillSpector 2.13.1 is
+built from a pinned commit and runs with `--no-llm`. It scans the skills and definitions a pull
+request changes, or all of them when the pull request changes the scan configuration, and
+`scripts/skill_scan_gate.py` fails on any high or critical finding missing from
+`skillspector-accepted.json`, where every entry needs a class and a reason. Both run static
+rules on the runner and need no AI API key or secret: the job has a read-only `contents`
+permission and nothing else. The LLM, VirusTotal, AI Defense, OSV and adjudication modes of
+Cisco's scanner, and SkillSpector without `--no-llm`, would each send skill text or hashes to a third party
+or need a key, so none is switched on; the one network call that remains is SkillSpector's
+`api.osv.dev` lookup for a declared dependency file, and the tree has none. What the entries
+mean and how to add one is in [skill scan baselines](.github/skill-scan/README.md); the jobs
+are in [CI](docs/ci.md#the-security-jobs-in-detail).
 
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
 for months naming `references/*.md` files nobody had written: the model loaded nothing
@@ -645,7 +662,7 @@ resolved or executed a bad version, with the secrets each job could reach.
 #### Skills
 
 <details>
-<summary>security skills (31)</summary>
+<summary>security skills (32)</summary>
 
 | Skill | What it does |
 | --- | --- |
@@ -665,6 +682,7 @@ resolved or executed a bad version, with the secrets each job could reach.
 | [`image-hardening`](plugins/security/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
 | [`reverse-engineering`](plugins/security/skills/reverse-engineering/SKILL.md) | Reverse engineer a binary, packaged mobile app, JVM class file or a web app's shipped bundle you are authorised to examine: identify its format, read its static structure before running it, then confirm a hypothesis dynamically in an isolated environment — for malware triage, vulnerability research, CTFs and coursework. |
 | [`secret-rotation`](plugins/security/skills/secret-rotation/SKILL.md) | Rotate a credential, or contain one that has leaked. |
+| [`security-audit`](plugins/security/skills/security-audit/SKILL.md) | Audit a whole codebase from source for the flaws that cross a real trust boundary: map the trust boundaries and a coverage ledger, hunt with isolated sub-agents, validate every candidate independently, and report each confirmed finding with evidence, a safe local reproduction and the smallest fix, running target code only in a sandbox with no network. Generic, with no Cloudflare-specific checks; adapted from Cloudflare's security-audit skill at c1c8a8c (MIT). |
 | [`security-review`](plugins/security/skills/security-review/SKILL.md) | Walk a diff through the classes that actually get exploited — object-level authorisation, injection, deserialisation, request forgery, secrets, the supply-chain change — reporting each as reachable path, impact, fix. |
 | [`security-test-engagement`](plugins/security/skills/security-test-engagement/SKILL.md) | Commission or run an authorised pentest, red-team or bug-bounty engagement from the asset owner's side: signed authorisation and scope before anything starts, rules of engagement with stop conditions, a reachable emergency contact, rules for test data, and a path from each finding to a confirmed retest. |
 | [`threat-model`](plugins/security/skills/threat-model/SKILL.md) | Model a design before the code exists: draw the flows, mark every trust boundary, apply STRIDE per crossing rather than per component, and write down the threats you chose to accept with a name against each. |

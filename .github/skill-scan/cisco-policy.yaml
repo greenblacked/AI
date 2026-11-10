@@ -431,3 +431,13 @@ suppressions:
       the contributor's head as a ref only, then a pinned detached worktree; nothing fetched is executed, and the
       paragraph says the review must never run from the contributor's checkout.
     expires: 2027-05-02
+
+  # security-audit is vendored from cloudflare/security-audit-skill at c1c8a8c; its two test files spawn node.
+  - rule_id: COMMAND_INJECTION_JS_CHILD_PROCESS
+    skills: ["security-audit"]
+    paths: ["validate-findings.test.cjs", "validate-coverage-ledger.test.cjs"]
+    reason: >-
+      Upstream c1c8a8c tests spawn process.execPath (and mkfifo once) with fixed argv, no shell option, on temp files
+      they create; no attacker-controlled input reaches the command. Whole-file scope because the schema has no line
+      selector; re-read on any upstream bump.
+    expires: 2027-05-02
