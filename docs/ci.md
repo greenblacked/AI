@@ -686,15 +686,21 @@ A GitHub App installation token does start them, so the App is required. This ne
 following, once, **in this order**. None of it is in the repository, and none of it is
 created by the workflow.
 
-1. **Preconditions: do not create or install the App until both are live.**
+1. **Do not create or install the App until both of these are live.**
    `release.yml` publishes and deploys on any `vX.Y.Z` tag, and the App's **Contents:
-   write** can create a tag as easily as a branch, so without these the App would be a
+   write** can create a tag as easily as a branch, so without them the App would be a
    deploy credential:
    1. A tag ruleset on `refs/tags/v*` that restricts creation, update and deletion, with
       the repository admin role as the only bypass and never the App.
    2. The `production` environment's deployment policy limited to **Selected tags**
       `v*`, as in step 4 of
       [what you set in GitHub and Cloudflare](#what-you-set-in-github-and-cloudflare).
+
+   **Neither is live yet** (checked 2026-11-10: the repository has no tag ruleset, and
+   `production` has no deployment policy). The App stays uncreated until both are.
+   Already live, as of 23:47 Kyiv on 2026-11-10: the `dev branch protection` ruleset
+   26983094 has the `pull_request`, `deletion` and `non_fast_forward` rules with no bypass
+   actor, so `dev`, `stage` and `main` are all protected.
 2. **Create the `back-merge` environment first**, before any secret exists. Under
    **Settings → Environments**, create `back-merge` and set the deployment branch policy
    to **Selected branches**, allowing `stage` and `main` only. Never add the App's secrets
