@@ -1,6 +1,7 @@
 ---
 name: security-audit
-description: "Security guidance and vulnerability review for a whole codebase, API, service, CLI tool, library or daemon, source-first and defensive: find flaws that cross a real trust boundary, then report each with source evidence, a safe local reproduction, a priority and the smallest fix. Guidance mode answers a security question or a focused review with only the relevant part; full audit mode runs all six phases and writes report files, and only on an explicit codebase audit or pen-test request, a full, comprehensive or end-to-end review, or a requested report artifact. Use for \"security audit this repo\", \"pen-test this service\", \"find vulnerabilities in this library\". Not for one diff or pull request (security-review), a design-time threat model (threat-model), commissioning a pentest (security-test-engagement), Terraform (iac-review) or an alert queue (dependency-triage)."
+description: "Run a full, source-first security audit of a whole codebase, service, library, CLI or daemon: map trust boundaries and a coverage ledger, hunt with isolated sub-agents, validate every candidate independently, and write findings.json plus a report, executing target code only in an OS-enforced no-network sandbox and never probing deployed systems. Use when someone asks to audit or pen-test a repository from source, wants a full, comprehensive or end-to-end security review of a codebase, or wants audit report artifacts. Not for one diff or PR (security-review), a design-time threat model (threat-model), scoping or running a live pentest engagement (security-test-engagement), IAM audits (access-review), dependency CVE triage (dependency-triage), Terraform (iac-review), or a leaked credential (secret-rotation)."
+allowed-tools: "Read, Grep, Glob, Write, Task"
 ---
 
 # Security Audit
@@ -193,4 +194,4 @@ Do not end the run before one of exactly two terminal states: (a) all Phase 6 ar
 
 ## Note
 
-This skill is vendored from https://github.com/cloudflare/security-audit-skill (MIT). Supporting companion files (RECONNAISSANCE.md, HUNTING.md, ATTACK-CLASSES.md, VALIDATION-AND-REPORTING.md, domain-specific guides, report-schema.json, and validators) are available in the original repository and should be placed alongside this SKILL.md for full functionality. The validators can be used in CI to check findings.json and coverage-ledger.json outputs.
+Vendored from cloudflare/security-audit-skill at c1c8a8c (MIT); see LICENSE in this directory.
