@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: Security guidance and vulnerability review for codebases, APIs, services, CLI tools, libraries, and daemons. Use for security questions, focused reviews, vulnerability research, security audits, or pen tests. Run the complete workflow only for explicit codebase audit or pen-test requests, full/comprehensive/end-to-end reviews, or requested report artifacts.
+description: "Security guidance and vulnerability review for a whole codebase, API, service, CLI tool, library or daemon, source-first and defensive: find flaws that cross a real trust boundary, then report each with source evidence, a safe local reproduction, a priority and the smallest fix. Guidance mode answers a security question or a focused review with only the relevant part; full audit mode runs all six phases and writes report files, and only on an explicit codebase audit or pen-test request, a full, comprehensive or end-to-end review, or a requested report artifact. Use for \"security audit this repo\", \"pen-test this service\", \"find vulnerabilities in this library\". Not for one diff or pull request (security-review), a design-time threat model (threat-model), commissioning a pentest (security-test-engagement), Terraform (iac-review) or an alert queue (dependency-triage)."
 ---
 
 # Security Audit
