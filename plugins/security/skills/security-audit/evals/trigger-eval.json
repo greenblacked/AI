@@ -1,0 +1,19 @@
+{
+  "queries_that_should_trigger": [
+    "security audit this codebase",
+    "find security vulnerabilities in the repo",
+    "do a full security review of the API",
+    "pen-test this service",
+    "run a comprehensive security audit",
+    "audit the code for vulnerabilities",
+    "security review of the authentication flow",
+    "check this project for security issues"
+  ],
+  "queries_that_should_not_trigger": [
+    "write a unit test",
+    "deploy to production",
+    "format the code",
+    "explain this function",
+    "add a new feature for user profiles"
+  ]
+}
