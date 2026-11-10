@@ -23,7 +23,10 @@ Four families, one job, so a contributor has one place to look rather than four:
   check landed (#67), about one in five of the squash subjects on main was already over
   it — so it is a decision going forward rather than a claim about what this repository
   has always done. A merge commit and anything from Dependabot — by author or by a
-  `dependabot/` branch — are exempt, since neither is a subject a person chose by hand.
+  `dependabot/` branch — are exempt, since neither is a subject a person chose by hand. So
+  is a commit that is already on `origin/stage` or `origin/main`, when the pull request's
+  head branch is `stage` or `main`: that is a back-merge, whose commits were judged when
+  they landed there.
 - **Code identifiers** are ruff's job, not this script's: `pep8-naming` (`N`) runs in
   the existing `python security lint` job because it only ever sees Python, and this
   script would just be reimplementing it worse.
@@ -193,7 +196,10 @@ _BRANCH_DESCRIPTION_RE_TEXT = r"[a-z0-9]+(?:-[a-z0-9]+|\.[0-9]+)*"
 _BRANCH_NAME_RE = re.compile(
     r"^(?:" + "|".join(_BRANCH_TYPES) + r")/" + _BRANCH_DESCRIPTION_RE_TEXT + r"$"
 )
-_EXEMPT_BRANCH_NAMES = {"main", "master", "HEAD"}
+_EXEMPT_BRANCH_NAMES = {"main", "master", "HEAD", "stage"}
+# The two long-lived branches a back-merge pull request is opened from, as its own head
+# (`.github/workflows/back-merge.yml`). Neither is a name anyone chose for a change.
+_LONG_LIVED_BRANCHES = {"main", "stage"}
 
 # A tool-named branch is still attribution's concern — it is naming the tool that wrote
 # the change, not merely a shape violation — so `check_attribution.py` keeps that one
@@ -362,6 +368,19 @@ def commits_in(root: Path, commit_range: str, git: str) -> list[CommitRecord]:
 _ALLOWED_IDENTITY_NAMES = {"dependabot[bot]"}
 
 
+def commits_on_branch(root: Path, branch: str, git: str) -> set[str]:
+    """Every commit already on `origin/<branch>`, or an empty set when there is no such
+    ref. An empty set exempts nothing, so a missing ref fails closed."""
+    result = subprocess.run(  # noqa: S603 - absolute path, fixed argv, branch is a literal name
+        [git, "rev-list", f"refs/remotes/origin/{branch}"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return set(result.stdout.split()) if result.returncode == 0 else set()
+
+
 def check(
     root: Path,
     commit_range: str | None = None,
@@ -395,10 +414,19 @@ def check(
         # subjects itself, not a person choosing a naming convention.
         dependabot_branch = bool(branch) and branch.startswith(_ALLOWED_BRANCH_PREFIX)
 
+        # A back-merge pull request has `stage` or `main` as its head, so its range holds
+        # the squash commits already released on that branch, some from before this check
+        # existed. They were judged when they landed there. Only commits that are really
+        # on `origin/<branch>` are skipped, so a fork's own branch of that name, carrying
+        # commits origin never had, is still checked in full.
+        released: set[str] = set()
+        if branch in _LONG_LIVED_BRANCHES:
+            released = commits_on_branch(root, branch, git)
+
         for commit_hash, parents, author_name, subject in commits:
             is_merge = len(parents.split()) > 1
             is_dependabot = author_name in _ALLOWED_IDENTITY_NAMES
-            if is_merge or is_dependabot or dependabot_branch:
+            if is_merge or is_dependabot or dependabot_branch or commit_hash in released:
                 continue
             commits_checked += 1
             for problem in subject_problems(subject):
