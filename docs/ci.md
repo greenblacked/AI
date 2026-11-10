@@ -683,32 +683,44 @@ say so. The workflow never merges, enables auto-merge or uses a bypass.
 Pull requests opened with `GITHUB_TOKEN` start no workflow, so the required checks `ci`
 and `security` never report on them and the pull request cannot merge without a bypass.
 A GitHub App installation token does start them, so the App is required. This needs the
-following, once. None of it is in the repository, and none of it is created by the
-workflow.
+following, once, **in this order**. None of it is in the repository, and none of it is
+created by the workflow.
 
-1. Create a GitHub App owned by the repository owner with repository permissions
-   **Contents: Read and write** (it creates the `chore/back-merge-*` branch) and
-   **Pull requests: Read and write**, and no other permission, no webhook, and install it
-   on `greenblacked/AI` only, not on every repository. Generate a private key. The `stage`
-   and `main` rulesets block non-fast-forward updates and deletion and require a pull
-   request, so the App's write access cannot be used to move or push to them. The
-   `dev branch protection` ruleset also requires a pull request on `dev`, with no bypass
-   actor, so the App cannot write to `dev` directly either: all three long-lived branches
-   take changes only through a pull request. Keep the key in the environment and rotate it
-   (step 3).
-2. Under **Settings → Environments**, create `back-merge` and set the deployment branch
-   policy to **Selected branches**, allowing `stage` and `main` only. Add the secrets
-   `BACK_MERGE_APP_CLIENT_ID` (the App's client ID) and `BACK_MERGE_APP_PRIVATE_KEY`.
-   Keep them on the environment and not in the repository secrets: a pull request from
-   this repository can read a repository secret by editing the workflow, and this
-   environment hands them only to a run on `stage` or `main`.
-3. Rotate the private key on a schedule: generate a new one, replace the secret, delete
+1. **Preconditions: do not create or install the App until both are live.**
+   `release.yml` publishes and deploys on any `vX.Y.Z` tag, and the App's **Contents:
+   write** can create a tag as easily as a branch, so without these the App would be a
+   deploy credential:
+   1. A tag ruleset on `refs/tags/v*` that restricts creation, update and deletion, with
+      the repository admin role as the only bypass and never the App.
+   2. The `production` environment's deployment policy limited to **Selected tags**
+      `v*`, as in step 4 of
+      [what you set in GitHub and Cloudflare](#what-you-set-in-github-and-cloudflare).
+2. **Create the `back-merge` environment first**, before any secret exists. Under
+   **Settings → Environments**, create `back-merge` and set the deployment branch policy
+   to **Selected branches**, allowing `stage` and `main` only. Never add the App's secrets
+   at repository level: a workflow that names a missing environment creates it on the spot
+   with no restrictions, and a repository secret is readable by a pull request from this
+   repository that edits a workflow. This environment hands them only to a run on `stage`
+   or `main`.
+3. Create a GitHub App owned by the repository owner with exactly these repository
+   permissions: **Contents: Read and write** (it creates the `chore/back-merge-*`
+   branch), **Pull requests: Read and write**, and **Metadata: Read-only**, which GitHub
+   adds to every App. Nothing else, no webhook. Install it on `greenblacked/AI` only, not
+   on every repository, and generate a private key. The `stage` and `main` rulesets block
+   non-fast-forward updates and deletion and require a pull request, so the App's write
+   access cannot be used to move or push to them. The `dev branch protection` ruleset also
+   requires a pull request on `dev`, with no bypass actor, so the App cannot write to `dev`
+   directly either: all three long-lived branches take changes only through a pull request.
+4. Add the secrets `BACK_MERGE_APP_CLIENT_ID` (the App's client ID) and
+   `BACK_MERGE_APP_PRIVATE_KEY` to the `back-merge` environment, and only there.
+5. Rotate the private key on a schedule: generate a new one, replace the secret, delete
    the old key in the App's settings. Review the App's permissions and installation then
-   too; they should still be exactly the two above, on this repository alone.
-4. Pull requests the App opens show the App as their author, not a person, and the branch
+   too; they should still be exactly the three above, on this repository alone, and the
+   two preconditions should still hold.
+6. Pull requests the App opens show the App as their author, not a person, and the branch
    is created by the App. This is approved. They carry no commit of their own: the branch
    is cut at an existing commit, so no commit is attributed to the App.
-5. After the App is in place, confirm the whole path on the first promotion that merges,
+7. After the App is in place, confirm the whole path on the first promotion that merges,
    as the repository's review rules require for a new write (`AGENTS.md`): the
    `back-merge` run for that push should open the pull request, and the pull request
    should show `ci` and `security` starting. The read half of the path was run against the
