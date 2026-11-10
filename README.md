@@ -187,6 +187,23 @@ whose only change since a passing run is its title or body. A failed or cancelle
 | Cisco skill-scanner | A high or critical finding in any skill, subagent or command definition that no reviewed baseline accepts | `security` |
 | NVIDIA SkillSpector | The same, on the skills a pull request changes (every skill when the pull request changes the scan configuration), and on all of them for other events | `security` |
 
+The two skill scanners read every skill and every subagent and command definition, and they
+work differently. Cisco's cisco-ai-skill-scanner 2.3.1, installed from hash-pinned wheels,
+scans all of them on every run and fails on a high or critical finding unless
+`cisco-policy.yaml` suppresses it, each suppression naming one rule, the skills and the file;
+it also fails if it scanned fewer skills than the tree holds. NVIDIA's SkillSpector 2.13.1 is
+built from a pinned commit and runs with `--no-llm`. It scans the skills and definitions a pull
+request changes, or all of them when the pull request changes the scan configuration, and
+`scripts/skill_scan_gate.py` fails on any high or critical finding missing from
+`skillspector-accepted.json`, where every entry needs a class and a reason. Both run static
+rules on the runner and need no AI API key or secret: the job has a read-only `contents`
+permission and nothing else. The LLM, VirusTotal, AI Defense, OSV and adjudication modes of
+Cisco's scanner, and SkillSpector without `--no-llm`, would each send skill text or hashes to a third party
+or need a key, so none is switched on; the one network call that remains is SkillSpector's
+`api.osv.dev` lookup for a declared dependency file, and the tree has none. What the entries
+mean and how to add one is in [skill scan baselines](.github/skill-scan/README.md); the jobs
+are in [CI](docs/ci.md#the-security-jobs-in-detail).
+
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
 for months naming `references/*.md` files nobody had written: the model loaded nothing
 where it expected depth, and no error was ever raised. CI now fails on it.
