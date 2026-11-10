@@ -223,37 +223,41 @@ def test_a_dependabot_branch_exempts_every_commit_on_it(repo, capsys):
     assert "carry no naming problems" in capsys.readouterr().out
 
 
-def test_a_back_merge_exempts_commits_already_released_on_its_head_branch(repo, capsys):
-    # `stage` is the head of a back-merge into `dev`: the squash commits it already holds
-    # were judged when they landed there, so they are not judged again.
-    commit(repo, "feat: restyle the catalogue a release publishes")
-    git(repo, "update-ref", "refs/remotes/origin/stage", "HEAD")
-    assert naming.check(repo, "base..HEAD") == 1
+def _head(repo):
+    return git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+def test_the_pre_rule_allowlist_is_one_full_sha():
+    assert set(naming._PRE_RULE_COMMITS) == {"5a91a7d1cf28c3831e2a44163e3a654b5292e4c5"}
+    assert all(len(sha) == 40 for sha in naming._PRE_RULE_COMMITS)
+
+
+def test_a_commit_on_the_pre_rule_allowlist_is_skipped_on_any_branch(repo, capsys, monkeypatch):
+    commit(repo, "feat: a subject from before the rules")
+    assert naming.check(repo, "base..HEAD", branch="feat/anything") == 1
     capsys.readouterr()
-    assert naming.check(repo, "base..HEAD", branch="stage") == 0
-    assert "0 commit(s) checked" in capsys.readouterr().out
+    monkeypatch.setattr(naming, "_PRE_RULE_COMMITS", frozenset({_head(repo)}))
+    for branch in ("feat/anything", "chore/back-merge-stage-to-dev-abc1234", None):
+        assert naming.check(repo, "base..HEAD", branch=branch) == 0
+    assert "0 commit(s) checked" in capsys.readouterr().out.splitlines()[-1]
 
 
-def test_a_back_merge_still_checks_a_commit_origin_does_not_have(repo, capsys):
-    # A fork's own `main` or `stage` can carry anything; only what is on origin is exempt.
-    commit(repo, "feat: already released")
-    git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
-    commit(repo, "fixed something")
-    assert naming.check(repo, "base..HEAD", branch="main") == 1
+def test_a_different_commit_with_the_same_subject_still_fails(repo, capsys, monkeypatch):
+    commit(repo, "feat: a subject from before the rules")
+    allowed = _head(repo)
+    monkeypatch.setattr(naming, "_PRE_RULE_COMMITS", frozenset({allowed}))
+    commit(repo, "feat: a subject from before the rules")
+    assert _head(repo) != allowed
+    assert naming.check(repo, "base..HEAD") == 1
     out = capsys.readouterr().out
-    assert "fixed something" in out
-    assert "already released" not in out
+    assert out.count("::error title=naming::commit") == 2  # capital letter, and the prefix
+    assert allowed[:12] not in out
 
 
-def test_a_long_lived_head_with_no_origin_ref_exempts_nothing(repo, capsys):
-    commit(repo, "feat: unreleased")
-    assert naming.check(repo, "base..HEAD", branch="stage") == 1
-    assert naming.commits_on_branch(repo, "stage", naming.git_binary()) == set()
-
-
-def test_stage_is_a_valid_head_branch_name():
-    assert naming.branch_problem("stage") is None
-    assert naming.branch_problem("staging") is not None
+def test_an_abbreviated_sha_does_not_match(repo, capsys, monkeypatch):
+    commit(repo, "feat: a subject from before the rules")
+    monkeypatch.setattr(naming, "_PRE_RULE_COMMITS", frozenset({_head(repo)[:7], _head(repo)[:12]}))
+    assert naming.check(repo, "base..HEAD") == 1
 
 
 def test_a_dependabot_branch_also_exempts_the_pull_request_title(repo, capsys):
