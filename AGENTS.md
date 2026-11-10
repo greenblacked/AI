@@ -327,10 +327,7 @@ blocking finding or a failing `ci` or `security` gate.
   sets `persist-credentials: false`. It refuses a version that has no changelog section,
   a tag already on `origin`, a version not greater than every existing tag, or a `HEAD`
   that is not `origin/main`. `release.yml` accepts that dispatch only on a `vX.Y.Z` tag
-  ref, so a dispatch on a branch publishes nothing. `back-merge.yml`'s single job runs only on a merged promotion pull request into `stage` or `main`,
-  holds `contents: read` and `pull-requests: write`, and spends the write on opening the
-  pull request that merges the branch back down, with that branch itself as the head, so it
-  pushes nothing and never merges or resolves a conflict.
+  ref, so a dispatch on a branch publishes nothing. `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script acts only when the pushed commit is the `merge_commit_sha` of a merged `release/promote-*` pull request from this repository into that branch. It holds `contents: read` and `pull-requests: write`, spends the write on opening the pull request that merges the branch back down, with that branch itself as the head, so it pushes nothing, and uses only a GitHub App token, never `GITHUB_TOKEN`. It never merges or resolves a conflict.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

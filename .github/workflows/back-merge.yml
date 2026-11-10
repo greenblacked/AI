@@ -1,25 +1,27 @@
 ---
-# Opens, or refreshes, the back-merge pull requests that follow a promotion, once the
-# promotion has actually merged. Promotions here are squash merges, so each leaves the
-# branch it came from without the commit that landed on the branch it went to; this keeps
-# the three long-lived branches converging instead of drifting:
+# Opens the back-merge pull requests that follow a promotion, once the promotion has
+# actually merged. Promotions here are squash merges, so each leaves the branch it came
+# from without the commit that landed on the branch it went to; this keeps the three
+# long-lived branches converging instead of drifting:
 #
 #   release/promote-dev-to-stage*   merged into stage  ->  stage into dev
 #   release/promote-stage-to-main*  merged into main   ->  main into stage, main into dev
 #
-# The trigger is `pull_request` `closed` on `stage` and `main` and nothing else: no run on
-# open, synchronize or reopen, none on a push, none on a manual dispatch. `closed` also
-# fires for a pull request closed without merging, so the job's `if:` requires
-# `merged == true`, a head branch in this repository and the exact promotion pair; the
-# script re-checks the same event before it touches anything. A skipped job is the intended
-# outcome for every other pull request into those branches, and nothing requires this
-# workflow, so a skip blocks nothing.
+# The trigger is a `push` to `stage` or `main` and nothing else: no run on a pull request
+# event of any kind, none on a tag, none on a manual dispatch. A push to a protected branch
+# happens only when a pull request has merged into it, so "only after merge" is a property
+# of the trigger, and the script then checks it rather than assuming it: it asks GitHub
+# which pull request the pushed commit belongs to and acts only when that pull request is
+# merged, was merged into the pushed branch, has a head in this repository named
+# release/promote-dev-to-stage or release/promote-stage-to-main (for that base, followed by
+# the end of the name, `-` or `/`), and has the pushed commit as its merge_commit_sha. A
+# direct push, a push that no promotion produced, and the merge of a back-merge pull
+# request itself, which would otherwise loop, all do nothing.
 #
-# `pull_request`, not `pull_request_target`: nothing here needs the latter's privileges. A
-# same-repository pull request already gets a write-capable token and the repository
-# secrets under `pull_request`, and the checkout is of the base branch, the code the
-# promotion just merged and review already accepted, never of anything a pull request
-# controls.
+# A `push` run, unlike a `pull_request` run, has GITHUB_REF set to the branch itself, so
+# the `back-merge` environment's deployment branch policy (stage and main) is evaluated
+# against the branch and means something, and the checkout is the protected branch's tip,
+# never a pull request's merge ref. `pull_request_target` is not used.
 #
 # The job only opens pull requests whose head is the source branch itself (stage into dev,
 # main into stage, main into dev), so it needs no write access to contents: it creates no
@@ -28,24 +30,23 @@
 # docs/ci.md#back-merges-after-a-promotion.
 #
 # Pull requests made with GITHUB_TOKEN start no workflow, so the required checks `ci` and
-# `security` would never report on one. A token minted from a GitHub App does start them.
-# When the App's client id is in the `back-merge` environment the job mints one, and fails
-# visibly if it cannot; when it is not, the job still opens the pull request with
-# GITHUB_TOKEN and says in the pull request, the log and the summary that the checks must
-# be started by closing and reopening it.
+# `security` would never report on one. A token minted from a GitHub App does start them,
+# so the App is required: when its client id is not in the `back-merge` environment the job
+# does nothing but print a notice saying so, and when it is configured but cannot mint a
+# token (a wrong key, an App not installed here) the job fails. There is no fallback to
+# GITHUB_TOKEN.
 name: Back-merge
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches: [stage, main]
 
 permissions: {}
 
-# One run per base branch at a time, never cancelled in flight: a run opens pull requests,
-# and half a run is worse than a queued one.
+# One run per branch at a time, never cancelled in flight: a run opens pull requests, and
+# half a run is worse than a queued one.
 concurrency:
-  group: back-merge-${{ github.event.pull_request.base.ref }}
+  group: back-merge-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -54,39 +55,44 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: >-
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      ((github.event.pull_request.base.ref == 'stage' &&
-      startsWith(github.event.pull_request.head.ref, 'release/promote-dev-to-stage')) ||
-      (github.event.pull_request.base.ref == 'main' &&
-      startsWith(github.event.pull_request.head.ref, 'release/promote-stage-to-main')))
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/stage' || github.ref == 'refs/heads/main')
     # The `back-merge` environment holds the App's client id and private key and admits only
-    # `stage` and `main`. For a merged pull request GITHUB_REF is the branch it merged into,
-    # so that restriction matches the two bases this job runs for and nothing else.
+    # `stage` and `main`. GITHUB_REF is the pushed branch, so that policy admits exactly the
+    # two branches this job runs for.
     environment: back-merge
     # Nothing here pushes, and the App token below is asked for exactly these two grants.
     permissions:
       contents: read  # the checkout, and reading the branches being compared
-      pull-requests: write  # opening the pull request, and nothing else
+      pull-requests: write  # reading the pushed commit's pull request, and opening the new one
     env:
       # Whether the App is configured. `secrets` is not available to a step's `if:`, so the
       # test is made once here, as a string.
       APP_CONFIGURED: ${{ secrets.BACK_MERGE_APP_CLIENT_ID != '' }}
     steps:
+      - name: Say that the App is not configured, and stop
+        if: ${{ env.APP_CONFIGURED != 'true' }}
+        run: |
+          set -Eeuo pipefail
+          message='The back-merge App is not configured, so no back-merge pull request was opened.'
+          message+=' Create the App and add BACK_MERGE_APP_CLIENT_ID and BACK_MERGE_APP_PRIVATE_KEY'
+          message+=' to the back-merge environment; see docs/ci.md#back-merges-after-a-promotion.'
+          echo "::notice title=back-merge::${message}"
+          echo "${message}" >> "${GITHUB_STEP_SUMMARY}"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: ${{ env.APP_CONFIGURED == 'true' }}
         with:
-          # No `ref:`: for a merged pull request the default is the branch it merged into, so
-          # the script that runs is the one already reviewed there, never one from a pull
-          # request's head.
+          # No `ref:`: on a push the default is the pushed commit on the protected branch,
+          # so the script that runs is the one already reviewed there, never one from a
+          # pull request's head.
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        if: ${{ env.APP_CONFIGURED == 'true' }}
         with:
           python-version: '3.13'
-      - name: Mint an App token so the pull request starts the required checks
+      - name: Mint an App token so the pull requests start the required checks
         id: app
-        # Set only when the owner has created the App; see docs/ci.md. A client id that is
-        # set while the key is missing or wrong fails here, loudly, rather than quietly
-        # falling back to a token whose pull requests never run the checks.
+        # A client id that is set while the key is missing or wrong fails here, loudly.
         if: ${{ env.APP_CONFIGURED == 'true' }}
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
         with:
@@ -94,10 +100,11 @@ jobs:
           private-key: ${{ secrets.BACK_MERGE_APP_PRIVATE_KEY }}
           permission-contents: read
           permission-pull-requests: write
-      - name: Open or refresh the back-merge pull requests
+      - name: Open the back-merge pull requests for a merged promotion
+        if: ${{ env.APP_CONFIGURED == 'true' }}
         env:
-          GH_TOKEN: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
-          BACK_MERGE_TOKEN: ${{ steps.app.outputs.token && 'app' || 'workflow' }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          BACK_MERGE_TOKEN: app
           GH_REPO: ${{ github.repository }}
         run: |
           set -Eeuo pipefail

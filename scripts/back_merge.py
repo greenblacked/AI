@@ -7,11 +7,22 @@ branch it went to. Left alone, the two drift: the next promotion re-resolves the
 changelog conflict, and `git log origin/dev..origin/stage` fills with commits that are
 already released. `docs/ci.md#releasing-a-version` has always asked for a back-merge
 after a release, by hand. This script is that step, run by `.github/workflows/back-merge.yml`
-once a promotion pull request has actually merged:
+on a push to `stage` or `main`:
 
-- `release/promote-dev-to-stage*` into `stage` leaves one back-merge, `stage` into `dev`;
-- `release/promote-stage-to-main*` into `main` leaves two, `main` into `stage` and
-  `main` into `dev`.
+- a `release/promote-dev-to-stage` pull request merged into `stage` leaves one
+  back-merge, `stage` into `dev`;
+- a `release/promote-stage-to-main` pull request merged into `main` leaves two, `main`
+  into `stage` and `main` into `dev`.
+
+A push is not a promotion, so the script finds out what was pushed. It asks GitHub which
+pull requests the pushed commit belongs to, reads each one, and acts only when one of
+them satisfies all of: it is merged; it was merged into the branch that was pushed; its
+head is in this repository; its head is `release/promote-dev-to-stage` or
+`release/promote-stage-to-main` for that base, followed by the end of the name, `-` or
+`/`; and its `merge_commit_sha` is the commit that was pushed. A direct push, a push of
+anything a promotion did not merge, and a later push to a branch an earlier promotion
+once reached all fail one of those and do nothing. So does the merge of a back-merge
+pull request itself, whose head is `main` or `stage`, which is what stops a loop.
 
 Each back-merge is a pull request whose head is the source long-lived branch itself
 (`--head stage --base dev`). So the workflow needs no write access to repository contents:
@@ -28,16 +39,13 @@ What it deliberately does not do:
   it is, and so is a pair with nothing to merge (`ahead_by == 0`).
 - Merge anything, enable auto-merge, or use a bypass.
 - Take a branch name from the event. The branches come from the fixed table below; the
-  event only decides whether a table row applies, and `plan` re-checks what the
-  workflow's `if:` already filtered, so a mistake in one is not a hole in the other.
+  push only says which row to look at.
+- Act without a GitHub App token. Pull requests opened with the workflow token start no
+  workflow, so the required checks would never report on them. The token arrives in
+  `GH_TOKEN`, and `BACK_MERGE_TOKEN=app` says it is the App's; anything else is a
+  notice and no action.
 
-Every call goes through `gh api`; the token arrives in `GH_TOKEN`. A token minted from a
-GitHub App is the one that makes the pull request start the required checks; the workflow
-token cannot, because GitHub starts no workflow from an event that token caused. The
-script is told which it has through `BACK_MERGE_TOKEN`, and says so in the pull request
-body when it is the second.
-
-Standard library only, like the checks it sits beside.
+Every call goes through `gh api`. Standard library only, like the checks it sits beside.
 """
 
 from __future__ import annotations
@@ -76,34 +84,51 @@ class ApiError(RuntimeError):
         self.status = status
 
 
-def plan(event: dict[str, Any], repository: str) -> list[tuple[str, str]]:
-    """The (source, destination) back-merges a pull request event calls for; empty unless
-    it is a pull request that was merged, from this repository, as a promotion."""
-    if event.get("action") != "closed":
-        return []
-    pull = event.get("pull_request")
+def head_matches(head_ref: str, prefix: str) -> bool:
+    """The prefix, then the end of the name, `-` or `/`: `release/promote-dev-to-stage-0.7`
+    and `release/promote-dev-to-stage` match, `release/promote-dev-to-stagex` does not."""
+    return head_ref == prefix or head_ref.startswith((prefix + "-", prefix + "/"))
+
+
+def plan(pull: Any, repository: str, branch: str, sha: str) -> list[tuple[str, str]]:
+    """The (source, destination) back-merges one pull request calls for, when it is the
+    promotion that produced commit `sha` on `branch`; empty otherwise. `pull` is the
+    pull request as GitHub returns it, never a value from the pushed event."""
     if not isinstance(pull, dict) or pull.get("merged") is not True:
+        return []
+    if pull.get("merge_commit_sha") != sha:
         return []
     head = pull.get("head") or {}
     base = pull.get("base") or {}
     head_repo = (head.get("repo") or {}).get("full_name")
     head_ref = head.get("ref")
-    base_ref = base.get("ref")
-    if head_repo != repository or not isinstance(head_ref, str) or not isinstance(base_ref, str):
+    if head_repo != repository or not isinstance(head_ref, str) or base.get("ref") != branch:
         return []
     for promoted_base, prefix, back_merges in PROMOTIONS:
-        if base_ref == promoted_base and head_ref.startswith(prefix):
+        if branch == promoted_base and head_matches(head_ref, prefix):
             return list(back_merges)
     return []
+
+
+def resolve(api: Api, repo: str, branch: str, sha: str) -> tuple[int, list[tuple[str, str]]] | None:
+    """The promotion pull request that produced `sha` on `branch` and what it calls for,
+    or None when the push is not the merge of one."""
+    candidates = api("GET", f"repos/{repo}/commits/{sha}/pulls?per_page=100") or []
+    for candidate in candidates:
+        number = candidate.get("number") if isinstance(candidate, dict) else None
+        if not isinstance(number, int):
+            continue
+        targets = plan(api("GET", f"repos/{repo}/pulls/{number}"), repo, branch, sha)
+        if targets:
+            return number, targets
+    return None
 
 
 def title_for(source: str, destination: str, number: int) -> str:
     return f"Merge {source} into {destination} after the promotion in #{number}"
 
 
-def body_for(
-    source: str, destination: str, number: int, *, app_token: bool, conflict: bool = False
-) -> str:
+def body_for(source: str, destination: str, number: int, *, conflict: bool = False) -> str:
     lines = [
         MARKER,
         f"This merges `{source}` back into `{destination}` after #{number} was promoted into "
@@ -118,13 +143,6 @@ def body_for(
         f"`{source}`'s history unmerged and the two branches drifting again.",
         "- **Conflicts:** never resolved automatically.",
     ]
-    if not app_token:
-        lines += [
-            "",
-            "> This pull request was opened with the workflow token, so GitHub did not start "
-            "the required checks. Close and reopen it to start them, or set up the App token "
-            f"described in [docs/ci.md]({DOCS_PATH}).",
-        ]
     if conflict:
         branch = f"chore/back-merge-{source}-into-{destination}"
         lines += [
@@ -207,7 +225,6 @@ def back_merge(
     destination: str,
     number: int,
     *,
-    app_token: bool,
     sleep: Callable[[float], None] = time.sleep,
 ) -> dict[str, str]:
     """One back-merge. Returns what happened, for the summary."""
@@ -230,16 +247,15 @@ def back_merge(
                 "title": title,
                 "head": source,
                 "base": destination,
-                "body": body_for(source, destination, number, app_token=app_token),
+                "body": body_for(source, destination, number),
                 "maintainer_can_modify": False,
             },
         )
     except ApiError as error:
         annotate(
             "error",
-            f"could not open {source} into {destination}: {error}. If the message says Actions "
-            "may not create pull requests, allow it under Settings > Actions > General, or set "
-            f"up the App token described in {DOCS_PATH}.",
+            f"could not open {source} into {destination}: {error}. Check that the App is "
+            f"installed on this repository with the permissions in {DOCS_PATH}.",
         )
         raise
     pull_number = created["number"]
@@ -248,7 +264,7 @@ def back_merge(
         api(
             "PATCH",
             f"repos/{repo}/pulls/{pull_number}",
-            {"body": body_for(source, destination, number, app_token=app_token, conflict=True)},
+            {"body": body_for(source, destination, number, conflict=True)},
         )
         annotate(
             "warning",
@@ -256,12 +272,6 @@ def back_merge(
             f"hand, see {DOCS_PATH}",
         )
         result = "opened, conflicts"
-    if not app_token:
-        annotate(
-            "warning",
-            f"#{pull_number} was opened with the workflow token, so its required checks did "
-            "not start; close and reopen it, or set up the App token",
-        )
     return {**pair, "pull_request": f"#{pull_number}", "result": result}
 
 
@@ -276,22 +286,48 @@ def write_summary(rows: list[dict[str, str]]) -> None:
         handle.write("\n".join(lines) + "\n")
 
 
+def push_target(event: Any) -> tuple[str, str] | None:
+    """(branch, sha) when the event is a push of a commit to `stage` or `main`."""
+    if not isinstance(event, dict):
+        return None
+    ref, sha = event.get("ref"), event.get("after")
+    if not isinstance(ref, str) or not isinstance(sha, str):
+        return None
+    if not re.fullmatch(r"[0-9a-f]{40}", sha) or set(sha) == {"0"}:
+        return None
+    branch = ref.removeprefix("refs/heads/")
+    if branch == ref or branch not in {promoted for promoted, _, _ in PROMOTIONS}:
+        return None
+    return branch, sha
+
+
 def main(argv: list[str] | None = None, api: Api = gh_api) -> int:
     del argv
     repo = os.environ["GH_REPO"]
     event_path = os.environ["GITHUB_EVENT_PATH"]
     event = json.loads(Path(event_path).read_text(encoding="utf-8"))
-    targets = plan(event, repo)
-    if not targets:
-        annotate("notice", "not a merged promotion pull request; nothing to do")
+    pushed = push_target(event)
+    if pushed is None:
+        annotate("notice", "not a push of a commit to stage or main; nothing to do")
         return 0
-    number = event["pull_request"]["number"]
-    app_token = os.environ.get("BACK_MERGE_TOKEN") == "app"
+    if os.environ.get("BACK_MERGE_TOKEN") != "app":
+        annotate(
+            "notice",
+            f"no GitHub App token, so nothing was opened; configure the App as described in "
+            f"{DOCS_PATH}",
+        )
+        return 0
+    branch, sha = pushed
+    found = resolve(api, repo, branch, sha)
+    if found is None:
+        annotate("notice", f"{sha[:7]} on {branch} is not the merge of a promotion; nothing to do")
+        return 0
+    number, targets = found
     rows: list[dict[str, str]] = []
     failed = False
     for source, destination in targets:
         try:
-            rows.append(back_merge(api, repo, source, destination, number, app_token=app_token))
+            rows.append(back_merge(api, repo, source, destination, number))
         except ApiError as error:
             failed = True
             annotate("error", f"{source} into {destination}: {error}")

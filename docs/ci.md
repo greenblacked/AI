@@ -557,41 +557,66 @@ its `###` subheadings intact; the tagger is the user who dispatched the run.
 
 ## `.github/workflows/back-merge.yml` — Back-merge
 
-Triggers only on `pull_request` `closed` into `stage` or `main`: not on open,
-synchronize or reopen, not on a push, not on `workflow_dispatch`, and never on
-`pull_request_target`, whose privileges nothing here needs. `closed` also fires for a
-pull request closed without merging, so the one job, `back-merge`, carries an `if:` that
-needs all of: `merged == true`; a head branch in this repository; and the exact pair
-base `stage` with a head starting `release/promote-dev-to-stage`, or base `main` with a
-head starting `release/promote-stage-to-main`. Every other pull request into those
-branches skips the job, which is the intended outcome and blocks nothing, since nothing
-requires it. The head is matched by prefix because that is how promotions are made here:
-a promotion is a squash-merged `release/promote-*` branch (`release/promote-dev-to-stage-0.6.0-live-ops`,
-`release/promote-stage-to-main-0.6.0`), never `dev` or `stage` themselves, so matching the
-base alone would also fire for a pull request that is not a promotion.
+Triggers only on `push` to `stage` or `main`: no pull request event of any kind, no tag,
+no `workflow_dispatch`, and never `pull_request_target`. Top-level `permissions: {}`; the
+one job, `back-merge`, grants itself `contents: read` and `pull-requests: write` and
+nothing else. It creates no branch, pushes no commit and moves no ref, because each
+back-merge pull request uses the source long-lived branch as its own head: `stage` into
+`dev`, `main` into `stage`, `main` into `dev`. A merged promotion into `stage` leaves one,
+a merged promotion into `main` leaves two.
 
-Top-level `permissions: {}`; the job grants itself `contents: read` and
-`pull-requests: write` and nothing else. It creates no branch, pushes no commit and moves
-no ref, because each back-merge pull request uses the source long-lived branch as its own
-head: `stage` into `dev`, `main` into `stage`, `main` into `dev`. A merged promotion into
-`stage` leaves one, a merged promotion into `main` leaves two. The job's `environment` is
-`back-merge`, and for a merged pull request `GITHUB_REF` is the branch it merged into, so
-an environment limited to `stage` and `main` admits exactly the runs this job can have.
-The checkout is of that base branch with `persist-credentials: false`, so the script that
-runs is the reviewed one, never one from a pull request. No event-derived value reaches a
-`run:` block: the branch names come from a fixed table in
-[`scripts/back_merge.py`](../scripts/back_merge.py), and the event only decides whether a
-row of it applies. Runs are serialised per base branch by the `back-merge-<base>`
-concurrency group, without cancelling one in flight.
+**Why a push, and why that is still "only after merge".** `stage` and `main` take changes
+only through a merged pull request, so a push to either branch is the merge. The workflow
+does not trust that: a push says nothing about which pull request produced it, so
+[`scripts/back_merge.py`](../scripts/back_merge.py) asks GitHub for the pull requests the
+pushed commit belongs to, reads each one, and acts only when one satisfies all of:
+
+- it is **merged** (`merged` is exactly true);
+- its **base** is the branch that was pushed;
+- its head is in **this repository**, not a fork;
+- its head is `release/promote-dev-to-stage` (base `stage`) or `release/promote-stage-to-main`
+  (base `main`), followed by the end of the name, `-` or `/`. Promotions here are
+  `release/promote-*` branches (`release/promote-dev-to-stage-0.6.0-live-ops`,
+  `release/promote-stage-to-main-0.6.0`), never `dev` or `stage` themselves, and the
+  anchoring keeps a look-alike such as `release/promote-dev-to-stagex` out;
+- its `merge_commit_sha` is the commit that was pushed, which is what rules out a push
+  that merely follows an earlier promotion.
+
+Anything else is a notice and a clean exit: a direct push, a push no promotion produced,
+an unmerged pull request, a fork, a wrong base or head. That includes the merge of a
+back-merge pull request itself, whose head is `main` or `stage`, which is the loop guard.
+`pull_request` `closed` was the first design and was dropped: for a `pull_request` run
+`GITHUB_REF` is `refs/pull/N/merge`, so an environment's deployment branch policy, which
+is matched against `GITHUB_REF`, cannot restrict it to `stage` and `main`, and a checkout
+without a `ref:` is the merge ref. On a `push` `GITHUB_REF` is the branch, so the
+`back-merge` environment limited to `stage` and `main` is effective, and the checkout is
+the protected branch's tip, reviewed code and never a pull request's. The workflow file
+that runs is the one in the pushed commit, so it first acts on the promotion that
+introduces it; the App has to be in place by then (see below).
+
+The job's `if:` is only `github.event_name == 'push'` on those two refs, in case the
+trigger is ever widened. No event value reaches a `run:` block: the branch names come from
+a fixed table in the script, and the pushed commit is checked to be 40 hex characters
+before it is placed in an API path. Runs are serialised per branch by the
+`back-merge-<branch>` concurrency group, without cancelling one in flight.
+
+**The App is required; there is no `GITHUB_TOKEN` fallback.** Pull requests opened with
+`GITHUB_TOKEN` start no workflow, so `ci` and `security` would never report on them. When
+`BACK_MERGE_APP_CLIENT_ID` is not in the `back-merge` environment the job does nothing but
+print a notice (and write it to the job summary) telling the owner to configure the App.
+When it is set but the token cannot be minted (a wrong key, the App not installed here)
+the job fails.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `back-merge` | `back-merge` | The App token could not be minted although the client id is configured (wrong or missing private key, App not installed on the repository), or the API refused to open a pull request. A repository whose Actions settings forbid workflows opening pull requests fails here with that message; either allow it or set up the App. Open the pull request by hand with the commands under [Back-merges after a promotion](#back-merges-after-a-promotion). |
+| `back-merge` | `back-merge` | The App token could not be minted although the client id is configured (wrong or missing private key, App not installed on the repository), or the API refused to read or open a pull request, for instance because the App lacks a permission. Open the pull request by hand with the commands under [Back-merges after a promotion](#back-merges-after-a-promotion). A run that only prints the not-configured notice is green. |
 
-Not a required check. [`scripts/back_merge.py`](../scripts/back_merge.py) does the work;
-[`tests/test_back_merge.py`](../tests/test_back_merge.py) reads the trigger and the `if:`
-out of the real file and evaluates the `if:` over merged and unmerged closes for both
-bases, a wrong head, a fork head and opened and synchronize events.
+Not a required check. [`tests/test_back_merge.py`](../tests/test_back_merge.py) reads the
+trigger and the `if:` out of the real file, evaluates the `if:` over push and non-push
+events, and runs the script against a fake API over one matrix of events: merged and
+unmerged promotions for both bases, a direct push, a `merge_commit_sha` that is not the
+pushed commit, a wrong base, a fork, a wrong or look-alike head, and pushes and events the
+job must not run for.
 
 ### Back-merges after a promotion
 
@@ -644,31 +669,31 @@ this section that say so. The workflow never merges, enables auto-merge or uses 
 
 Pull requests opened with `GITHUB_TOKEN` start no workflow, so the required checks `ci`
 and `security` never report on them and the pull request cannot merge without a bypass.
-A GitHub App installation token does start them. This needs the following, once. None of
-it is in the repository, and none of it is created by the workflow.
+A GitHub App installation token does start them, so the App is required. This needs the
+following, once. None of it is in the repository, and none of it is created by the
+workflow.
 
-1. Create a GitHub App owned by the repository owner, with repository permissions
-   **Pull requests: Read and write** and **Contents: Read-only** and nothing else, no
-   webhook, and install it on `greenblacked/AI` only. Generate a private key.
+1. Create a GitHub App owned by the repository owner with repository permissions
+   **Pull requests: Read and write** and **Contents: Read-only** and no other permission,
+   no webhook, and install it on `greenblacked/AI` only, not on every repository. Generate
+   a private key.
 2. Under **Settings → Environments**, create `back-merge` and set the deployment branch
    policy to **Selected branches**, allowing `stage` and `main` only. Add the secrets
    `BACK_MERGE_APP_CLIENT_ID` (the App's client ID) and `BACK_MERGE_APP_PRIVATE_KEY`.
    Keep them on the environment and not in the repository secrets: a pull request from
    this repository can read a repository secret by editing the workflow, and this
    environment hands them only to a run on `stage` or `main`.
-3. Pull requests the App opens show the App as their author, not a person. They carry
+3. Rotate the private key on a schedule: generate a new one, replace the secret, delete
+   the old key in the App's settings. Review the App's permissions and installation then
+   too; they should still be exactly the two above, on this repository alone.
+4. Pull requests the App opens show the App as their author, not a person. They carry
    no commit of their own, since the head is an existing branch, so no commit is
    attributed to the App.
 
-No personal access token, no ruleset bypass actor and no auto-merge are involved.
-
-Without the App the job still runs: `BACK_MERGE_APP_CLIENT_ID` is empty, it falls back to
-`GITHUB_TOKEN`, and it says so in a warning, in the job summary and in the pull
-request. That needs **Settings → Actions → General → Allow GitHub Actions to create and
-approve pull requests** on, or the API refuses and the job fails with a message naming
-the setting. Close and reopen each such pull request so the required checks start. A
-client ID that is set with a missing or wrong key does not fall back: the token step
-fails and the job fails with it.
+No personal access token, no ruleset bypass actor and no auto-merge are involved, and
+**Allow GitHub Actions to create and approve pull requests** is not needed and should stay
+off. Until the App is set up the job prints the not-configured notice and opens nothing;
+open the back-merge by hand as in [Releasing a version](#releasing-a-version).
 
 ## `.github/workflows/deploy.yml` — Cloudflare
 

@@ -2,17 +2,20 @@
 
 Two things are pinned here, and both have to hold together.
 
-The workflow must fire only once a promotion pull request has actually merged. Its
-trigger and its job `if:` are read out of the real file and checked as text, and the
-`if:` is then *evaluated* over a matrix of event payloads — merged and unmerged closes
-for both bases, a wrong head branch, a fork head, an opened and a synchronize event — so
-the matrix is the workflow's own condition running, not a restatement of it. `act` is not
-available on every machine, so the evaluator is a small `ast` walk over the expression
-subset the workflow uses, and the script's own `plan()` is asserted to agree with the
-workflow on every row, which is what makes the two filters a double check.
+The workflow must act only once a promotion pull request has actually merged. It runs on
+a `push` to `stage` or `main`, so two filters stand between a push and a back-merge: the
+workflow's trigger and job `if:`, which decide whether the job runs at all, and the
+script, which asks GitHub which pull request the pushed commit belongs to and acts only
+on a merged promotion whose `merge_commit_sha` is that commit. Both are read out of the
+real files. The `if:` is *evaluated*, by a small `ast` walk over the expression subset the
+workflow uses (`act` is not available on every machine), and the script runs against a
+fake API, over one matrix of events: merged and unmerged promotions for both bases, a
+direct push, a `merge_commit_sha` that is not the pushed commit, a wrong base, a fork, a
+wrong or look-alike head prefix, and pushes and events that must not run the job.
 
-The script must open each back-merge once, never push or move a ref, and never touch a
-conflict. It talks to GitHub only through an injected `api`, so a fake answers.
+The script must open each back-merge once, never push or move a ref, never touch a
+conflict, and never act without the App's token. It talks to GitHub only through an
+injected `api`, so a fake answers.
 """
 
 from __future__ import annotations
@@ -40,17 +43,20 @@ def _section(text: str, start: str, end: str) -> str:
     return text.split(start, 1)[1].split(end, 1)[0]
 
 
+def _code() -> str:
+    """The workflow without its comment lines."""
+    return "\n".join(line for line in TEXT.splitlines() if not line.lstrip().startswith("#"))
+
+
 def _job_if() -> str:
     """The job's `if:` folded scalar, joined onto one line."""
     block = _section(TEXT, "    if: >-\n", "    # The `back-merge` environment")
     return " ".join(line.strip() for line in block.splitlines())
 
 
-def _trigger_types() -> list[str]:
+def _trigger_events() -> list[str]:
     triggers = _section(TEXT, "\non:\n", "\npermissions:")
-    found = re.search(r"^    types: \[([a-z_, ]+)\]$", triggers, re.MULTILINE)
-    assert found, triggers
-    return [name.strip() for name in found.group(1).split(",")]
+    return re.findall(r"^  ([a-z_]+):", triggers, re.MULTILINE)
 
 
 def _trigger_branches() -> list[str]:
@@ -60,18 +66,23 @@ def _trigger_branches() -> list[str]:
     return [name.strip() for name in found.group(1).split(",")]
 
 
-def test_the_only_trigger_is_a_closed_pull_request_into_stage_or_main():
+def test_the_only_trigger_is_a_push_to_stage_or_main():
     triggers = _section(TEXT, "\non:\n", "\npermissions:")
-    assert triggers.startswith("  pull_request:\n    types: [closed]\n")
-    assert _trigger_types() == ["closed"]
+    assert triggers == "  push:\n    branches: [stage, main]\n"
+    assert _trigger_events() == ["push"]
     assert _trigger_branches() == ["stage", "main"]
-    # Exactly one event is named: no push, no dispatch, no schedule, and above all not
-    # `pull_request_target`, whose privileges nothing here needs.
-    events = re.findall(r"^  ([a-z_]+):", triggers, re.MULTILINE)
-    assert events == ["pull_request"]
-    code = "\n".join(line for line in TEXT.splitlines() if not line.lstrip().startswith("#"))
-    for banned in ("pull_request_target", "workflow_dispatch", "workflow_run", "schedule:"):
-        assert banned not in code
+    # No pull request event of any kind, no tag, no dispatch, no schedule: a push to a
+    # protected branch is what a merged pull request is, and nothing else here starts it.
+    for banned in (
+        "pull_request",
+        "pull_request_target",
+        "workflow_dispatch",
+        "workflow_run",
+        "schedule:",
+        "tags:",
+        "paths:",
+    ):
+        assert banned not in _code()
 
 
 def test_permissions_are_empty_at_the_top_and_read_plus_pull_requests_on_the_job():
@@ -87,28 +98,48 @@ def test_permissions_are_empty_at_the_top_and_read_plus_pull_requests_on_the_job
     assert "    timeout-minutes: 10\n" in header
 
 
-def test_the_job_has_one_guarded_job_and_a_literal_concurrency_group():
+def test_the_job_runs_in_the_back_merge_environment_with_a_literal_concurrency_group():
     assert TEXT.count("\n  back-merge:\n") == 1
+    assert "    environment: back-merge\n" in TEXT
     assert (
-        "concurrency:\n  group: back-merge-${{ github.event.pull_request.base.ref }}\n"
-        "  cancel-in-progress: false\n"
+        "concurrency:\n  group: back-merge-${{ github.ref_name }}\n  cancel-in-progress: false\n"
     ) in TEXT
 
 
 def test_the_app_token_asks_for_two_grants_and_nothing_else():
-    step = _section(TEXT, "      - name: Mint an App token", "      - name: Open or refresh")
+    step = _section(TEXT, "      - name: Mint an App token", "      - name: Open the back-merge")
     assert "if: ${{ env.APP_CONFIGURED == 'true' }}" in step
     assert re.search(r"actions/create-github-app-token@[0-9a-f]{40}  # v\d+\.\d+\.\d+", step)
     permissions = re.findall(r"^          (permission-[a-z-]+): (\w+)$", step, re.MULTILINE)
     assert permissions == [("permission-contents", "read"), ("permission-pull-requests", "write")]
     assert "secrets.BACK_MERGE_APP_CLIENT_ID" in step
     assert "secrets.BACK_MERGE_APP_PRIVATE_KEY" in step
-    assert "pat" not in step.lower().replace("path", "")
+
+
+def test_there_is_no_fallback_to_the_workflow_token():
+    code = _code()
+    assert "GITHUB_TOKEN" not in code
+    assert "github.token" not in code
+    final = _section(TEXT, "      - name: Open the back-merge", "\n  zzz")
+    assert "GH_TOKEN: ${{ steps.app.outputs.token }}" in final
+    assert "BACK_MERGE_TOKEN: app\n" in final
+
+
+def test_without_the_app_the_job_only_says_so():
+    steps = TEXT.split("    steps:\n", 1)[1].split("\n      - ")
+    gates = {step.split("\n", 1)[0]: step for step in steps}
+    unconfigured = [step for step in steps if "env.APP_CONFIGURED != 'true'" in step]
+    configured = [step for step in steps if "env.APP_CONFIGURED == 'true'" in step]
+    assert len(unconfigured) == 1 and len(configured) == 4 and len(gates) == 5
+    notice = unconfigured[0]
+    assert "::notice title=back-merge::" in notice
+    assert "BACK_MERGE_APP_CLIENT_ID" in notice and "BACK_MERGE_APP_PRIVATE_KEY" in notice
+    # The notice step runs nothing from the repository and calls no API.
+    assert "python" not in notice and "gh " not in notice
 
 
 def test_only_pinned_actions_are_used_and_the_checkout_keeps_no_credential():
-    uses = re.findall(r"^\s+- uses: (\S+)", TEXT, re.MULTILINE)
-    uses += re.findall(r"^\s+uses: (\S+)", TEXT, re.MULTILINE)
+    uses = re.findall(r"^\s+(?:- )?uses: (\S+)", TEXT, re.MULTILINE)
     names = sorted(use.split("@")[0] for use in uses)
     assert names == [
         "actions/checkout",
@@ -118,28 +149,27 @@ def test_only_pinned_actions_are_used_and_the_checkout_keeps_no_credential():
     assert all(re.fullmatch(r".+@[0-9a-f]{40}", use) for use in uses)
     assert "persist-credentials: false" in TEXT
     assert TEXT.count("actions/checkout@") == 1
+    # No `ref:`: on a push the checkout is the protected branch's tip, not a merge ref.
+    checkout = _section(
+        TEXT, "      - uses: actions/checkout", "      - uses: actions/setup-python"
+    )
+    assert "ref:" not in "\n".join(
+        line for line in checkout.splitlines() if not line.lstrip().startswith("#")
+    )
 
 
 def test_no_event_value_reaches_a_run_block():
     runs = re.findall(r"^        run: \|\n((?:          .*\n)+)", TEXT, re.MULTILINE)
-    assert runs
+    assert len(runs) == 2
     for block in runs:
         assert "${{" not in block
         assert "set -Eeuo pipefail" in block
-    # The only event-derived values in the file are the concurrency group, the `if:` and
-    # nothing in `env:`, `with:` or a command.
-    expressions = re.findall(r"\$\{\{[^}]*github\.event[^}]*\}\}", TEXT)
-    assert expressions == ["${{ github.event.pull_request.base.ref }}"]
+    # The only event-derived expression in the file is the concurrency group's branch.
+    assert re.findall(r"\$\{\{[^}]*github\.event[^}]*\}\}", TEXT) == []
+    assert re.findall(r"\$\{\{ github\.ref_name \}\}", TEXT) == ["${{ github.ref_name }}"]
 
 
 # --- the job `if:`, evaluated ---------------------------------------------------------
-
-
-def _lookup(path: str, context: dict):
-    value = context
-    for part in path.split("."):
-        value = value.get(part) if isinstance(value, dict) else None
-    return value
 
 
 def evaluate(expression: str, context: dict):
@@ -150,6 +180,12 @@ def evaluate(expression: str, context: dict):
     source = re.sub(r"\bfalse\b", "False", source)
     source = re.sub(r"\bgithub\.[A-Za-z_.]+", lambda m: f"_ctx({m.group(0)!r})", source)
     tree = ast.parse(source, mode="eval")
+
+    def lookup(path: str):
+        value = context
+        for part in path.split("."):
+            value = value.get(part) if isinstance(value, dict) else None
+        return value
 
     def walk(node):
         if isinstance(node, ast.Expression):
@@ -165,7 +201,7 @@ def evaluate(expression: str, context: dict):
         if isinstance(node, ast.Call):
             assert isinstance(node.func, ast.Name)
             if node.func.id == "_ctx":
-                return _lookup(walk(node.args[0]), context)
+                return lookup(walk(node.args[0]))
             assert node.func.id == "startsWith", node.func.id
             subject, prefix = (walk(arg) for arg in node.args)
             return isinstance(subject, str) and subject.lower().startswith(prefix.lower())
@@ -174,128 +210,213 @@ def evaluate(expression: str, context: dict):
     return walk(tree)
 
 
-def event(
-    action="closed",
+def job_runs(event_name: str, ref: str) -> bool:
+    """Whether the workflow runs its job for this event: the trigger's event and branch
+    filter first, then the job's `if:`."""
+    if event_name not in _trigger_events():
+        return False
+    if ref.removeprefix("refs/heads/") not in _trigger_branches() or "refs/heads/" not in ref:
+        return False
+    return bool(evaluate(_job_if(), {"github": {"event_name": event_name, "ref": ref}}))
+
+
+SHA = "a" * 40
+OTHER = "b" * 40
+STAGE_HEAD = "release/promote-dev-to-stage-0.7.0"
+MAIN_HEAD = "release/promote-stage-to-main-0.7.0"
+
+
+def pull(
+    number=410,
+    *,
     merged=True,
     base="stage",
-    head="release/promote-dev-to-stage-0.7.0",
+    head=STAGE_HEAD,
     head_repo=REPOSITORY,
-    number=410,
+    merge_sha=SHA,
+    state="closed",
 ):
     return {
-        "action": action,
         "number": number,
-        "pull_request": {
-            "number": number,
-            "merged": merged,
-            "base": {"ref": base},
-            "head": {"ref": head, "repo": {"full_name": head_repo}},
-        },
+        "state": state,
+        "merged": merged,
+        "merge_commit_sha": merge_sha,
+        "base": {"ref": base},
+        "head": {"ref": head, "repo": {"full_name": head_repo}},
     }
 
 
-def fires(payload: dict) -> bool:
-    """Whether the workflow would run its job for this event: the trigger first (the
-    activity type and the base branch), then the job's `if:`."""
-    pull = payload["pull_request"]
-    if payload["action"] not in _trigger_types():
-        return False
-    if pull["base"]["ref"] not in _trigger_branches():
-        return False
-    context = {"github": {"repository": REPOSITORY, "event": payload}}
-    # `github.repository` and `github.event.*` are looked up from this one root.
-    return bool(evaluate(_job_if(), context["github"] | {"github": context["github"]}))
+def push(ref="refs/heads/stage", after=SHA):
+    return {"ref": ref, "after": after, "repository": {"full_name": REPOSITORY}}
 
 
-# (label, event, whether the workflow runs, back-merges it should open)
+MAIN_TARGETS = [("main", "stage"), ("main", "dev")]
+
+# (label, event name, pushed event, the pull requests GitHub lists for the pushed commit,
+#  whether the workflow runs its job, the back-merges the script opens)
 MATRIX = [
-    ("merged dev-to-stage into stage", event(), True, [("stage", "dev")]),
+    ("merged dev-to-stage into stage", "push", push(), [pull()], True, [("stage", "dev")]),
     (
         "merged stage-to-main into main",
-        event(base="main", head="release/promote-stage-to-main-0.7.0"),
+        "push",
+        push("refs/heads/main"),
+        [pull(base="main", head=MAIN_HEAD)],
         True,
-        [("main", "stage"), ("main", "dev")],
+        MAIN_TARGETS,
     ),
-    ("unmerged close into stage", event(merged=False), False, []),
+    ("direct push, no pull request", "push", push(), [], True, []),
     (
-        "unmerged close into main",
-        event(merged=False, base="main", head="release/promote-stage-to-main-0.7.0"),
-        False,
+        "direct push to main, no pull request",
+        "push",
+        push("refs/heads/main"),
         [],
-    ),
-    ("merged, wrong head into stage", event(head="feat/something-else"), False, []),
-    (
-        "merged, wrong head into main",
-        event(base="main", head="feat/something-else"),
-        False,
+        True,
         [],
     ),
     (
-        "merged stage-to-main head into stage",
-        event(base="stage", head="release/promote-stage-to-main-0.7.0"),
-        False,
+        "squash or rebase: merge_commit_sha is not the pushed commit, stage",
+        "push",
+        push(),
+        [pull(merge_sha=OTHER)],
+        True,
         [],
     ),
     (
-        "merged dev-to-stage head into main",
-        event(base="main", head="release/promote-dev-to-stage-0.7.0"),
-        False,
+        "squash or rebase: merge_commit_sha is not the pushed commit, main",
+        "push",
+        push("refs/heads/main"),
+        [pull(base="main", head=MAIN_HEAD, merge_sha=OTHER)],
+        True,
         [],
     ),
-    ("merged from a fork", event(head_repo="someone/AI"), False, []),
-    ("merged into dev", event(base="dev", head="release/promote-dev-to-stage-0.7.0"), False, []),
-    ("opened", event(action="opened", merged=False), False, []),
-    ("synchronize", event(action="synchronize", merged=False), False, []),
-    ("reopened", event(action="reopened", merged=False), False, []),
-    ("edited after merge", event(action="edited"), False, []),
-    ("opened, already merged flag", event(action="opened"), False, []),
+    (
+        "promotion into main listed for a push to stage (wrong base)",
+        "push",
+        push(),
+        [pull(base="main", head=MAIN_HEAD)],
+        True,
+        [],
+    ),
+    ("merged from a fork", "push", push(), [pull(head_repo="someone/AI")], True, []),
+    ("wrong head prefix", "push", push(), [pull(head="feat/something-else")], True, []),
+    (
+        "look-alike head prefix, no separator",
+        "push",
+        push(),
+        [pull(head="release/promote-dev-to-stagex")],
+        True,
+        [],
+    ),
+    (
+        "dev-to-stage head, but merged into main, listed for a push to stage",
+        "push",
+        push(),
+        [pull(base="main", head=STAGE_HEAD)],
+        True,
+        [],
+    ),
+    (
+        "stage-to-main head merged into stage",
+        "push",
+        push(),
+        [pull(head=MAIN_HEAD)],
+        True,
+        [],
+    ),
+    (
+        "dev-to-stage head merged into main",
+        "push",
+        push("refs/heads/main"),
+        [pull(base="main", head=STAGE_HEAD)],
+        True,
+        [],
+    ),
+    (
+        "unmerged pull request that carries the pushed commit",
+        "push",
+        push(),
+        [pull(merged=False, state="open")],
+        True,
+        [],
+    ),
+    (
+        "closed unmerged, merge_commit_sha equal to the pushed commit",
+        "push",
+        push(),
+        [pull(merged=False)],
+        True,
+        [],
+    ),
+    (
+        "the merge of a back-merge pull request itself (head is main)",
+        "push",
+        push(),
+        [pull(base="stage", head="main")],
+        True,
+        [],
+    ),
+    (
+        "head named exactly the prefix",
+        "push",
+        push(),
+        [pull(head="release/promote-dev-to-stage")],
+        True,
+        [("stage", "dev")],
+    ),
+    (
+        "head with a slash after the prefix",
+        "push",
+        push(),
+        [pull(head="release/promote-dev-to-stage/0.7.0")],
+        True,
+        [("stage", "dev")],
+    ),
+    (
+        "several pull requests on the commit, one is the promotion",
+        "push",
+        push(),
+        [pull(1, head="feat/other"), pull(2, merge_sha=OTHER), pull(3)],
+        True,
+        [("stage", "dev")],
+    ),
+    ("push to dev", "push", push("refs/heads/dev"), [pull()], False, []),
+    ("push to a topic branch", "push", push("refs/heads/ci/x"), [pull()], False, []),
+    ("tag push", "push", push("refs/tags/v0.7.0"), [pull()], False, []),
+    ("pull request opened", "pull_request", push(), [pull()], False, []),
+    ("pull request closed and merged", "pull_request", push(), [pull()], False, []),
+    ("pull request synchronize", "pull_request", push(), [pull()], False, []),
+    ("manual dispatch", "workflow_dispatch", push(), [pull()], False, []),
+    ("branch deleted", "push", push(after="0" * 40), [pull()], True, []),
 ]
-
-
-@pytest.mark.parametrize(
-    ("label", "payload", "runs", "targets"), MATRIX, ids=[m[0] for m in MATRIX]
-)
-def test_the_workflow_fires_only_on_a_merged_promotion(label, payload, runs, targets):
-    assert fires(payload) is runs, label
-    # The script's own filter agrees with the workflow's on every row, which is what
-    # makes them a double check rather than one check written twice.
-    assert back_merge.plan(payload, REPOSITORY) == targets, label
-
-
-def test_the_matrix_covers_every_case_a_guard_has_to_refuse():
-    assert sum(1 for row in MATRIX if row[2]) == 2
-    assert len(MATRIX) >= 14
-
-
-def test_plan_refuses_a_payload_that_is_not_a_pull_request_event():
-    assert back_merge.plan({}, REPOSITORY) == []
-    assert back_merge.plan({"action": "closed"}, REPOSITORY) == []
-    assert back_merge.plan({"action": "closed", "pull_request": "x"}, REPOSITORY) == []
-    odd = event()
-    odd["pull_request"]["head"]["ref"] = None
-    assert back_merge.plan(odd, REPOSITORY) == []
-    # `merged` must be exactly true, not merely truthy.
-    truthy = event()
-    truthy["pull_request"]["merged"] = "true"
-    assert back_merge.plan(truthy, REPOSITORY) == []
-
-
-# --- the script, against a fake API ---------------------------------------------------
 
 
 class FakeGitHub:
     """Answers the handful of endpoints `back_merge` calls, and records every call."""
 
-    def __init__(self, *, open_pulls=None, ahead=3, mergeable=(True,), create_error=None):
+    def __init__(
+        self, *, listed=(), open_pulls=None, ahead=3, mergeable=(True,), create_error=None
+    ):
         self.calls: list[tuple[str, str, object]] = []
+        self.listed = list(listed)
         self.open_pulls = open_pulls or {}
         self.ahead = ahead
         self.mergeable = list(mergeable)
         self.create_error = create_error
         self.created: list[dict] = []
+        self.next_number = 500
 
     def __call__(self, method, path, body=None):
         self.calls.append((method, path, body))
+        if method == "GET" and re.search(r"/commits/[0-9a-f]{40}/pulls\?", path):
+            return [{"number": item["number"]} for item in self.listed]
+        if method == "GET" and re.search(r"/pulls/\d+$", path):
+            number = int(path.rsplit("/", 1)[1])
+            for item in self.listed:
+                if item["number"] == number:
+                    return item
+            return {
+                "mergeable": self.mergeable.pop(0) if len(self.mergeable) > 1 else self.mergeable[0]
+            }
         if method == "GET" and "/pulls?" in path:
             found = re.search(r"base=([^&]+)&head=[^:]+:([^&]+)", path)
             key = (found.group(2), found.group(1))
@@ -306,10 +427,8 @@ class FakeGitHub:
             if self.create_error:
                 raise self.create_error
             self.created.append(body)
-            return {"number": 500 + len(self.created)}
-        if method == "GET" and re.search(r"/pulls/\d+$", path):
-            answer = self.mergeable.pop(0) if len(self.mergeable) > 1 else self.mergeable[0]
-            return {"mergeable": answer}
+            self.next_number += 1
+            return {"number": self.next_number}
         if method == "PATCH" and re.search(r"/pulls/\d+$", path):
             return {}
         raise AssertionError(f"unexpected call {method} {path}")
@@ -317,30 +436,155 @@ class FakeGitHub:
     def methods(self):
         return [(method, path.split("?")[0]) for method, path, _ in self.calls]
 
+    def writes(self):
+        return [(m, p) for m, p in self.methods() if m != "GET"]
 
-def run(api, source="stage", destination="dev", number=410, *, app_token=True):
-    return back_merge.back_merge(
-        api, REPOSITORY, source, destination, number, app_token=app_token, sleep=lambda _: None
+
+def _run_main(tmp_path, monkeypatch, payload, api, *, token="app"):  # noqa: S107
+    path = tmp_path / "event.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setenv("GH_REPO", REPOSITORY)
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(path))
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    if token is None:
+        monkeypatch.delenv("BACK_MERGE_TOKEN", raising=False)
+    else:
+        monkeypatch.setenv("BACK_MERGE_TOKEN", token)
+    return back_merge.main([], api)
+
+
+@pytest.mark.parametrize(
+    ("label", "event_name", "payload", "listed", "runs", "targets"),
+    MATRIX,
+    ids=[m[0] for m in MATRIX],
+)
+def test_back_merges_open_only_for_a_merged_promotion_push(
+    label, event_name, payload, listed, runs, targets, tmp_path, monkeypatch
+):
+    # 1. Does the workflow run its job at all?
+    assert job_runs(event_name, payload["ref"]) is runs, label
+    # 2. When it does, does the script open what the promotion calls for, and only that?
+    api = FakeGitHub(listed=listed)
+    if runs:
+        assert _run_main(tmp_path, monkeypatch, payload, api) == 0
+    opened = [(c["head"], c["base"]) for c in api.created]
+    assert opened == targets, label
+    # Whatever happened, the only writes are pull requests: no ref, branch or merge.
+    assert {p for m, p in api.writes()} <= {f"repos/{REPOSITORY}/pulls"}, label
+
+
+@pytest.mark.parametrize(
+    ("event_name", "ref", "expected"),
+    [
+        ("push", "refs/heads/stage", True),
+        ("push", "refs/heads/main", True),
+        ("push", "refs/heads/dev", False),
+        ("push", "refs/tags/stage", False),
+        ("pull_request", "refs/heads/stage", False),
+        ("pull_request", "refs/pull/1/merge", False),
+        ("workflow_dispatch", "refs/heads/main", False),
+    ],
+)
+def test_the_job_if_alone_admits_only_a_push_to_the_two_branches(event_name, ref, expected):
+    # Independent of the trigger: if the `on:` block were ever widened, the job would
+    # still refuse everything but a push to stage or main.
+    context = {"github": {"event_name": event_name, "ref": ref}}
+    assert bool(evaluate(_job_if(), context)) is expected
+
+
+def test_the_matrix_covers_what_a_guard_has_to_refuse():
+    assert len(MATRIX) >= 25
+    assert sum(1 for row in MATRIX if row[5]) == 5  # the rows that open anything
+    assert sum(1 for row in MATRIX if not row[4]) == 7  # the rows the job never runs for
+
+
+@pytest.mark.parametrize(
+    ("head", "prefix", "expected"),
+    [
+        ("release/promote-dev-to-stage", "release/promote-dev-to-stage", True),
+        ("release/promote-dev-to-stage-0.6.0-live-ops", "release/promote-dev-to-stage", True),
+        ("release/promote-dev-to-stage/x", "release/promote-dev-to-stage", True),
+        ("release/promote-dev-to-stagex", "release/promote-dev-to-stage", False),
+        ("release/promote-dev-to-stage.1", "release/promote-dev-to-stage", False),
+        ("xrelease/promote-dev-to-stage", "release/promote-dev-to-stage", False),
+        ("release/promote-dev-to-stag", "release/promote-dev-to-stage", False),
+    ],
+)
+def test_the_head_prefix_is_anchored(head, prefix, expected):
+    assert back_merge.head_matches(head, prefix) is expected
+
+
+def test_plan_requires_every_condition_and_reads_only_the_pull_request():
+    assert back_merge.plan(pull(), REPOSITORY, "stage", SHA) == [("stage", "dev")]
+    assert back_merge.plan(pull(base="main", head=MAIN_HEAD), REPOSITORY, "main", SHA) == (
+        MAIN_TARGETS
     )
+    assert back_merge.plan(None, REPOSITORY, "stage", SHA) == []
+    assert back_merge.plan("x", REPOSITORY, "stage", SHA) == []
+    odd = pull()
+    odd["head"]["ref"] = None
+    assert back_merge.plan(odd, REPOSITORY, "stage", SHA) == []
+    truthy = pull()
+    truthy["merged"] = "true"  # exactly true, not merely truthy
+    assert back_merge.plan(truthy, REPOSITORY, "stage", SHA) == []
+    assert back_merge.plan(pull(), REPOSITORY, "dev", SHA) == []
+    assert back_merge.plan(pull(base="dev"), REPOSITORY, "dev", SHA) == []
 
 
-def test_a_back_merge_is_opened_from_the_source_branch_itself(capsys):
+def test_resolve_skips_candidates_that_are_not_pull_requests():
+    api = FakeGitHub(listed=[pull()])
+
+    def with_junk(method, path, body=None):
+        if "/commits/" in path:
+            return ["x", {"number": "nope"}, {"number": 410}]
+        return api(method, path, body)
+
+    assert back_merge.resolve(with_junk, REPOSITORY, "stage", SHA) == (410, [("stage", "dev")])
+    assert back_merge.resolve(lambda *a, **k: None, REPOSITORY, "stage", SHA) is None
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        {},
+        {"ref": "refs/heads/stage"},
+        {"ref": "refs/heads/stage", "after": "abc"},
+        {"ref": "refs/heads/stage", "after": "A" * 40},
+        {"ref": "refs/heads/stage", "after": "0" * 40},
+        {"ref": "refs/heads/dev", "after": SHA},
+        {"ref": "stage", "after": SHA},
+        {"ref": "refs/tags/stage", "after": SHA},
+        {"ref": "refs/heads/stage/x", "after": SHA},
+    ],
+)
+def test_push_target_refuses_anything_but_a_commit_on_stage_or_main(payload):
+    assert back_merge.push_target(payload) is None
+
+
+def test_push_target_names_the_branch_and_commit():
+    assert back_merge.push_target(push()) == ("stage", SHA)
+    assert back_merge.push_target(push("refs/heads/main")) == ("main", SHA)
+
+
+# --- the script, against a fake API ---------------------------------------------------
+
+
+def run(api, source="stage", destination="dev", number=410):
+    return back_merge.back_merge(api, REPOSITORY, source, destination, number, sleep=lambda _: None)
+
+
+def test_a_back_merge_is_opened_from_the_source_branch_itself():
     api = FakeGitHub()
     result = run(api)
-    assert result == {
-        "back_merge": "stage into dev",
-        "pull_request": "#501",
-        "result": "opened",
-    }
+    assert result == {"back_merge": "stage into dev", "pull_request": "#501", "result": "opened"}
     (created,) = api.created
     assert created["head"] == "stage" and created["base"] == "dev"
     assert created["title"] == "Merge stage into dev after the promotion in #410"
     assert back_merge.MARKER in created["body"]
     assert "merge commit, not squashed" in created["body"]
-    assert "Conflicts" not in created["body"].split("**Conflicts:**", 1)[1].split("\n", 1)[1]
-    # Nothing writes to a ref or a branch: the only write is the pull request itself.
-    writes = [(m, p) for m, p in api.methods() if m != "GET"]
-    assert writes == [("POST", f"repos/{REPOSITORY}/pulls")]
+    assert "workflow token" not in created["body"]
+    assert api.writes() == [("POST", f"repos/{REPOSITORY}/pulls")]
     assert not [p for _, p in api.methods() if "/git/" in p]
 
 
@@ -348,14 +592,14 @@ def test_a_second_run_with_the_pull_request_open_does_nothing(capsys):
     api = FakeGitHub(open_pulls={("stage", "dev"): 77})
     result = run(api)
     assert result["result"] == "already open" and result["pull_request"] == "#77"
-    assert [m for m, _ in api.methods() if m != "GET"] == []
+    assert api.writes() == []
     assert "already merges stage into dev" in capsys.readouterr().out
 
 
 def test_a_pair_with_nothing_to_merge_is_skipped_cleanly(capsys):
     api = FakeGitHub(ahead=0)
     assert run(api)["result"] == "nothing to merge"
-    assert [m for m, _ in api.methods() if m != "GET"] == []
+    assert api.writes() == []
     assert "nothing to merge" in capsys.readouterr().out
 
 
@@ -393,43 +637,26 @@ def test_a_mergeability_that_never_arrives_is_not_called_a_conflict():
     assert not [m for m, _, _ in api.calls if m == "PATCH"]
 
 
-def test_without_the_app_token_the_pull_request_says_its_checks_did_not_start(capsys):
-    api = FakeGitHub()
-    run(api, app_token=False)
-    body = api.created[0]["body"]
-    assert "Close and reopen it" in body
-    assert "::warning::#501 was opened with the workflow token" in capsys.readouterr().out
-    with_app = FakeGitHub()
-    run(with_app, app_token=True)
-    assert "Close and reopen it" not in with_app.created[0]["body"]
-
-
 def test_a_refused_creation_is_annotated_and_raised(capsys):
-    error = back_merge.ApiError(403, "GitHub Actions is not permitted to create pull requests")
+    error = back_merge.ApiError(403, "Resource not accessible by integration")
     api = FakeGitHub(create_error=error)
     with pytest.raises(back_merge.ApiError):
         run(api)
     out = capsys.readouterr().out
     assert "::error::could not open stage into dev" in out
-    assert "Settings > Actions > General" in out
+    assert "installed on this repository" in out
+    assert "Settings > Actions" not in out
 
 
-def _write_event(tmp_path, payload):
-    path = tmp_path / "event.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
-    return path
-
-
-def test_main_opens_both_back_merges_after_a_main_promotion(tmp_path, monkeypatch, capsys):
-    monkeypatch.setenv("GH_REPO", REPOSITORY)
-    monkeypatch.setenv(
-        "GITHUB_EVENT_PATH",
-        str(_write_event(tmp_path, event(base="main", head="release/promote-stage-to-main-0.7.0"))),
-    )
-    monkeypatch.setenv("BACK_MERGE_TOKEN", "app")
+def test_main_opens_both_back_merges_after_a_main_promotion(tmp_path, monkeypatch):
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
-    api = FakeGitHub()
+    api = FakeGitHub(listed=[pull(base="main", head=MAIN_HEAD)])
+    path = tmp_path / "event.json"
+    path.write_text(json.dumps(push("refs/heads/main")), encoding="utf-8")
+    monkeypatch.setenv("GH_REPO", REPOSITORY)
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(path))
+    monkeypatch.setenv("BACK_MERGE_TOKEN", "app")
     assert back_merge.main([], api) == 0
     assert [(c["head"], c["base"]) for c in api.created] == [("main", "stage"), ("main", "dev")]
     text = summary.read_text(encoding="utf-8")
@@ -437,35 +664,48 @@ def test_main_opens_both_back_merges_after_a_main_promotion(tmp_path, monkeypatc
     assert "| main into dev | #502 | opened |" in text
 
 
-def test_main_does_nothing_for_an_event_that_is_not_a_merged_promotion(
+def test_main_does_nothing_without_the_app_token(tmp_path, monkeypatch, capsys):
+    for token in (None, "workflow", ""):
+        api = FakeGitHub(listed=[pull()])
+        assert _run_main(tmp_path, monkeypatch, push(), api, token=token) == 0
+        assert api.calls == []
+    assert "no GitHub App token" in capsys.readouterr().out
+
+
+def test_main_does_nothing_for_a_push_that_is_not_a_promotion(tmp_path, monkeypatch, capsys):
+    api = FakeGitHub(listed=[pull(merge_sha=OTHER)])
+    assert _run_main(tmp_path, monkeypatch, push(), api) == 0
+    assert not api.writes()
+    assert "is not the merge of a promotion" in capsys.readouterr().out
+
+
+def test_main_does_nothing_for_an_event_that_is_not_a_push_to_stage_or_main(
     tmp_path, monkeypatch, capsys
 ):
-    monkeypatch.setenv("GH_REPO", REPOSITORY)
-    monkeypatch.setenv("GITHUB_EVENT_PATH", str(_write_event(tmp_path, event(merged=False))))
-    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
-    api = FakeGitHub()
-    assert back_merge.main([], api) == 0
+    api = FakeGitHub(listed=[pull()])
+    assert _run_main(tmp_path, monkeypatch, {"action": "closed", "pull_request": pull()}, api) == 0
     assert api.calls == []
     assert "nothing to do" in capsys.readouterr().out
 
 
-def test_main_keeps_going_after_one_back_merge_fails_and_then_fails_the_job(
-    tmp_path, monkeypatch, capsys
-):
-    monkeypatch.setenv("GH_REPO", REPOSITORY)
-    monkeypatch.setenv(
-        "GITHUB_EVENT_PATH",
-        str(_write_event(tmp_path, event(base="main", head="release/promote-stage-to-main-0.7.0"))),
+def test_main_keeps_going_after_one_back_merge_fails_and_then_fails_the_job(tmp_path, monkeypatch):
+    failing = FakeGitHub(
+        listed=[pull(base="main", head=MAIN_HEAD)], create_error=back_merge.ApiError(500, "boom")
     )
-    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
-    monkeypatch.delenv("BACK_MERGE_TOKEN", raising=False)
-    failing = FakeGitHub(create_error=back_merge.ApiError(500, "boom"))
-    assert back_merge.main([], failing) == 1
+    assert _run_main(tmp_path, monkeypatch, push("refs/heads/main"), failing) == 1
     # Both targets were tried: the first failure did not stop the second.
     assert sum(1 for m, p, _ in failing.calls if m == "POST") == 2
 
 
-# --- gh_api and annotations -----------------------------------------------------------
+def test_the_pushed_commit_goes_into_one_api_path_only_after_it_is_validated(tmp_path, monkeypatch):
+    api = FakeGitHub(listed=[pull()])
+    _run_main(tmp_path, monkeypatch, push(), api)
+    first = api.calls[0]
+    assert first[:2] == ("GET", f"repos/{REPOSITORY}/commits/{SHA}/pulls?per_page=100")
+    bad = push(after="../../x" + "a" * 33)
+    api = FakeGitHub(listed=[pull()])
+    assert _run_main(tmp_path, monkeypatch, bad, api) == 0
+    assert api.calls == []
 
 
 class Completed:
