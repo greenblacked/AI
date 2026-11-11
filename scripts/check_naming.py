@@ -24,6 +24,8 @@ Four families, one job, so a contributor has one place to look rather than four:
   it — so it is a decision going forward rather than a claim about what this repository
   has always done. A merge commit and anything from Dependabot — by author or by a
   `dependabot/` branch — are exempt, since neither is a subject a person chose by hand.
+  So is each commit named in `_PRE_RULE_COMMITS` by its full SHA: released before the rules
+  existed and carried into `dev` by a back-merge, where it cannot be reworded.
 - **Code identifiers** are ruff's job, not this script's: `pep8-naming` (`N`) runs in
   the existing `python security lint` job because it only ever sees Python, and this
   script would just be reimplementing it worse.
@@ -361,6 +363,20 @@ def commits_in(root: Path, commit_range: str, git: str) -> list[CommitRecord]:
 
 _ALLOWED_IDENTITY_NAMES = {"dependabot[bot]"}
 
+# Commits released before the subject rules existed, named by their full 40-character SHA,
+# whatever branch a pull request is on. A back-merge carries the source branch's existing
+# commits into the destination, so a released commit whose subject predates the rule would
+# fail the required `naming` job there with nothing to fix: it cannot be reworded without
+# rewriting `stage`. Matching is by the whole SHA and nothing else, so a new commit with the
+# same subject, or an abbreviated SHA, is still checked. Add an entry only for a commit that
+# is already on `stage` or `main`.
+_PRE_RULE_COMMITS = frozenset(
+    {
+        # "feat: restyle the catalogue a release publishes", on stage before this check
+        "5a91a7d1cf28c3831e2a44163e3a654b5292e4c5",
+    }
+)
+
 
 def check(
     root: Path,
@@ -398,7 +414,7 @@ def check(
         for commit_hash, parents, author_name, subject in commits:
             is_merge = len(parents.split()) > 1
             is_dependabot = author_name in _ALLOWED_IDENTITY_NAMES
-            if is_merge or is_dependabot or dependabot_branch:
+            if is_merge or is_dependabot or dependabot_branch or commit_hash in _PRE_RULE_COMMITS:
                 continue
             commits_checked += 1
             for problem in subject_problems(subject):

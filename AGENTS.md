@@ -101,7 +101,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the twenty-nine plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `back-merge.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
 | `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the eight catalogue checks |
@@ -327,7 +327,7 @@ blocking finding or a failing `ci` or `security` gate.
   sets `persist-credentials: false`. It refuses a version that has no changelog section,
   a tag already on `origin`, a version not greater than every existing tag, or a `HEAD`
   that is not `origin/main`. `release.yml` accepts that dispatch only on a `vX.Y.Z` tag
-  ref, so a dispatch on a branch publishes nothing.
+  ref, so a dispatch on a branch publishes nothing. `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script acts only when the pushed commit is the `merge_commit_sha` of a merged `release/promote-*` pull request from this repository into that branch. Its `GITHUB_TOKEN` is `contents: read`; a GitHub App token, never `GITHUB_TOKEN`, creates one `chore/back-merge-*` branch at the pushed commit with `POST git/refs`, never moving, forcing, reusing or deleting a ref, and opens the pull request that merges it back down. It never merges or resolves a conflict.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

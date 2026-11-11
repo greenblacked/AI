@@ -90,8 +90,9 @@ Releases are git tags, cut by the maintainer in two steps documented in
 [docs/ci.md#releasing-a-version](docs/ci.md#releasing-a-version):
 `make release-prepare VERSION=x.y.z` on the branch that promotes `stage` into `main`,
 then Cut release (or `make release VERSION=x.y.z`) on `main` once that promotion has
-merged. After every release `main` is merged back into `dev` with a merge commit, so
-`dev` carries the dated changelog and any bumps that landed only on `main`. A new pull
+merged. After a promotion `back-merge.yml` opens the pull requests that merge `main`
+back down. Merged with a merge commit, they leave
+`dev` carrying the dated changelog and any bumps that landed only on `main`. A new pull
 request should add its entry under
 `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) rather than to a version section,
 since the version and its date are only decided at release time.
