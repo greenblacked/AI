@@ -1,11 +1,11 @@
 --- a/scripts/run_trigger_eval.py
 +++ b/scripts/run_trigger_eval.py
-@@ -173,7 +173,7 @@
- BACKENDS: dict[str, tuple[list[str], str | None]] = {
-     # Classification needs no new tool approvals. Pin the mode so a CLI upgrade cannot
-     # switch it to auto; existing approved tools and ordinary reads may still run.
--    "claude": (["claude", "-p", "{prompt}", "--permission-mode", "dontAsk"], "--model"),
-+    "claude": (["claude", "-p", "{prompt}"], "--model"),
+@@ -175,7 +175,7 @@
+     # description from turning its prompt text into a runner file read or subprocess,
+     # while the explicit mode keeps a CLI upgrade from switching approval policy.
+     "claude": (
+-        ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk", "--tools", ""],
++        ["claude", "-p", "{prompt}", "--tools", ""],
+         "--model",
+     ),
      "codex": (["codex", "exec", "--skip-git-repo-check", "{prompt}"], "--model"),
-     "gemini": (["gemini", "-p", "{prompt}"], "--model"),
-     "ollama": (["ollama", "run", "{model}", "{prompt}"], None),
