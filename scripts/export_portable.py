@@ -46,6 +46,7 @@ import json
 import posixpath
 import re
 import shutil
+import stat
 import sys
 import unicodedata
 from pathlib import Path
@@ -2045,11 +2046,33 @@ def export(root: Path, out: Path, check: bool = False) -> int:
     # The export is the copy most likely to leave the repository, so it has to carry the
     # same LICENSE and NOTICE the repository ships rather than only the per-file footer
     # — checked before anything is deleted, so a repository missing either fails without
-    # first destroying whatever was at `out`.
+    # first destroying whatever was at `out`. `lstat` keeps a root symlink from importing
+    # its referent into an export under a trusted legal-file name.
+    legal_sources: dict[str, Path] = {}
+    resolved_root = root.resolve()
     for name in ("LICENSE", "NOTICE"):
-        if not (root / name).is_file():
+        source = root / name
+        try:
+            mode = source.lstat().st_mode
+        except OSError:
             print(f"::error::no {name} at the repository root ({root})", file=sys.stderr)
             return 2
+        if not stat.S_ISREG(mode):
+            print(
+                f"::error::{name} is not a regular file directly under the repository "
+                f"root ({root})",
+                file=sys.stderr,
+            )
+            return 2
+        resolved_source = source.resolve()
+        if resolved_source.parent != resolved_root:
+            print(
+                f"::error::{name} is not a regular file directly under the repository "
+                f"root ({root})",
+                file=sys.stderr,
+            )
+            return 2
+        legal_sources[name] = resolved_source
 
     if out.exists():
         unsafe = _unsafe_to_remove(root, out)
@@ -2061,8 +2084,8 @@ def export(root: Path, out: Path, check: bool = False) -> int:
     (out / "plugins").mkdir(parents=True)
     (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
     (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
-    for name in ("LICENSE", "NOTICE"):
-        shutil.copy(root / name, out / name)
+    for name, source in legal_sources.items():
+        shutil.copy(source, out / name)
     # Siblings of skills/, not nested under it, so a path inside any router — always
     # `skills/<name>.md` — resolves whether the reader pastes router.md or one
     # router-<plugin>.md into their own AGENTS.md and copies skills/ in beside it.

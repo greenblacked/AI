@@ -12,6 +12,7 @@ which is why each needed a gate rather than a habit.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 
@@ -778,6 +779,27 @@ def test_export_fails_loudly_with_no_repository_license(mini_repo, tmp_path, cap
     out = tmp_path / "portable"
     assert portable.export(mini_repo, out) == 2
     assert "no LICENSE at the repository root" in capsys.readouterr().err
+    assert not out.exists()
+
+
+@pytest.mark.skipif(os.name == "nt", reason="symlinks need privileges on Windows")
+@pytest.mark.parametrize("source_name", ["LICENSE", "NOTICE"])
+@pytest.mark.parametrize("target_location", ["repository", "outside"])
+def test_export_refuses_symlinked_repository_legal_files(
+    mini_repo, tmp_path, capsys, source_name, target_location
+):
+    source = mini_repo / source_name
+    source.unlink()
+    if target_location == "repository":
+        target = mini_repo / ({"LICENSE": "NOTICE", "NOTICE": "LICENSE"}[source_name])
+    else:
+        target = tmp_path / "secret.txt"
+        target.write_text("not part of the tree\n", encoding="utf-8")
+    source.symlink_to(target)
+
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 2
+    assert f"{source_name} is not a regular file directly" in capsys.readouterr().err
     assert not out.exists()
 
 
