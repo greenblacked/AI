@@ -14,7 +14,7 @@ change the verdict on a skill or definition the diff never touches, so it re-sca
 | File | Read by | What it holds |
 | --- | --- | --- |
 | `cisco-policy.yaml` | `skill-scanner` (`cisco skill scan`) | Suppressions for cisco-ai-skill-scanner, each scoped to one rule, the named skills and one file |
-| `skillspector-accepted.json` | `skillspector` (`skillspector skill scan`), through `scripts/skill_scan_gate.py` | Accepted SkillSpector findings, each keyed on rule, path and matched text |
+| `skillspector-accepted.json` | `skillspector` (`skillspector skill scan`), through `scripts/skill_scan_gate.py` | Accepted SkillSpector findings, each keyed on rule, path and matched text; AE1 also includes its evidence reasons |
 
 ## Definitions
 
@@ -84,15 +84,17 @@ An entry goes in either file only when the flagged text is one of these, read by
   skill — a confirmation, a scoped permission, a read-only command — keeps it safe.
 
 A real issue is never accepted. It is fixed, and the finding disappears with the fix. The
-gate refuses an accepted entry with no reason, or with a class other than the five above
+gate refuses an accepted entry with no reason, an AE1 entry without its complete structured
+evidence reasons, or an entry with a class other than the five above
 (`FP-scanner-limitation`, `FP-defensive`, `FP-legitimate-procedure`, `FP-eval/data`,
 `ACCEPTED-by-design`).
 
 Both files cover a whole file rather than a line. Cisco's policy has no line selector, and
 the SkillSpector key leaves the line out so that an edit above a reviewed finding does not
 reopen it. The cost is the same in both: a new finding of the same rule in the same file,
-with the same matched text for SkillSpector, is hidden too. Review a change to a flagged
-file with that in mind.
+with the same matched text for SkillSpector, is hidden too. AE1 is narrower: every
+`reason_code` and its `phase` from `properties.evidence.reasons` are also part of the key.
+Review a change to a flagged file with that in mind.
 
 A short accepted match widens that further. A handful of SkillSpector entries match only
 a few characters — `rm -rf /`, `&& rm -`, `| sudo`, `--privileged`, `.env`, `keychain`,
@@ -111,7 +113,9 @@ to the longer span around it at the next refresh rather than carrying it forward
    rule, skill (for a definition, the shim id from the table above), file, reason and the same `expires` date as the rest; for SkillSpector, an
    entry in `skillspector-accepted.json` with `rule_id`, `path`, `match` (the SARIF
    result's `properties.finding`, whitespace collapsed to single spaces), `class` and
-   `reason`. For a definition, `path` is the source path, such as
+   `reason`. An AE1 entry also copies the complete `properties.evidence.reasons` list,
+   retaining each `reason_code` and `phase`; a missing or changed identity fails closed.
+   For a definition, `path` is the source path, such as
    `plugins/<plugin>/agents/<stem>.md`, not the shim. Say in the commit why it is not real.
 
 The SkillSpector gate prints a notice for each accepted entry that no longer matches

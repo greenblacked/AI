@@ -14,23 +14,26 @@ and fails the job on any HIGH or CRITICAL result whose key is not in the reviewe
 stay in the SARIF the job uploads.
 
 The key is (rule id, repository-relative path, matched text with its whitespace
-collapsed), deliberately without a line number. SkillSpector's own baseline fingerprint
-hashes the whole file, the scanner version and the full finding, so editing any line of
-a flagged file, or bumping the scanner, would reopen every finding in it and turn CI red
-for a change that touched nothing reviewed. The matched text comes from the result's
-`properties.finding`, which SkillSpector fills with the span its pattern matched; the
-message text is the fallback only when a result carries no such property, because a
-message names the rule rather than the text and so matches far more than was reviewed.
-The cost of leaving the line out is that one accepted key covers every occurrence of the
-same text in the same file, the same file-wide trade the Cisco policy makes.
+collapsed), deliberately without a line number. An AE1 key also includes every structured
+evidence reason as (reason code, phase), so an exception reviewed for one cause of partial
+inspection cannot accept another. SkillSpector's own baseline fingerprint hashes the whole
+file, the scanner version and the full finding, so editing any line of a flagged file, or
+bumping the scanner, would reopen every finding in it and turn CI red for a change that
+touched nothing reviewed. The matched text comes from the result's `properties.finding`,
+which SkillSpector fills with the span its pattern matched; the message text is the fallback
+only when a result carries no such property, because a message names the rule rather than
+the text and so matches far more than was reviewed. The cost of leaving the line out is
+that one accepted key covers every occurrence of the same text in the same file, the same
+file-wide trade the Cisco policy makes.
 
 The gate fails closed. A skill whose scan exited with anything but 0 or 1 (2 is the
 scanner's own error code; 1 is only a risk score over its threshold), whose exit code or
 SARIF is missing or unreadable, a results directory holding a different number of
 reports than the manifest names skills, a report whose `analysisCompleteness` says a file
-was left entirely uninspected, and an accepted entry without a reason or with a class
-outside the reviewed set are all failures: a scan that did not happen must not read as a
-scan that found nothing. An accepted entry that no longer matches anything in a
+was left entirely uninspected, and an accepted entry without a reason, with a class
+outside the reviewed set, or without AE1's structured evidence identity are all failures:
+a scan that did not happen must not read as a scan that found nothing. An accepted entry
+that no longer matches anything in a
 skill that was scanned is reported as a notice, not a failure, so the list can be pruned
 without a stale entry blocking an unrelated change.
 
@@ -104,6 +107,9 @@ MATCH_LIMIT = 200
 RUNTIME_LIMIT = "runtime_limit"
 # The exit code that asks the job to rescan the skills in --incomplete-out.
 RESCAN = 3
+
+EvidenceReason = tuple[str, str]
+FindingKey = tuple[str, str, str, tuple[EvidenceReason, ...]]
 
 
 def normalise(text: str) -> str:
@@ -237,7 +243,42 @@ def read_manifest(path: Path) -> tuple[list[Target], list[str]]:
     return targets, problems
 
 
-def read_accepted(path: Path) -> tuple[dict[tuple[str, str, str], dict], list[str]]:
+def evidence_identity(reasons: object, owner: str) -> tuple[EvidenceReason, ...]:
+    """The exact reason-code and phase pairs that explain one AE1 partial result."""
+    if not isinstance(reasons, list) or not reasons:
+        raise ValueError(f"{owner} evidence reasons is not a non-empty list")
+    identity = []
+    for reason in reasons:
+        if not isinstance(reason, dict):
+            raise ValueError(f"an entry in {owner} evidence reasons is not an object")
+        code = reason.get("reason_code")
+        phase = reason.get("phase")
+        if not isinstance(code, str) or not code.strip():
+            raise ValueError(f"an entry in {owner} evidence reasons has no reason_code")
+        if not isinstance(phase, str) or not phase.strip():
+            raise ValueError(f"an entry in {owner} evidence reasons has no phase")
+        identity.append((code, phase))
+    return tuple(sorted(identity))
+
+
+def accepted_evidence(entry: dict, number: int) -> tuple[EvidenceReason, ...]:
+    """The AE1 evidence identity a reviewer approved; other rules carry none."""
+    if entry["rule_id"] != "AE1":
+        return ()
+    return evidence_identity(entry.get("evidence"), f"accepted entry {number}")
+
+
+def result_evidence(result: dict) -> tuple[EvidenceReason, ...]:
+    """The AE1 evidence identity SkillSpector emitted; other rules carry none."""
+    if result["ruleId"] != "AE1":
+        return ()
+    props = result.get("properties")
+    evidence = props.get("evidence") if isinstance(props, dict) else None
+    reasons = evidence.get("reasons") if isinstance(evidence, dict) else None
+    return evidence_identity(reasons, "an AE1 result's")
+
+
+def read_accepted(path: Path) -> tuple[dict[FindingKey, dict], list[str]]:
     """The reviewed keys, and every reason the list itself cannot be trusted."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -246,7 +287,7 @@ def read_accepted(path: Path) -> tuple[dict[tuple[str, str, str], dict], list[st
     entries = data.get("entries") if isinstance(data, dict) else None
     if not isinstance(entries, list):
         return {}, [f"{path} has no `entries` list"]
-    accepted: dict[tuple[str, str, str], dict] = {}
+    accepted: dict[FindingKey, dict] = {}
     problems = []
     for number, entry in enumerate(entries, start=1):
         if not isinstance(entry, dict):
@@ -266,7 +307,12 @@ def read_accepted(path: Path) -> tuple[dict[tuple[str, str, str], dict], list[st
                 f"positive or an accepted-by-design finding may be listed, never a real one"
             )
             continue
-        key = (entry["rule_id"], entry["path"], normalise(entry["match"]))
+        try:
+            evidence = accepted_evidence(entry, number)
+        except ValueError as err:
+            problems.append(str(err))
+            continue
+        key = (entry["rule_id"], entry["path"], normalise(entry["match"]), evidence)
         if key in accepted:
             problems.append(f"accepted entry {number} repeats an earlier entry")
             continue
@@ -351,7 +397,7 @@ def check_completeness(invocation: dict) -> None:
         raise IncompleteScanError(f"SkillSpector left {count} file(s) entirely uninspected")
 
 
-def findings_in(target: Target, sarif_path: Path) -> list[tuple[tuple[str, str, str], int, str]]:
+def findings_in(target: Target, sarif_path: Path) -> list[tuple[FindingKey, int, str]]:
     """Every gating result in one report, as (key, line, severity). Raises on a bad file."""
     data = json.loads(sarif_path.read_text(encoding="utf-8"))
     runs = data.get("runs") if isinstance(data, dict) else None
@@ -386,7 +432,8 @@ def findings_in(target: Target, sarif_path: Path) -> list[tuple[tuple[str, str, 
             if not isinstance(text, str) or not text.strip():
                 message = result.get("message")
                 text = message.get("text", "") if isinstance(message, dict) else ""
-            found.append(((rule, path, normalise(str(text))), line, severity))
+            key = (rule, path, normalise(str(text)), result_evidence(result))
+            found.append((key, line, severity))
     return found
 
 
@@ -474,7 +521,7 @@ def gate(
         )
         failures += 1
 
-    seen: set[tuple[str, str, str]] = set()
+    seen: set[FindingKey] = set()
     judged: list[str] = []
     rescan: list[str] = []
     new = 0
@@ -534,17 +581,22 @@ def gate(
             failures += 1
             continue
         judged.append(target)
-        reported: set[tuple[str, str, str]] = set()
+        reported: set[FindingKey] = set()
         for key, line, severity in found:
             seen.add(key)
             if key in accepted or key in reported:
                 continue
             reported.add(key)
-            rule, path, text = key
+            rule, path, text, evidence = key
+            evidence_note = ""
+            if evidence:
+                evidence_note = "; evidence " + ", ".join(
+                    f"{reason_code}/{phase}" for reason_code, phase in evidence
+                )
             annotate(
                 "error",
                 f"{severity} {rule} finding not in .github/skill-scan/"
-                f"skillspector-accepted.json: {shorten(text)}",
+                f"skillspector-accepted.json: {shorten(text)}{evidence_note}",
                 file=path,
                 line=line,
                 title=f"SkillSpector {rule}",
@@ -559,10 +611,16 @@ def gate(
         for key in accepted
         if (key[1].startswith(skill_dirs) or key[1] in sources) and key not in seen
     )
-    for rule, path, text in stale:
+    for rule, path, text, evidence in stale:
+        evidence_note = ""
+        if evidence:
+            evidence_note = "; evidence " + ", ".join(
+                f"{reason_code}/{phase}" for reason_code, phase in evidence
+            )
         annotate(
             "notice",
-            f"accepted {rule} entry no longer matches anything; prune it: {shorten(text)}",
+            f"accepted {rule} entry no longer matches anything; prune it: "
+            f"{shorten(text)}{evidence_note}",
             file=path,
             title="Stale SkillSpector entry",
         )

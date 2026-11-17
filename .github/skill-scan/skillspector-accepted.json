@@ -34,6 +34,7 @@
       "rule_id": "AE1",
       "path": "plugins/assurance/skills/load-testing/SKILL.md",
       "match": "references/workload-and-script.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -48,6 +49,7 @@
       "rule_id": "AE1",
       "path": "plugins/backend/skills/saga-design/SKILL.md",
       "match": "references/step-classification.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -55,6 +57,7 @@
       "rule_id": "AE1",
       "path": "plugins/backend/skills/timeout-and-retry-budget/SKILL.md",
       "match": "references/configuration.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -76,6 +79,7 @@
       "rule_id": "AE1",
       "path": "plugins/client-apps/skills/async-ui-races/SKILL.md",
       "match": "references/race-fixes.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -83,6 +87,7 @@
       "rule_id": "AE1",
       "path": "plugins/client-apps/skills/async-ui-races/SKILL.md",
       "match": "references/race-tests.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -118,6 +123,7 @@
       "rule_id": "AE1",
       "path": "plugins/coding/skills/agent-guardrails/SKILL.md",
       "match": "references/enforcement-ladder.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -146,6 +152,7 @@
       "rule_id": "AE1",
       "path": "plugins/coding/skills/change-discipline/SKILL.md",
       "match": "references/gate-tools.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -195,6 +202,7 @@
       "rule_id": "AE1",
       "path": "plugins/coding/skills/e2e-testing/SKILL.md",
       "match": "references/playwright-config.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -244,6 +252,7 @@
       "rule_id": "AE1",
       "path": "plugins/data/skills/notebook-to-production/SKILL.md",
       "match": "references/hidden-state-inventory.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -286,6 +295,7 @@
       "rule_id": "AE1",
       "path": "plugins/delivery/skills/db-migration/SKILL.md",
       "match": "references/postgres-locks.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -328,6 +338,7 @@
       "rule_id": "AE1",
       "path": "plugins/design/skills/distinctive-page-design/SKILL.md",
       "match": "scripts/page_lint.py (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -356,6 +367,7 @@
       "rule_id": "AE1",
       "path": "plugins/design/skills/motion-showcase/SKILL.md",
       "match": "references/fidelity-checks.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -440,6 +452,7 @@
       "rule_id": "AE1",
       "path": "plugins/devtools/skills/slow-build-profile/SKILL.md",
       "match": "assets/hooks/generated-stamp-guard.sh (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports static_parse_limit: a bounded static parser span limit was exceeded on the project kit's opt-in hook script, which is a deterministic guard that reads one stdin payload and greps it, with no network, secrets or eval; the line is only a pointer to a file that exists in the skill."
     },
@@ -769,6 +782,7 @@
       "rule_id": "AE1",
       "path": "plugins/llm/skills/model-migration/SKILL.md",
       "match": "references/decision-record.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -930,6 +944,7 @@
       "rule_id": "AE1",
       "path": "plugins/platform/skills/monolith-state-split/SKILL.md",
       "match": "references/move-mechanics.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -951,6 +966,7 @@
       "rule_id": "AE1",
       "path": "plugins/research/skills/slurm-job-failure-triage/SKILL.md",
       "match": "references/state-table.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -958,6 +974,7 @@
       "rule_id": "AE1",
       "path": "plugins/research/skills/sweep-campaign-management/SKILL.md",
       "match": "references/campaign-recipes.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -1168,6 +1185,7 @@
       "rule_id": "AE1",
       "path": "plugins/security/skills/iac-review/SKILL.md",
       "match": "references/plan-json.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },
@@ -1301,6 +1319,7 @@
       "rule_id": "AE1",
       "path": "plugins/techdocs/skills/screenshot-rot/SKILL.md",
       "match": "references/capture-recipe.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "artifact"}],
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     },

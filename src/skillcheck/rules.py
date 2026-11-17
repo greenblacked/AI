@@ -1484,6 +1484,19 @@ RULE_GLOB_COMMENT_RE = re.compile(r"\s+#.*$")
 
 RULE_BRACE_RE = re.compile(r"\{([^{}]*)\}")
 
+# Rule globs are repository-controlled and checked by both CI and the write hook. Keep
+# every independent source of brace-expansion work bounded before building any expanded
+# strings. The shipped rules use at most two groups with two alternatives each; these
+# ceilings leave ample room for real project layouts without permitting exponential work.
+RULE_GLOB_MAX_LENGTH = 4096
+RULE_GLOB_MAX_BRACE_GROUPS = 32
+RULE_GLOB_MAX_BRACE_ALTERNATIVES = 64
+RULE_GLOB_MAX_EXPANSIONS = 256
+
+
+class _RuleGlobComplexityError(ValueError):
+    """A rule glob exceeds a bound required for safe brace expansion."""
+
 
 def find_rules(root: Path) -> list[Path]:
     """Return every rule file under ``root``, sorted by path.
@@ -1582,8 +1595,9 @@ def check_rule(path: Path, repo_root: Path, *, match_globs: bool = True) -> list
     choice rather than a defect. What is a defect is a `paths:` glob that matches
     nothing — the rule then never loads, and no error anywhere says so.
 
-    ``match_globs=False`` skips that last check for a rule template a skill ships: its
-    globs scope the installer's project, which this repository cannot answer for.
+    ``match_globs=False`` skips repository matching for a rule template a skill ships:
+    its globs scope the installer's project, which this repository cannot answer for.
+    Complexity limits still apply because they do not depend on the target tree.
     """
     findings: list[Finding] = []
     relative = path.relative_to(repo_root)
@@ -1613,8 +1627,14 @@ def check_rule(path: Path, repo_root: Path, *, match_globs: bool = True) -> list
                 "and never loads",
                 front.line_of("paths"),
             )
-        for pattern, line in globs if match_globs else []:
-            if not _glob_matches(repo_root, pattern):
+        for pattern, line in globs:
+            try:
+                _check_brace_expansion_complexity(pattern)
+                matches = not match_globs or _glob_matches(repo_root, pattern)
+            except _RuleGlobComplexityError as error:
+                add(ERROR, "complex-glob", str(error), line)
+                continue
+            if match_globs and not matches:
                 add(
                     ERROR,
                     "dangling-glob",
@@ -1653,20 +1673,64 @@ def _glob_matches(repo_root: Path, pattern: str) -> bool:
         return False
     try:
         return any(any(True for _ in repo_root.glob(p)) for p in _expand_braces(pattern))
+    except _RuleGlobComplexityError:
+        raise
     except (NotImplementedError, ValueError, IndexError):
         return False
 
 
 def _expand_braces(pattern: str) -> list[str]:
     """Expand `{a,b}` groups, innermost first, into the patterns they stand for."""
-    match = RULE_BRACE_RE.search(pattern)
-    if match is None:
-        return [pattern]
+    _check_brace_expansion_complexity(pattern)
     expanded: list[str] = []
-    for option in match.group(1).split(","):
-        head, tail = pattern[: match.start()], pattern[match.end() :]
-        expanded.extend(_expand_braces(f"{head}{option.strip()}{tail}"))
+
+    def expand(candidate: str) -> None:
+        match = RULE_BRACE_RE.search(candidate)
+        if match is None:
+            expanded.append(candidate)
+            return
+        head, tail = candidate[: match.start()], candidate[match.end() :]
+        for option in match.group(1).split(","):
+            expand(f"{head}{option.strip()}{tail}")
+
+    expand(pattern)
     return expanded
+
+
+def _check_brace_expansion_complexity(pattern: str) -> None:
+    """Reject brace expansion whose input or Cartesian product exceeds its budget."""
+    if len(pattern) > RULE_GLOB_MAX_LENGTH:
+        raise _RuleGlobComplexityError(
+            f"path glob is {len(pattern)} characters; the cap is {RULE_GLOB_MAX_LENGTH}"
+        )
+
+    stack: list[int] = []
+    groups = 0
+    expansions = 1
+    for character in pattern:
+        if character == "{":
+            stack.append(1)
+        elif character == "," and stack:
+            stack[-1] += 1
+        elif character == "}" and stack:
+            alternatives = stack.pop()
+            groups += 1
+            if groups > RULE_GLOB_MAX_BRACE_GROUPS:
+                raise _RuleGlobComplexityError(
+                    "path glob has more than "
+                    f"{RULE_GLOB_MAX_BRACE_GROUPS} brace groups"
+                )
+            if alternatives > RULE_GLOB_MAX_BRACE_ALTERNATIVES:
+                raise _RuleGlobComplexityError(
+                    "path glob brace group has more than "
+                    f"{RULE_GLOB_MAX_BRACE_ALTERNATIVES} alternatives"
+                )
+            if expansions > RULE_GLOB_MAX_EXPANSIONS // alternatives:
+                raise _RuleGlobComplexityError(
+                    "path glob expands to more than "
+                    f"{RULE_GLOB_MAX_EXPANSIONS} patterns"
+                )
+            expansions *= alternatives
 
 
 def _query_key(query: str) -> str:

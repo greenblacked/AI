@@ -314,12 +314,13 @@ def test_the_committed_accepted_list_is_well_formed():
     accepted, problems = gate.read_accepted(path)
     assert problems == []
     assert accepted
-    for _, entry_path, match in accepted:
+    for _, entry_path, match, evidence in accepted:
         # A skill file, or the source of a subagent or command read through its shim.
         assert entry_path.startswith("plugins/") or re.fullmatch(
             r"\.claude/(agents|commands)/[a-z0-9-]+\.md", entry_path
         ), entry_path
         assert match == gate.normalise(match)
+        assert all(reason_code and phase for reason_code, phase in evidence)
 
 
 def test_a_run_or_result_of_the_wrong_shape_fails(tmp_path):
@@ -397,12 +398,14 @@ def coverage(target="references/guide.md", reasons=("runtime_limit",)):
 
 
 def coverage_entry(target="references/guide.md"):
-    return entry(
+    accepted = entry(
         rule="AE1",
         match=f"{target} (partial)",
         cls="FP-scanner-limitation",
         reason="The file is long; the parser stops before its end.",
     )
+    accepted["evidence"] = [{"reason_code": "static_parse_limit", "phase": "artifact"}]
+    return accepted
 
 
 def with_notification(report, reason_code, phase="artifact"):
@@ -452,6 +455,44 @@ def test_a_content_coverage_finding_still_uses_the_accepted_list(tmp_path, capsy
     args, out = first_pass(tmp_path, {SKILL: report}, [coverage_entry()])
     assert gate.main(args) == 0
     assert out.read_text(encoding="utf-8") == ""
+
+
+def test_an_ae1_acceptance_does_not_cover_a_changed_reason(tmp_path, capsys):
+    report = sarif(coverage(reasons=("obfuscated_instruction_text",)))
+    args = lay_out(tmp_path, {SKILL: report}, [coverage_entry()])
+    assert gate.main(args) == 1
+    printed = capsys.readouterr().out
+    assert "HIGH AE1 finding not in" in printed
+    assert "obfuscated_instruction_text/artifact" in printed
+
+
+def test_an_ae1_acceptance_does_not_cover_a_changed_phase(tmp_path, capsys):
+    report = sarif(coverage(reasons=("static_parse_limit",)))
+    report["runs"][0]["results"][0]["properties"]["evidence"]["reasons"][0][
+        "phase"
+    ] = "instruction"
+    args = lay_out(tmp_path, {SKILL: report}, [coverage_entry()])
+    assert gate.main(args) == 1
+    assert "static_parse_limit/instruction" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("field", ["reason_code", "phase"])
+def test_an_ae1_result_without_complete_evidence_fails_closed(tmp_path, capsys, field):
+    report = sarif(coverage(reasons=("static_parse_limit",)))
+    del report["runs"][0]["results"][0]["properties"]["evidence"]["reasons"][0][field]
+    args = lay_out(tmp_path, {SKILL: report}, [coverage_entry()])
+    assert gate.main(args) == 1
+    printed = capsys.readouterr().out
+    assert "title=SkillSpector scan failed" in printed
+    assert f"has no {field}" in printed
+
+
+def test_an_ae1_acceptance_without_evidence_fails_closed(tmp_path, capsys):
+    accepted = coverage_entry()
+    del accepted["evidence"]
+    args = lay_out(tmp_path, {SKILL: sarif()}, [accepted])
+    assert gate.main(args) == 1
+    assert "accepted entry 1 evidence reasons is not a non-empty list" in capsys.readouterr().out
 
 
 def test_an_unaccepted_content_coverage_finding_is_new(tmp_path, capsys):
