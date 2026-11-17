@@ -3,24 +3,20 @@
 
 Every pull request used to run the whole of `ci.yml`, whatever its base and however many
 times the same tree had already passed. A promotion into `main` re-ran the full suite on a
-tree its stage pull request had just passed, the push to `main` ran it a third time, and
-every edit to a pull request's description re-ran seventeen jobs to re-read a title and a
-body. On a public repository's twenty concurrent jobs that queue is what held a release
-for forty minutes.
+tree its stage pull request had just passed, and the push to `main` ran it a third time. On
+a public repository's twenty concurrent jobs that queue is what held a release for forty
+minutes.
 
 The `scope` job runs this first and every other job in `ci.yml` reads its `mode`:
 
 - ``full`` runs everything. It is the answer for every pull request into `dev` or `stage`,
-  for `workflow_dispatch` and `merge_group`, and for anything below that cannot be proven.
+  including edits, for `workflow_dispatch` and `merge_group`, and for anything below that
+  cannot be proven.
 - ``promotion`` is a pull request into `main`, or the push to `main` after one merges,
   whose tree is stage's, which passed a full run, apart from the changelog and the
   benchmark patch that has to be repointed at it by hand for a release. The cheap checks
   and the deployment checks still run; the test matrix, the browser tests and the linters
   of files that did not change do not.
-- ``text`` is an `edited` event that changed only the title or the body, on a pull request
-  whose commit, against the same base, has already passed every check that reads the
-  code. Only the two checks that read the title and description run again. GitHub sends
-  `edited` for a retargeted base too, and that edit is never `text`.
 
 Every proof is read from the GitHub API and git, and any doubt, an API error, a missing
 pull request, a run still in progress, a tree that differs, is `full`. A wrong answer here
@@ -48,33 +44,12 @@ API = "https://api.github.com"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 CI_WORKFLOW = "ci.yml"
 
-# Job ids in ci.yml. The two that read the pull request's title and body, and the two
-# that are the machinery itself, always run.
-TEXT_JOBS = ("attribution", "naming")
-ALWAYS = ("scope", "ci")
 # What a promotion skips: work whose result is a function of files the promoted tree
 # shares, byte for byte, with the one that already passed.
 PROMOTION_SKIPS = ("test", "site-browser", "validate-plugin", "lint-yaml", "lint-actions")
-# What an edit skips: everything that reads the code rather than the description.
-TEXT_SKIPS = (
-    "validate-skills",
-    "validate-plugin",
-    "test",
-    "catalogue",
-    "spelling",
-    "lint-markdown",
-    "lint-yaml",
-    "lint-actions",
-    "links",
-    "site-browser",
-    "package",
-)
-# The keys of an `edited` event's `changes` that leave the code as it was. Anything else,
-# `base` above all, means the merge under test is a different one.
-TEXT_CHANGES = frozenset({"title", "body"})
-# Check names (as the runs API reports jobs) that read only the description, or are the
-# machinery; every other job in an earlier run must have succeeded for `text`.
-TEXT_CHECK_NAMES = frozenset({"attribution", "naming", "ci", "scope"})
+# Check names (as the runs API reports jobs) that do not validate the tree. Every other
+# job in an earlier run must have succeeded before that run can prove a promotion.
+NON_CODE_CHECK_NAMES = frozenset({"attribution", "naming", "ci", "scope"})
 # The only paths a promotion may differ from stage in: a release moves the changelog's
 # Unreleased section and repoints the one benchmark patch that applies to it.
 MAY_DIFFER = frozenset(
@@ -110,21 +85,16 @@ def heads_passed(
     get: Get,
     repo: str,
     head_sha: str,
-    base_sha: str | None,
-    skip_run: str,
     head_ref: str | None = None,
-    number: int | None = None,
 ) -> str:
     """The id of the newest CI run on `head_sha` that ran the code checks, all green.
 
-    Runs are read newest first. A run whose code checks were all skipped was itself a
-    `text` run and is passed over. Every other completed run must have passed every code
-    check: one green run does not outweigh a red one on the same commit, because the red
-    one may be the flake that tells the truth. A run still in progress is not a pass
-    either. With `base_sha`, only runs that list this pull request (`number`) against that
-    base count, because a pull request's run tests its merge with the base as it was
-    then. `pull_requests` is computed when it is read, so it cannot show a base the run
-    no longer has; the caller rules out a retargeted base from the event first.
+    Runs are read newest first. A run whose code checks were all skipped is passed over.
+    Every other completed run must have passed every code check: one green run does not
+    outweigh a red one on the same commit, because the red one may be the flake that tells
+    the truth. A run still in progress is not a pass either. The branch and repository
+    identity are fixed inputs to the promotion proof; live `pull_requests` associations
+    are not historical evidence and are not used.
     """
     runs = get(
         f"/repos/{repo}/actions/workflows/{CI_WORKFLOW}/runs"
@@ -134,7 +104,7 @@ def heads_passed(
         raise NotProvenError("the runs listing was not the expected shape")
     passed = ""
     for run in runs["workflow_runs"]:
-        if not isinstance(run, dict) or str(run.get("id")) == skip_run:
+        if not isinstance(run, dict):
             continue
         # The same commit can be the head of more than one pull request, a fork's
         # included, and each run tests that pull request's own merge. With
@@ -144,16 +114,6 @@ def heads_passed(
             or ((run.get("head_repository") or {}).get("full_name")) != repo
         ):
             continue
-        if base_sha is not None:
-            # One branch can head two open pull requests, into dev and into stage, and
-            # each run lists both; only the entry for this pull request says what it is.
-            bases = {
-                (pr.get("base") or {}).get("sha")
-                for pr in run.get("pull_requests") or []
-                if isinstance(pr, dict) and pr.get("number") == number
-            }
-            if base_sha not in bases:
-                continue
         if run.get("status") != "completed":
             raise NotProvenError("an earlier run on this commit has not finished")
         # A number, so nothing else an API answer carries reaches a URL or the summary.
@@ -162,7 +122,7 @@ def heads_passed(
         code = [
             job
             for job in (jobs or {}).get("jobs") or []
-            if isinstance(job, dict) and job.get("name") not in TEXT_CHECK_NAMES
+            if isinstance(job, dict) and job.get("name") not in NON_CODE_CHECK_NAMES
         ]
         if code and all(job.get("conclusion") == "skipped" for job in code):
             continue
@@ -232,17 +192,8 @@ def promotion_from_stage(get: Get, git: Git, repo: str) -> str:
     others = sorted(int(p.get("number")) for p in sharing if int(p.get("number")) != number)
     if others:
         raise NotProvenError(f"the stage branch also heads pull request #{others[0]}")
-    run = heads_passed(get, repo, head, None, "", ref)
+    run = heads_passed(get, repo, head, ref)
     return f"same tree as stage {stage[:7]}, whose pull request #{number} passed run {run}"
-
-
-def only_text_changed(changes: str | None) -> bool:
-    """Whether an `edited` event's `changes` (as JSON) touched nothing but title and body."""
-    try:
-        parsed = json.loads(changes or "")
-    except ValueError:
-        return False
-    return isinstance(parsed, dict) and bool(parsed) and set(parsed) <= TEXT_CHANGES
 
 
 def decide(env: dict[str, str], get: Get, git: Git) -> tuple[str, str]:
@@ -251,18 +202,6 @@ def decide(env: dict[str, str], get: Get, git: Git) -> tuple[str, str]:
     repo = env.get("REPOSITORY", "")
     try:
         if event == "pull_request":
-            if env.get("EVENT_ACTION") == "edited" and only_text_changed(env.get("CHANGES")):
-                head = _sha(env.get("HEAD_SHA"), "the head")
-                base = _sha(env.get("BASE_SHA"), "the base")
-                number = int(env.get("PR_NUMBER", ""))
-                try:
-                    run = heads_passed(get, repo, head, base, env.get("RUN_ID", ""), number=number)
-                    return "text", f"only the description changed; run {run} passed the code"
-                except NotProvenError:
-                    # A pull request into main ran as a promotion, with the matrix
-                    # skipped, so its edit is proven the way the promotion was.
-                    if env.get("BASE_REF") != "main":
-                        raise
             if env.get("BASE_REF") == "main":
                 return "promotion", promotion_from_stage(get, git, repo)
             return "full", f"a pull request into {env.get('BASE_REF') or 'an unknown base'}"
@@ -276,7 +215,7 @@ def decide(env: dict[str, str], get: Get, git: Git) -> tuple[str, str]:
 
 
 def skippable(mode: str) -> tuple[str, ...]:
-    return {"promotion": PROMOTION_SKIPS, "text": TEXT_SKIPS}.get(mode, ())
+    return {"promotion": PROMOTION_SKIPS}.get(mode, ())
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
