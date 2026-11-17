@@ -18,9 +18,48 @@ Do not use for: writing new modules, debugging provider errors, greenfield archi
 
 ## Workflow
 
-### 1. Generate the reviewable artefact
+### 1. Establish trust before executing IaC
 
-Never review the plan text. Review the plan JSON. Produce it yourself rather than trusting a pasted excerpt — a pasted excerpt is precisely where truncation hides.
+Treat a pull request, checkout, plan file, inventory and project-local configuration as
+untrusted input until their provenance and contents have been reviewed. A request to
+review the change, available ambient credentials or an interactive tool approval does
+not establish that trust.
+
+For an untrusted or mutable revision, perform a source-only review. Read the diff,
+configuration and machine-readable plan JSON as data, but do not run repository scripts,
+Terraform/OpenTofu commands, providers, modules, external data sources, provisioners,
+policy or cost tools against the checkout, or Ansible commands. Do not initialize a
+backend or contact the intended infrastructure from that revision.
+
+Run those tools only after all of these conditions hold:
+
+- The repository and exact revision are the intended source, the revision is immutable,
+  and the relevant change has received a static review.
+- For Terraform/OpenTofu, the CLI version, provider constraints and lock-file selections
+  have been inspected; remote modules use exact versions or full commit SHAs, and local
+  modules have been reviewed at that revision. For Ansible, collection and role versions,
+  inventory plugins, executable hooks and custom rules are pinned and reviewed.
+- Execution is in a disposable, isolated environment without ambient credentials or
+  unrelated secrets. Network access, backend and state access, and short-lived
+  credentials are limited to the reviewed operation and intended target.
+- Provider initialization side effects, external data sources and provisioners have
+  been identified and either disabled or explicitly accepted for this operation.
+- The user has explicitly authorized this operation and target after seeing that it can
+  execute code and read or change remote systems.
+
+If any condition is missing, stop at a static configuration review or consume
+`plan.json` produced by a trusted pipeline at a reviewed immutable revision. Label the
+verdict partial and name the missing evidence; do not make credential availability the
+decision to execute.
+
+### 2. Obtain the reviewable artefact
+
+Review the complete plan JSON, not plan text or a pasted excerpt. Truncation is precisely
+where a destructive change hides.
+
+Prefer `plan.json` and its saved plan from a trusted isolated pipeline, bound to the
+reviewed revision, dependency selections and intended target. If they do not already
+exist, generate them only after the trust gate above passes:
 
 ```bash
 terraform init -input=false -lockfile=readonly
@@ -32,7 +71,9 @@ terraform show -json tfplan > plan.json
 
 `-lockfile=readonly` verifies checksums against `.terraform.lock.hcl` and refuses to rewrite it, so an unreviewed provider bump fails the build instead of landing silently. The saved `tfplan` is the artefact that gets applied later; `plan.json` is the artefact you review. They are the same plan, which is the entire point.
 
-If you cannot run Terraform (no credentials, no state access), say so plainly and review the configuration diff only, labelling the verdict as partial. A configuration review is not a plan review and should not be presented as one.
+If you cannot safely run Terraform or establish the artefact's trusted provenance, say
+so plainly and review the configuration diff only, labelling the verdict as partial. A
+configuration review is not a plan review and should not be presented as one.
 
 Gate on the plan-level flags before reading anything else (Terraform 1.8+):
 
@@ -45,7 +86,7 @@ Use `has()` rather than `//` here: these are booleans, and jq's alternative oper
 
 Automation should use `applyable` as its primary condition — the docs say so explicitly, because the exact definition may shift in future versions. A plan that is `applyable` but not `complete` will not converge in one round; it needs another plan/apply cycle, and the reviewer should know that before approving. In CI, `terraform plan -detailed-exitcode` returns `0` for an empty diff, `1` for an error, and `2` for changes present.
 
-### 2. Blast radius, destroys before creates
+### 3. Blast radius, destroys before creates
 
 Once `plan.json` exists and the flags gate above has passed, if the plan is large — hundreds of resource changes, a whole workspace — hand it to the `plan-reviewer` subagent instead of reading it here. It returns what the apply will actually do, destroys first, with the reason each resource is being replaced, and the JSON itself never enters this conversation. The rest of this step is for plans small enough to read.
 
@@ -74,7 +115,7 @@ jq -r --arg re 'db_instance|rds_cluster|s3_bucket|ebs_volume|disk|kms_key|dns_zo
   | [.address, .type, (.action_reason // "-")] | @tsv' plan.json
 ```
 
-### 3. Establish why
+### 4. Establish why
 
 For each deletion or replacement, name the cause. `action_reason` carries it, with this enumerated set:
 
@@ -101,7 +142,7 @@ jq -r '.resource_changes[] | select(.change.replace_paths != null)
        | [$a, (map(tostring)|join("."))] | @tsv' plan.json
 ```
 
-### 4. Drift
+### 5. Drift
 
 A non-empty `resource_drift` means the world changed outside Terraform since the last apply. Never wave it through as noise:
 
@@ -112,7 +153,7 @@ jq -r '.relevant_attributes[]? | [.resource, (.attribute|tostring)] | @tsv' plan
 
 `relevant_attributes` tells you which of those external changes actually feed the plan result, so you can separate "someone clicked in the console and it matters" from "someone clicked in the console and it does not". Reconcile drift with `terraform apply -refresh-only`, which prompts before committing detected changes to state. `terraform refresh` is deprecated in favour of that flag precisely because it committed silently.
 
-### 5. State safety
+### 6. State safety
 
 State moves are the operations where a typo deletes production. Prefer the declarative, reviewable forms:
 
@@ -134,7 +175,7 @@ A `deposed` entry means a `create_before_destroy` replacement left an old object
 
 For forcing a rebuild, use `terraform apply -replace=ADDRESS` rather than `terraform taint`. HashiCorp's stated reasoning is worth repeating verbatim because it is the whole argument: the `-replace` option is recommended "because the change will be reflected in the Terraform plan, letting you understand how it will affect your infrastructure before you take any externally-visible action. When you use `terraform taint`, other users could create a new plan against your tainted object before you can review the effects." `taint` mutates shared state ahead of review; `-replace` puts the decision inside the artefact under review.
 
-### 6. Secrets and state
+### 7. Secrets and state
 
 `sensitive = true` suppresses CLI and UI output. It does nothing else. Terraform still stores the value in plaintext in state and in the plan file. Any review that concludes "it is marked sensitive, so it is fine" has answered a different question than the one asked.
 
@@ -152,7 +193,7 @@ jq -r '(.output_changes // {}) | to_entries[] | (.value.change // .value) as $c
 
 The actual control is to keep the secret out of state: `ephemeral` variables and blocks (1.10+) and write-only resource arguments (1.11+) are omitted from state and plan files entirely. Where the value must be stored, treat every state file as a secret store in its own right, which for an S3 backend means: remote backend with locking, SSE-KMS under a customer-managed key, a public-access block, a bucket policy denying non-TLS requests, versioning enabled so a corrupt write is recoverable, and read access granted separately from write — plenty of people need to run `plan`, far fewer should be able to read every credential the estate has ever provisioned.
 
-### 7. Pinning
+### 8. Pinning
 
 Reproducibility is the difference between a plan you reviewed and a plan you got.
 
@@ -163,15 +204,15 @@ Reproducibility is the difference between a plan you reviewed and a plan you got
 
 Module hygiene belongs here too: child modules do not declare `provider` blocks — that makes them impossible to remove cleanly from state — and a module that needs to act in a second region takes a provider alias through `providers = {}`, not a region string it uses to build its own provider.
 
-### 8. Policy gate
+### 9. Policy gate
 
 Human review does not scale and does not stay awake. Run the machine checks and treat their output as review evidence, not decoration: `tflint`, `trivy config`, `checkov`, `terrascan` over the source, and Conftest/OPA over `plan.json` for anything that depends on the planned action rather than the configuration text. Sentinel enforcement levels map cleanly onto how much you trust each rule: advisory (log), soft-mandatory (overridable by a named role), hard-mandatory (no override). Read `references/policy-as-code.md` for exact invocations and a worked Rego policy that denies stateful destroys.
 
-### 9. Cost
+### 10. Cost
 
 `infracost diff --path plan.json` against the same artefact you reviewed. A replacement that reads as harmless in the plan can carry a provisioned-IOPS volume or a NAT gateway per subnet. Report the delta as a number.
 
-### 10. Verdict
+### 11. Verdict
 
 ```markdown
 ## Verdict
@@ -209,14 +250,32 @@ Encode it as a policy rule as well as a human one, so the gate holds when the re
 
 The same discipline transfers, with different commands. Review the diff of what would change, not the playbook's intent.
 
+Apply the trust gate in step 1 before either command below. For an untrusted or mutable
+change, inspect playbooks, inventories, plugins, custom rules and `command`/`shell` tasks
+as source only. Ansible check mode still loads and executes controller-side and module
+code, and modules that do not support it may have side effects, so it is not a sandbox.
+
+After the gate passes, use a disposable test environment with no route to production,
+an allowlisted inventory and limit, and credentials scoped to those test hosts:
+
 ```bash
 ansible-lint site.yml
-ansible-playbook site.yml --check --diff --limit staging
+ansible-playbook site.yml --check --diff --limit dedicated-review-target
 ```
 
-`--check` predicts changes without making them; `--diff` shows the actual file and template deltas, which is the Ansible equivalent of reading the plan JSON rather than the summary line. Check mode is honest only where modules support it — a `command`/`shell` task without `check_mode` and `changed_when` is a blind spot, and a review should name those tasks explicitly rather than assume they are no-ops.
+`--check` predicts changes for modules that implement it; `--diff` shows the actual file
+and template deltas, which is the Ansible equivalent of reading the plan JSON rather
+than the summary line. Check mode is honest only where modules support it — a
+`command`/`shell` task without `check_mode` and `changed_when` is a blind spot, and a
+review should name those tasks explicitly rather than assume they are no-ops.
 
-The acceptance test is idempotence: run the playbook, then run it again. The second run must report zero `changed`. A task that reports changed on every run is either lying about the state it manages or genuinely fighting something else for ownership, and both cases mean the playbook cannot be used to answer "is this host converged?".
+The acceptance test is idempotence, but it is a real mutation. Run the playbook twice
+only with explicit authorization against the dedicated disposable test target; never use
+the review target or production for this check. The second run must report zero
+`changed`. If no target can be safely mutated, report idempotence as unverified rather
+than running it. A task that reports changed on every run is either lying about the
+state it manages or genuinely fighting something else for ownership, and both cases
+mean the playbook cannot be used to answer "is this host converged?".
 
 ## Anti-patterns
 
