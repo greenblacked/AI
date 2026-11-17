@@ -34,8 +34,8 @@ concurrency:
   # re-checked. Cancelling on an edit is what turned `ci` red on the head commit when a
   # description was edited seconds after opening, since the aggregate counts a cancelled
   # dependency as a failure, deliberately, and the edit's own run had not finished yet.
-  # An edit's run is cheap since the `scope` job: when the code already passed against the
-  # same base, it re-runs only the two jobs that read the title and description.
+  # An edit re-runs the code checks because the runs API does not preserve the base SHA an
+  # earlier pull-request run tested. Reusing its live association could trust a stale merge.
   cancel-in-progress: >-
     ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
 
@@ -67,9 +67,8 @@ env:
 jobs:
   scope:
     # Decides how much of the rest this run needs. Everything, on a pull request into dev
-    # or stage; the cheap and deployment checks, on a promotion into main whose tree
-    # stage already passed in full; the two description checks, on an edit to a pull
-    # request whose code already passed. Anything it cannot prove is a full run. See
+    # or stage, including edits; the cheap and deployment checks, on a promotion into main
+    # whose tree stage already passed in full. Anything it cannot prove is a full run. See
     # scripts/ci_scope.py, and "What runs where" in docs/ci.md.
     name: scope
     runs-on: ubuntu-latest
@@ -95,16 +94,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
-          EVENT_ACTION: ${{ github.event.action }}
           BASE_REF: ${{ github.base_ref }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          # What an `edited` event changed, as JSON: only title and body may be `text`,
-          # since GitHub sends `edited` for a retargeted base too. Read from env only.
-          CHANGES: ${{ toJSON(github.event.changes) }}
           REF: ${{ github.ref }}
-          RUN_ID: ${{ github.run_id }}
         run: |
           set -Eeuo pipefail
           python3 scripts/ci_scope.py
@@ -112,7 +103,6 @@ jobs:
   validate-skills:
     name: validate skills
     needs: scope
-    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -276,7 +266,6 @@ jobs:
   catalogue:
     name: check catalogue
     needs: scope
-    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -357,7 +346,6 @@ jobs:
   spelling:
     name: lint spelling
     needs: scope
-    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -388,7 +376,6 @@ jobs:
   lint-markdown:
     name: lint markdown
     needs: scope
-    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -460,7 +447,6 @@ jobs:
   links:
     name: check links
     needs: scope
-    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -644,7 +630,7 @@ jobs:
     name: package
     # The deployment check, so it runs on a promotion too. Its own needs may be skipped
     # there, which on its own would skip it; this runs it unless one of them failed.
-    if: ${{ !cancelled() && !failure() && needs.scope.outputs.mode != 'text' }}
+    if: ${{ !cancelled() && !failure() }}
     needs:
       - scope
       - validate-skills

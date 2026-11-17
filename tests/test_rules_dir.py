@@ -171,6 +171,41 @@ def test_nested_brace_groups_expand(tmp_path):
     assert check_rule(write_rule(tmp_path, "n", text), tmp_path) == []
 
 
+def test_brace_expansion_at_the_budget_still_matches(tmp_path):
+    (tmp_path / "aaaaaaaa.md").write_text("", encoding="utf-8")
+    pattern = "{a,b}" * 8 + ".md"
+    text = f'---\npaths:\n  - "{pattern}"\n---\n\n# Budget\n\nBody.\n'
+    assert check_rule(write_rule(tmp_path, "budget", text), tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    ("pattern", "message"),
+    [
+        ("a" * 4097, "path glob is 4097 characters; the cap is 4096"),
+        ("{a}" * 33, "path glob has more than 32 brace groups"),
+        (
+            "{" + ",".join(["a"] * 65) + "}",
+            "path glob brace group has more than 64 alternatives",
+        ),
+        ("{a,b}" * 9, "path glob expands to more than 256 patterns"),
+    ],
+    ids=["length", "groups", "alternatives", "expansions"],
+)
+def test_overcomplex_rule_globs_are_rejected(tmp_path, pattern, message):
+    text = f'---\npaths:\n  - "{pattern}"\n---\n\n# Complex\n\nBody.\n'
+    findings = check_rule(write_rule(tmp_path, "complex", text), tmp_path)
+    assert [(finding.code, finding.line, finding.message) for finding in findings] == [
+        ("complex-glob", 3, message)
+    ]
+
+
+def test_brace_complexity_is_checked_without_repository_matching(tmp_path):
+    pattern = "{a,b}" * 9
+    text = f'---\npaths:\n  - "{pattern}"\n---\n\n# Template\n\nBody.\n'
+    findings = check_rule(write_rule(tmp_path, "template", text), tmp_path, match_globs=False)
+    assert [(finding.code, finding.line) for finding in findings] == [("complex-glob", 3)]
+
+
 def test_the_flow_form_does_not_split_inside_a_brace_group(tmp_path):
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "app.tsx").write_text("", encoding="utf-8")
