@@ -1717,8 +1717,7 @@ def _check_brace_expansion_complexity(pattern: str) -> None:
             groups += 1
             if groups > RULE_GLOB_MAX_BRACE_GROUPS:
                 raise _RuleGlobComplexityError(
-                    "path glob has more than "
-                    f"{RULE_GLOB_MAX_BRACE_GROUPS} brace groups"
+                    f"path glob has more than {RULE_GLOB_MAX_BRACE_GROUPS} brace groups"
                 )
             if alternatives > RULE_GLOB_MAX_BRACE_ALTERNATIVES:
                 raise _RuleGlobComplexityError(
@@ -1727,8 +1726,7 @@ def _check_brace_expansion_complexity(pattern: str) -> None:
                 )
             if expansions > RULE_GLOB_MAX_EXPANSIONS // alternatives:
                 raise _RuleGlobComplexityError(
-                    "path glob expands to more than "
-                    f"{RULE_GLOB_MAX_EXPANSIONS} patterns"
+                    f"path glob expands to more than {RULE_GLOB_MAX_EXPANSIONS} patterns"
                 )
             expansions *= alternatives
 

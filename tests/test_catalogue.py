@@ -786,9 +786,7 @@ def test_export_rejects_a_traversal_name_before_it_can_overwrite_markdown(
     "name",
     ["../outside", "..\\outside", "/outside", "Alpha", "alpha--child", "a" * 65, "beta"],
 )
-def test_check_rejects_noncanonical_or_mismatched_skill_names(
-    mini_repo, tmp_path, capsys, name
-):
+def test_check_rejects_noncanonical_or_mismatched_skill_names(mini_repo, tmp_path, capsys, name):
     skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
     source = skill / "SKILL.md"
     source.write_text(

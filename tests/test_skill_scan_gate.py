@@ -468,9 +468,7 @@ def test_an_ae1_acceptance_does_not_cover_a_changed_reason(tmp_path, capsys):
 
 def test_an_ae1_acceptance_does_not_cover_a_changed_phase(tmp_path, capsys):
     report = sarif(coverage(reasons=("static_parse_limit",)))
-    report["runs"][0]["results"][0]["properties"]["evidence"]["reasons"][0][
-        "phase"
-    ] = "instruction"
+    report["runs"][0]["results"][0]["properties"]["evidence"]["reasons"][0]["phase"] = "instruction"
     args = lay_out(tmp_path, {SKILL: report}, [coverage_entry()])
     assert gate.main(args) == 1
     assert "static_parse_limit/instruction" in capsys.readouterr().out

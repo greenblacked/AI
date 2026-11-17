@@ -90,7 +90,7 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
             raise SystemExit(
                 f"refusing to package {skill.name}: no {source_name} at the "
                 f"repository root ({repo_root})"
-            )
+            ) from None
         if not stat.S_ISREG(mode):
             raise SystemExit(
                 f"refusing to package {skill.name}: {source_name} is not a regular "
