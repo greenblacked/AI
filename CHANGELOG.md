@@ -8,6 +8,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-17
+
+### Security
+
+- Require verified Terraform plan provenance and approved handling of plan data for IaC reviews. Keep raw values and sensitive identifiers out of review reports, and retain state backups under the backend's access and retention controls.
+- Restrict credentialed pull request evaluations to same-repository PRs targeting protected `main`. Run the harness from the trusted event revision and handle candidate definitions and queries as data.
+- Match accepted SkillSpector AE1 findings to their recorded evidence reasons and analysis phases. Reuse staging CI results only when the promotion checks can verify the matching tree and its successful runs.
+
+### Fixed
+
+- Reject symlinked legal files during skill packaging and reject unsafe skill names before writing portable exports.
+- Bound nested rule-glob expansion during validation. Refresh reviewer benchmark fixtures to match the current code.
+
 ## [0.6.0] - 2026-11-06
 
 ### Added
@@ -1118,7 +1131,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/greenblacked/AI/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/greenblacked/AI/compare/v0.5.2...v0.6.0
 [0.5.2]: https://github.com/greenblacked/AI/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/greenblacked/AI/compare/v0.5.0...v0.5.1
