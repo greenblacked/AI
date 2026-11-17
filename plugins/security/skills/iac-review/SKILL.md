@@ -130,7 +130,15 @@ jq -r '.resource_changes[] | select(.deposed)
 
 A `deposed` entry means a `create_before_destroy` replacement left an old object behind that a previous apply failed to clean up. It is still real and still billed. Chase it.
 
-`terraform state mv` and `state rm` are break-glass: imperative, unreviewable, and invisible to the next plan's diff. When they are genuinely unavoidable, the runbook begins with `terraform state pull > state-backup-$(date +%s).json` and that backup is attached to the change record before anything else runs.
+`terraform state mv` and `state rm` are break-glass: imperative, unreviewable, and
+invisible to the next plan's diff. When they are genuinely unavoidable, the runbook
+begins by capturing a recoverable pre-mutation snapshot. Retain it through verified
+backend versioning, or copy it into an encrypted backup store whose access is no broader
+than the state backend's and whose retention and audit controls are at least as strong.
+Restrict any local working copy and delete it as soon as protected retention is confirmed.
+Record only the protected backup identifier and starting state serial in the change
+record; never attach or paste state bytes into a change record, ticket, pull request,
+chat or any other attachment.
 
 For forcing a rebuild, use `terraform apply -replace=ADDRESS` rather than `terraform taint`. HashiCorp's stated reasoning is worth repeating verbatim because it is the whole argument: the `-replace` option is recommended "because the change will be reflected in the Terraform plan, letting you understand how it will affect your infrastructure before you take any externally-visible action. When you use `terraform taint`, other users could create a new plan against your tainted object before you can review the effects." `taint` mutates shared state ahead of review; `-replace` puts the decision inside the artefact under review.
 
@@ -188,7 +196,8 @@ address, with its action_reason and, where relevant, the replace_paths attribute
 [resource_drift entries and whether they are expected, or "none".]
 
 ## State operations
-[moved / import / state mv / state rm, and whether a state backup precedes them.]
+[moved / import / state mv / state rm, whether a pre-mutation snapshot exists, its
+protected backup identifier and starting serial. Never include state bytes.]
 
 ## Findings
 [Ordered by severity. Each: what, where, why it matters, the fix.]
