@@ -138,7 +138,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
 | `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill or in a subagent or command definition that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned a number of skills or definitions that differs from what the tree holds. |
-| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding, in a skill or in a subagent or command definition, not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding, in a skill or in a subagent or command definition, not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason or lacks AE1's structured evidence identity. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -214,8 +214,10 @@ and how to refresh a baseline after a scanner bump.
   reports. It does not use SkillSpector's own baseline, whose fingerprint hashes the whole
   file and the scanner version, so any edit to a flagged file would reopen every finding
   in it. It keys each finding on its rule, its path and the matched text with whitespace
-  collapsed, and fails on a key not in the accepted list, on a scan that exited 2 or left
-  no readable report, on a report whose `analysisCompleteness` says it left a file
+  collapsed; AE1 keys also include every structured evidence reason's code and phase. It
+  fails on a key not in the accepted list, on an AE1 result or accepted entry without that
+  complete evidence identity, on a scan that exited 2 or left no readable report, on a
+  report whose `analysisCompleteness` says it left a file
   entirely uninspected, on a report count that differs from the skills scanned, and on
   an accepted entry with no reason or with a class other than a false positive or
   accepted-by-design. An accepted entry that no longer matches anything is printed as a
