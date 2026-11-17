@@ -1,13 +1,9 @@
 ---
-# Trigger evaluation. Three jobs: the whole catalogue monthly or on request, the skills
-# and agents a same-repository pull request changed plus their declared neighbours, and a
-# quality benchmark of the `reviewer` subagent — monthly or on request. None is a
-# required check, and the pull
-# request one fails only below a floor well
-# under its reporting bar: scoring costs money, it is sampled rather than deterministic,
-# and a gate that is occasionally wrong is a gate people learn to override. The schema of
-# every eval set is checked on every push by `skillcheck`; this workflow scores the
-# queries.
+# Trigger evaluation on protected main. The monthly schedule and manual dispatch score
+# the catalogue and can run the reviewer benchmark. Same-repository pull requests score
+# changed skills and agents plus their declared neighbours. These jobs are advisory.
+# Sampling is nondeterministic and costs money, so the pull request job fails only below
+# a floor well under its reporting bar. `skillcheck` validates eval schemas on every push.
 name: Trigger evals
 
 on:
@@ -18,21 +14,22 @@ on:
   # answer changes when the catalogue does.
   schedule:
     - cron: '0 7 1 * *'
-  # On every pull request, for changed skills and agents plus their neighbours. The
-  # target form keeps this workflow and its executable harness on the trusted base
+  # On pull requests targeting main, for changed skills and agents plus their neighbours.
+  # The target form keeps this workflow and its executable harness on GitHub's event
   # revision while the candidate checkout is read only as evaluation data. Forks are
   # excluded at the job boundary so they cannot spend the repository's model credential.
   # A monthly cadence does not tell the author of a new skill that it took a neighbour's
   # queries, and that collision is invisible in the new skill's own score — one merged
   # at 95% while breaking the skill next door. Deliberately no `paths:` filter, for the
   # reason ci.yml gives: a workflow skipped by a path filter leaves its check Pending
-  # forever. The workflow runs every time; the changed-target job excludes forks before
-  # they can receive or spend a credential.
+  # forever. The job also requires main to be protected before it checks out either tree.
   # zizmor flags every pull_request_target checkout of a candidate revision, even when
   # the checkout is isolated as data. The changed-target job below rejects non-regular
   # candidate entries, executes only the base revision's harness, disables model tools,
   # and grants a read-only token; the reviewer benchmark never runs for this event.
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       skill:
@@ -117,7 +114,9 @@ jobs:
     # The whole catalogue, monthly or on request. A pull request scores only what it
     # touched, in `evaluate-changed` below; running this one per push would be three
     # thousand model calls a commit.
-    if: github.event_name != 'pull_request_target'
+    if: >-
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' && github.ref_protected
     runs-on: ubuntu-latest
     # At the defaults this is fifty targets x twenty queries x three samples, three
     # thousand model calls with four in flight at a time. The runner writes its results
@@ -264,7 +263,8 @@ jobs:
     # success, which is the mechanism ci.yml documents as the safe one — unlike a
     # workflow-level `paths:` filter, which leaves the check Pending and blocks a merge.
     if: >-
-      github.event_name == 'pull_request_target' &&
+      github.event_name == 'pull_request_target' && github.base_ref == 'main' &&
+      github.ref == 'refs/heads/main' && github.ref_protected &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     # Twelve targets at twenty queries and three samples is seven hundred calls with
@@ -276,7 +276,6 @@ jobs:
       - name: Check out the trusted eval harness
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
       - name: Check out the candidate data
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -454,7 +453,7 @@ jobs:
               print(f"{kind} {path.as_posix()}")
           EOF
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ github.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       - name: Check the backend has a credential
         id: credentials
@@ -614,9 +613,12 @@ jobs:
     # objection. It runs the real subagent through the real CLI, so it costs a model call
     # per case per sample. Candidate agents, fixtures and worktrees can execute commands,
     # so a pull request never runs this secret-bearing benchmark. A scheduled or
-    # dispatched run evaluates the trusted default-branch tree. The job carries no
-    # job-level `if:` so the pull request still gets a green check rather than Pending;
-    # the gate step below records the deliberate stand-down.
+    # dispatched run evaluates the protected main event revision. The gate step below
+    # still records a stand-down on eligible pull request events.
+    if: >-
+      github.ref == 'refs/heads/main' && github.ref_protected &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && github.base_ref == 'main'))
     runs-on: ubuntu-latest
     # Twenty-seven cases, three samples each, four in flight — every sample a full review
     # run with up to forty turns. Two hours covers that with headroom, and each sample is
@@ -627,7 +629,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
@@ -657,7 +658,7 @@ jobs:
                 echo "### Reviewer benchmark"
                 echo ""
                 echo "Not run: pull request worktrees never receive model credentials."
-                echo "Run the benchmark from the trusted default branch after review."
+                echo "Run the benchmark from protected main after review."
                 echo ""
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0

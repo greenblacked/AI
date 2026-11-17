@@ -201,18 +201,36 @@ def test_eval_cli_installation_never_receives_scoring_credentials():
         assert "npm install" not in score_step
 
 
+@pytest.mark.parametrize("job_name", ["evaluate", "evaluate-changed", "reviewer-benchmark"])
+def test_eval_jobs_require_protected_main_before_checkout(job_name):
+    text = WORKFLOW.read_text(encoding="utf-8")
+    job = text.split(f"\n  {job_name}:\n", 1)[1]
+    guard = job.split("    steps:", 1)[0].split("    if:", 1)[1]
+    assert "github.ref == 'refs/heads/main'" in guard
+    assert "github.ref_protected" in guard
+
+
 def test_pull_request_scoring_separates_trusted_code_from_candidate_data():
     text = WORKFLOW.read_text(encoding="utf-8")
     trigger = text.split("on:\n", 1)[1].split("\npermissions:", 1)[0]
-    assert "pull_request_target:" in trigger
+    target_trigger = trigger.split("  pull_request_target:", 1)[1].split("  workflow_dispatch:", 1)[
+        0
+    ]
+    assert "\n    branches:\n      - main\n" in target_trigger
     assert "\n  pull_request:" not in trigger
 
     changed = text.split("  evaluate-changed:", 1)[1].split("  reviewer-benchmark:", 1)[0]
     assert "github.event.pull_request.head.repo.full_name == github.repository" in changed
-    trusted = changed.index("ref: ${{ github.event.pull_request.base.sha }}")
-    candidate = changed.index("ref: ${{ github.event.pull_request.head.sha }}")
-    assert trusted < candidate
-    assert "path: candidate" in changed[candidate:]
+    assert "github.base_ref == 'main'" in changed.split("    steps:", 1)[0]
+    trusted, candidate = changed.split("- name: Check out the trusted eval harness", 1)[1].split(
+        "- name: Check out the candidate data", 1
+    )
+    assert "actions/checkout@" in trusted
+    assert "ref:" not in trusted
+    assert "ref: ${{ github.event.pull_request.head.sha }}" in candidate
+    assert "path: candidate" in candidate
+    assert "BASE_SHA: ${{ github.sha }}" in changed
+    assert "github.event.pull_request.base.sha" not in text
     assert "Trigger evals accept regular files only" in changed
 
     install = changed.split("- name: Install the changed-target eval CLI", 1)[1].split(
