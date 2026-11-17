@@ -743,17 +743,19 @@ matches nothing is a warning to remove it. The id may be any alias of the adviso
 ## `.github/workflows/evals.yml` — Trigger evals
 
 Three triggers: a monthly `schedule` (`0 7 1 * *`), `workflow_dispatch`, and
-`pull_request`. There is no push trigger and, like `ci.yml`, no `paths:` filter — a
+`pull_request_target`. There is no push trigger and, like `ci.yml`, no `paths:` filter — a
 workflow skipped by a path filter leaves its check Pending forever, which is the failure
-this repository refuses everywhere. Three jobs; the first two are guarded by a job-level
-`if:` so that exactly one of them runs on any given event, and the third decides inside
-itself whether the event is one it measures:
+this repository refuses everywhere. The target trigger loads its workflow from the
+trusted base revision; the changed-target job separately checks out candidate files as
+data and runs no executable from them. Three jobs; the first two are guarded by a
+job-level `if:` so the catalogue and changed-target scorers never run together; a fork
+runs neither. The third decides inside itself whether the event is one it measures:
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request; skipped on a pull request. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
-| `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill or agent the pull request changed, or one of its declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
-| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request, and on a pull request only when the cases, `reviewer.md`, the harness, the installer or the locked Claude client under `.github/eval-clients/claude/` changed. Two-hour timeout. |
+| `evaluate-changed` | `score changed skills` | Only on a same-repository pull request; forks and other events are skipped. A skill or agent the pull request changed, or one of its declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
+| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request; pull requests stand down because candidate worktrees can execute code. Two-hour timeout. |
 
 ### `evaluate-changed`, the pull request job
 
@@ -770,10 +772,12 @@ the case above, because the changed target is the one that scores well.
 
 What it does, in order:
 
-1. Checks out with `fetch-depth: 0` so the base branch is reachable, and lists the
-   changed files with `git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD"`. Plain
-   git rather than a changed-files action: this is one diff, and an action would be
-   another pinned dependency in the supply chain for it.
+1. Checks out the immutable base SHA at the workspace root for the workflow's scripts,
+   then the immutable head SHA under `candidate/` with full history for the diff. It
+   rejects symlinks, submodules and every other non-regular tracked mode before any
+   credential-bearing step, and lists both sides of renames with a NUL-delimited
+   `git diff --no-renames --name-only`. Plain git rather than a changed-files action: this
+   is one diff, and an action would be another pinned dependency in the supply chain.
 2. Maps changed skill paths to their skill directory. Agent definitions under
    `plugins/*/agents/<name>.md` and `.claude/agents/<name>.md`, and their paired
    `evals/<name>.json` files, select that agent. Definition and eval changes select a
@@ -782,24 +786,25 @@ What it does, in order:
    declared neighbours, deduplicates them against changed targets, and caps the list at
    twelve, with changed targets first. The summary counts only selected changed targets
    and neighbours and reports how many targets the cap dropped.
-3. Runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) once per target.
-   The harness takes exactly one target per invocation and rewrites `--json` wholesale,
-   so each target writes its own results file and the publish step merges them into one
-   table — the same six columns the monthly job prints. The merged files upload as the
-   `trigger-evals-changed` artifact.
+3. Runs the base revision's
+   [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) once per candidate
+   target, with `--root` naming the candidate data tree. Its imports and executable code
+   remain in the trusted checkout, and Claude receives an empty tool set, so candidate
+   descriptions and queries can be classified but cannot read runner files or start a
+   subprocess. The harness takes exactly one target per invocation and rewrites `--json`
+   wholesale, so each target writes its own results file and the publish step merges them
+   into one table — the same six columns the monthly job prints. The merged files upload
+   as the `trigger-evals-changed` artifact.
 
 Three outcomes that are green on purpose:
 
 - **No scorable skill or agent changed.** The job reports success with a note in the summary rather than
   being skipped, so nothing sits Pending.
-- **No credential.** A pull request from a fork is handed no secrets. The job says so in
-  a notice and stands down, because a red check a contributor has no way to make green is
-  a check everybody learns to ignore. The same is now true of the scheduled run of
-  `evaluate`: a scheduled run skips with a notice, and only a dispatched run — where a person
-  asked for a score and is owed the error — fails on a missing credential. A pull request
-  from this same repository with no credential configured is a third case: it still
-  stands down rather than failing, but the step emits a warning annotation and says
-  scoring is inactive, rather than the fork's notice claiming something false of it.
+- **No credential.** A fork never enters the changed-target job, so it cannot spend or
+  receive the repository's model credential. A same-repository pull request with no
+  configured credential stands down with a warning that scoring is inactive. The
+  scheduled run of `evaluate` skips with a notice, and only a dispatched run — where a
+  person asked for a score and is owed the error — fails on a missing credential.
 - **A score between 0.7 and 0.8.** Reported in the summary and as a notice annotation,
   and advisory.
 
@@ -833,15 +838,14 @@ is a small unified diff and a `case.json` describing it: a `"defect"` case passe
 a `"clean"` case passes on `SHIP`. The harness runs each case in an isolated `git
 worktree`, detached from `HEAD`, and never touches the repository's own tree.
 
-It runs on the schedule and on request, and on a pull request only when the diff touches
-`.claude/agents/benchmarks/`, `.claude/agents/reviewer.md` or
-`scripts/run_review_benchmark.py` — the three things a benchmark number depends on. A
-pull request that changes none of them gets a green check with a note rather than the
-expensive run; the job carries no job-level `if:` for the reason above, so a skipped run
-never leaves a check Pending. The credential handling is `evaluate`'s: a scheduled run
-stands down with a notice, a fork's pull request stands down, and a dispatched run fails
-loudly. The harness's exit code is the job's: 1 is a rate below its threshold and 2 is the
-harness failing to run at all, and the JSON is published and uploaded either way.
+It runs on the schedule and on request. A pull request always gets a green stand-down
+summary: the benchmark intentionally applies fixture patches, loads an agent definition
+and permits selected test commands inside a candidate worktree, so the model credential
+cannot safely share that process boundary. Run it from the trusted default branch after
+reviewing a benchmark change. The credential handling is `evaluate`'s: a scheduled run
+stands down with a notice and a dispatched run fails loudly. The harness's exit code is
+the job's: 1 is a rate below its threshold and 2 is the harness failing to run at all,
+and the JSON is published and uploaded either way.
 
 ### Dispatch inputs
 
@@ -864,8 +868,8 @@ everything against Claude and does not run the benchmark:
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
 the first step checks that the chosen backend has one, stopping with a one-line annotation
 if not, because failing there beats failing forty model calls later with a stack trace. A
-dispatched run fails on an absent credential; a scheduled run and a pull request skip with
-a notice instead, for the reasons above:
+dispatched run fails on an absent credential; a scheduled run skips with a notice, and
+the pull-request paths use the separate behavior above:
 
 | Backend | Repository secret | Where it comes from |
 | --- | --- | --- |
@@ -1020,9 +1024,10 @@ rather than the source of truth.
 ## Why there is no `paths:` filter
 
 No workflow here has a `paths:` filter, and this is deliberate. `evals.yml` is the one
-where the temptation is real — its pull request job has nothing to do unless a skill or agent
-changed — and it runs on every pull request anyway, reporting when no changed target has
-a trigger eval set to score in the job summary.
+where the temptation is real — its pull request job has nothing to do unless a skill or
+agent changed — and the workflow runs on every pull request anyway. On a same-repository
+pull request the job reports when no changed target has a trigger eval set; a fork is
+excluded by the job condition and reports that skip as success.
 
 A workflow skipped by a path filter does not report a result at all — its check sits
 Pending forever. If that check is required, the pull request can never merge, and the
@@ -1335,14 +1340,13 @@ automate in Actions.
 
 ### The eval credential
 
-`evals.yml` needs a model credential as a repository secret, and there is none. Each of
-its jobs stands down rather than failing on a scheduled run and on a pull request, which
-is right for a fork and for a check nobody is required to pass; only a run somebody
-dispatched by hand fails on the missing credential, because they asked for it and are owed
-the error. In practice the scoring has never run. Every pull request that reached the
-credential step reported
-`::notice title=no credentials::Not scoring the changed skills`, and the monthly run over
-the whole catalogue will do the same.
+`evals.yml` needs a model credential as a repository secret, and there is none. A
+scheduled run stands down rather than failing, a fork never enters changed-target
+scoring, and the reviewer benchmark always stands down on a pull request. A
+same-repository changed-target run reaches the credential step and warns that scoring is
+inactive; only a run somebody dispatched by hand fails on the missing credential, because
+they asked for it and are owed the error. In practice the scoring has never run. The
+monthly run over the whole catalogue will stand down with the same absence.
 
 So the trigger-eval machinery — the harness, the eval sets on every skill and subagent,
 and the section of this document describing what the numbers mean — currently measures

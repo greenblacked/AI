@@ -18,7 +18,15 @@ from tests.conftest import eval_set, load_script
 harness = load_script("run_trigger_eval.py")
 
 
-CLAUDE = ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk"]
+CLAUDE = [
+    "claude",
+    "-p",
+    "{prompt}",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "",
+]
 
 
 class Args:
@@ -447,11 +455,33 @@ def test_a_model_flag_is_passed_through(fake_claude, tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     ("backend", "model", "argv"),
     [
-        ("claude", None, ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk"]),
+        (
+            "claude",
+            None,
+            [
+                "claude",
+                "-p",
+                "{prompt}",
+                "--permission-mode",
+                "dontAsk",
+                "--tools",
+                "",
+            ],
+        ),
         (
             "claude",
             "opus",
-            ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk", "--model", "opus"],
+            [
+                "claude",
+                "-p",
+                "{prompt}",
+                "--permission-mode",
+                "dontAsk",
+                "--tools",
+                "",
+                "--model",
+                "opus",
+            ],
         ),
         ("codex", None, ["codex", "exec", "--skip-git-repo-check", "{prompt}"]),
         (
@@ -468,7 +498,7 @@ def test_each_backend_builds_its_own_argv(backend, model, argv):
 
 
 @pytest.mark.parametrize("model", [None, "opus"])
-def test_claude_subprocess_receives_explicit_permission_mode(
+def test_claude_subprocess_receives_explicit_permission_mode_and_no_tools(
     fake_claude, tmp_path, monkeypatch, model
 ):
     fake_claude({"classify this": "alpha"})
@@ -478,7 +508,7 @@ def test_claude_subprocess_receives_explicit_permission_mode(
     command = harness.build_command("claude", None, model)
 
     assert harness.ask(prompt, command, 30) == "alpha"
-    expected = ["-p", prompt, "--permission-mode", "dontAsk"]
+    expected = ["-p", prompt, "--permission-mode", "dontAsk", "--tools", ""]
     if model:
         expected += ["--model", model]
     assert json.loads(seen.read_text()) == expected

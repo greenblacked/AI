@@ -1,13 +1,9 @@
-"""The credential-check step in `evals.yml` decides whether trigger-eval scoring on a
-pull request silently never runs — a same-repository pull request with no credential
-configured used to print the fork's notice, which is false for it, and stand down with
-no signal that the 0.7 floor was never enforced.
+"""Security boundaries and embedded shell behavior in `evals.yml`.
 
-The step is bash embedded in a workflow, not Python, so it is exercised here by pulling
-the step's own `run:` block out of the real file and executing it with `bash`, rather
-than duplicating its logic in a second copy that would drift from the one CI runs.
-PyYAML is not a dependency of this suite, so the block is found by indentation rather
-than by parsing the file as YAML.
+The shell steps are exercised by pulling their own `run:` blocks out of the real file
+and executing them with `bash`, rather than duplicating their logic in a second copy.
+PyYAML is not a dependency of this suite, so blocks are found by indentation rather than
+by parsing the file as YAML.
 """
 
 from __future__ import annotations
@@ -57,7 +53,7 @@ def _extract_run_block(text: str, step_name: str, occurrence: int = 0) -> str:
     return "\n".join(line[base:] if line.strip() else "" for line in block)
 
 
-def run_credential_check(tmp_path, *, same_repo: str, has_credential: bool):
+def run_credential_check(tmp_path, *, has_credential: bool):
     text = WORKFLOW.read_text(encoding="utf-8")
     script = _extract_run_block(text, STEP_NAME)
 
@@ -68,7 +64,6 @@ def run_credential_check(tmp_path, *, same_repo: str, has_credential: bool):
 
     env = {
         "PATH": "/usr/bin:/bin",
-        "SAME_REPO": same_repo,
         "GITHUB_OUTPUT": str(output),
         "GITHUB_STEP_SUMMARY": str(summary),
     }
@@ -85,30 +80,16 @@ def run_credential_check(tmp_path, *, same_repo: str, has_credential: bool):
     return result, output.read_text(encoding="utf-8"), summary.read_text(encoding="utf-8")
 
 
-def test_a_same_repo_pull_request_with_no_credential_warns_rather_than_claims_a_fork(tmp_path):
-    result, output, summary = run_credential_check(tmp_path, same_repo="true", has_credential=False)
+def test_a_same_repo_pull_request_with_no_credential_warns(tmp_path):
+    result, output, summary = run_credential_check(tmp_path, has_credential=False)
     assert result.returncode == 0
     assert "skip=true" in output
     assert "::warning title=no credential configured::" in result.stdout
-    assert "expected on a pull request from a fork" not in result.stdout
     assert "Scoring is inactive" in summary
 
 
-def test_a_fork_pull_request_with_no_credential_still_gets_the_fork_notice(tmp_path):
-    """The fork case is unaffected: this is the one where a contributor genuinely has no
-    way to set the secret, so it must keep reading as expected rather than as a warning."""
-    result, output, summary = run_credential_check(
-        tmp_path, same_repo="false", has_credential=False
-    )
-    assert result.returncode == 0
-    assert "skip=true" in output
-    assert "::notice title=no credentials::" in result.stdout
-    assert "expected on a pull request from a fork" in result.stdout
-    assert "::warning" not in result.stdout
-
-
 def test_a_credential_present_emits_neither_notice_nor_warning(tmp_path):
-    result, output, _ = run_credential_check(tmp_path, same_repo="true", has_credential=True)
+    result, output, _ = run_credential_check(tmp_path, has_credential=True)
     assert result.returncode == 0
     assert "skip=false" in output
     assert "::warning" not in result.stdout
@@ -220,7 +201,34 @@ def test_eval_cli_installation_never_receives_scoring_credentials():
         assert "npm install" not in score_step
 
 
-@pytest.mark.parametrize("event", ["pull_request", "schedule", "workflow_dispatch"])
+def test_pull_request_scoring_separates_trusted_code_from_candidate_data():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    trigger = text.split("on:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert "pull_request_target:" in trigger
+    assert "\n  pull_request:" not in trigger
+
+    changed = text.split("  evaluate-changed:", 1)[1].split("  reviewer-benchmark:", 1)[0]
+    assert "github.event.pull_request.head.repo.full_name == github.repository" in changed
+    trusted = changed.index("ref: ${{ github.event.pull_request.base.sha }}")
+    candidate = changed.index("ref: ${{ github.event.pull_request.head.sha }}")
+    assert trusted < candidate
+    assert "path: candidate" in changed[candidate:]
+    assert "Trigger evals accept regular files only" in changed
+
+    install = changed.split("- name: Install the changed-target eval CLI", 1)[1].split(
+        "- name: Score each target", 1
+    )[0]
+    assert "python scripts/install_eval_cli.py claude" in install
+    assert "candidate/scripts" not in install
+
+    score = changed.split("- name: Score each target", 1)[1].split("\n      - ", 1)[0]
+    assert 'python scripts/run_trigger_eval.py "$flag" "$CANDIDATE_ROOT/$path"' in score
+    assert '--root "$CANDIDATE_ROOT"' in score
+    assert "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" in score
+    assert "candidate/scripts" not in score
+
+
+@pytest.mark.parametrize("event", ["schedule", "workflow_dispatch"])
 @pytest.mark.parametrize("credential", [False, True])
 def test_reviewer_credential_gate_preserves_stand_down(tmp_path, event, credential):
     script = _extract_run_block(
@@ -270,41 +278,17 @@ def test_reviewer_selection_gate_preserves_dispatch_opt_in(tmp_path, event, revi
     assert output.read_text(encoding="utf-8") == f"run={expected}\n"
 
 
-@pytest.mark.parametrize(
-    ("changed_path", "expected"),
-    [
-        (".claude/agents/benchmarks/reviewer/demo/case.json", "true"),
-        (".claude/agents/reviewer.md", "true"),
-        (".github/eval-clients/claude/package-lock.json", "true"),
-        (".github/eval-clients/codex/package-lock.json", "false"),
-        (".github/eval-clients/gemini/package.json", "false"),
-        ("scripts/run_review_benchmark.py", "true"),
-        ("scripts/install_eval_cli.py", "true"),
-        ("plugins/coding/skills/code-review/SKILL.md", "false"),
-    ],
-)
-def test_reviewer_selection_gate_matches_measured_pull_request_paths(
-    tmp_path, changed_path, expected
-):
+def test_reviewer_selection_gate_never_executes_pull_request_worktrees(tmp_path):
     script = _extract_run_block(
         WORKFLOW.read_text(encoding="utf-8"), "Decide whether the benchmark measures this change"
     )
-    bin_dir = tmp_path / "bin"
-    bin_dir.mkdir()
-    git = bin_dir / "git"
-    git.write_text(
-        f'#!/usr/bin/env bash\nif [ "$1" = "diff" ]; then\n  printf "%s\\n" "{changed_path}"\nfi\n',
-        encoding="utf-8",
-    )
-    git.chmod(0o755)
     output, summary = tmp_path / "output", tmp_path / "summary"
     result = subprocess.run(  # noqa: S603 - execute workflow gate without scoring
         ["bash", "-c", script],  # noqa: S607 - same PATH as workflow
         cwd=tmp_path,
         env={
-            "PATH": f"{bin_dir}:/usr/bin:/bin",
-            "GITHUB_EVENT_NAME": "pull_request",
-            "GITHUB_BASE_REF": "dev",
+            "PATH": "/usr/bin:/bin",
+            "GITHUB_EVENT_NAME": "pull_request_target",
             "REVIEWER_INPUT": "",
             "GITHUB_OUTPUT": str(output),
             "GITHUB_STEP_SUMMARY": str(summary),
@@ -314,13 +298,17 @@ def test_reviewer_selection_gate_matches_measured_pull_request_paths(
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert output.read_text(encoding="utf-8") == f"run={expected}\n"
+    assert output.read_text(encoding="utf-8") == "run=false\n"
+    assert "pull request worktrees never receive model credentials" in summary.read_text(
+        encoding="utf-8"
+    )
 
 
 def run_target_selector(tmp_path, changed, targets):
     """Execute the actual embedded selector against a small catalogue, offline."""
+    candidate = tmp_path / "candidate"
     for path, queries in targets.items():
-        definition = tmp_path / path
+        definition = candidate / path
         definition.parent.mkdir(parents=True, exist_ok=True)
         definition.write_text("fixture", encoding="utf-8")
         if queries is not None:
@@ -331,7 +319,9 @@ def run_target_selector(tmp_path, changed, targets):
             )
             eval_path.parent.mkdir(parents=True, exist_ok=True)
             eval_path.write_text(json.dumps(queries), encoding="utf-8")
-    (tmp_path / "changed-paths.txt").write_text("\n".join(changed), encoding="utf-8")
+    (tmp_path / "changed-paths.bin").write_bytes(
+        b"\0".join(os.fsencode(path) for path in changed) + b"\0"
+    )
     script = (
         _extract_run_block(
             WORKFLOW.read_text(encoding="utf-8"), "Work out which targets the pull request touches"
