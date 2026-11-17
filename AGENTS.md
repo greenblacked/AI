@@ -328,6 +328,16 @@ blocking finding or a failing `ci` or `security` gate.
   a tag already on `origin`, a version not greater than every existing tag, or a `HEAD`
   that is not `origin/main`. `release.yml` accepts that dispatch only on a `vX.Y.Z` tag
   ref, so a dispatch on a branch publishes nothing.
+- `evals.yml` uses `pull_request_target` for same-repository changed-target scoring so
+  the workflow and executable harness come from the immutable base SHA rather than the
+  candidate checkout. The head SHA is checked out separately under `candidate/` and is
+  accepted only as regular definition and JSON data; the trusted harness imports its own
+  base-revision modules, receives the candidate root explicitly, and starts Claude with
+  no tools. Forks are excluded before the job starts. The reviewer benchmark stands down
+  on every pull request because its candidate agent, fixtures and worktree can execute
+  commands; it runs with model credentials only on a trusted schedule or dispatch. This
+  bounded use carries `# zizmor: ignore[dangerous-triggers]` beside the trigger because
+  zizmor cannot distinguish the data-only candidate checkout from execution.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

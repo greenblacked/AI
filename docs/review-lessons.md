@@ -68,8 +68,9 @@ permit new tool approvals. Its complete classification input is already in that 
 **The check that catches it.** `tests/test_harness.py` checks the built-in command and
 actual fake subprocess arguments with and without a model, keeps custom commands
 unchanged, and rejects comparison with an older implicit-mode baseline. The classifier
-sets `dontAsk` explicitly; this is an approval policy, not tool isolation. The reviewer
-benchmark removes the explicit mode.
+sets `dontAsk` explicitly and independently supplies an empty tool set; the permission
+mode itself is an approval policy, not tool isolation. The reviewer benchmark removes
+the explicit mode.
 
 **First caught:** the review stage while fixing scheduled run `36423678234`.
 

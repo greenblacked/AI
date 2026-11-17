@@ -1,13 +1,11 @@
-diff --git a/scripts/export_portable.py b/scripts/export_portable.py
-index 4300bfa..6d0fcdb 100644
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -676,8 +676,6 @@ def export(root: Path, out: Path, check: bool = False) -> int:
-     (out / "plugins").mkdir(parents=True)
+@@ -2116,8 +2116,6 @@
+         return 2
      (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
      (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
--    for name in ("LICENSE", "NOTICE"):
--        shutil.copy(root / name, out / name)
+-    for name, source in legal_sources.items():
+-        shutil.copy(source, out / name)
      # Siblings of skills/, not nested under it, so a path inside any router — always
      # `skills/<name>.md` — resolves whether the reader pastes router.md or one
      # router-<plugin>.md into their own AGENTS.md and copies skills/ in beside it.

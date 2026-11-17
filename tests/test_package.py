@@ -89,6 +89,27 @@ def test_no_repository_license_fails_loudly(mini_repo, tmp_path):
     assert not (tmp_path / "dist" / "alpha.skill").exists()
 
 
+@pytest.mark.skipif(os.name == "nt", reason="symlinks need privileges on Windows")
+@pytest.mark.parametrize("source_name", ["LICENSE", "NOTICE"])
+@pytest.mark.parametrize("target_location", ["repository", "outside"])
+def test_a_symlinked_repository_legal_file_is_refused(
+    mini_repo, tmp_path, source_name, target_location
+):
+    source = mini_repo / source_name
+    source.unlink()
+    if target_location == "repository":
+        target = mini_repo / ({"LICENSE": "NOTICE", "NOTICE": "LICENSE"}[source_name])
+    else:
+        target = tmp_path / "secret.txt"
+        target.write_text("not part of the tree\n", encoding="utf-8")
+    source.symlink_to(target)
+
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    with pytest.raises(SystemExit, match=f"{source_name} is not a regular file directly"):
+        packager.package(skill, tmp_path / "dist", mini_repo)
+    assert not (tmp_path / "dist" / "alpha.skill").exists()
+
+
 def test_a_skill_that_does_not_validate_is_refused(mini_repo, tmp_path):
     broken = write_skill(mini_repo, "engineering", "broken", evals=None)
     (broken / "SKILL.md").write_text("---\nname: wrong\n---\n\nBody.\n", encoding="utf-8")
