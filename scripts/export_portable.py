@@ -54,7 +54,13 @@ from urllib.parse import unquote
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
-from skillcheck.rules import BUNDLED_PATH_RE, find_plugins, find_skills  # noqa: E402
+from skillcheck.rules import (  # noqa: E402
+    BUNDLED_PATH_RE,
+    NAME_MAX,
+    NAME_RE,
+    find_plugins,
+    find_skills,
+)
 
 # Reusing the validator's own pointer regex, rather than a narrower local copy, is the
 # point: the local copy only matched a flat `references/<x>.md`, `assets/<x>.md` or
@@ -1162,7 +1168,14 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         raise OSError("SKILL.md: symlink escapes skill root")
     source = (directory / "SKILL.md").read_text(encoding="utf-8")
     values = parse(source).values
-    name = values.get("name", directory.name)
+    name = values.get("name", directory.name).strip()
+    if NAME_RE.fullmatch(name) is None or len(name) > NAME_MAX:
+        raise OSError(
+            f"name {name!r} must be lowercase letters, digits and single hyphens, "
+            f"at most {NAME_MAX} characters"
+        )
+    if name != directory.name:
+        raise OSError(f"name {name!r} must equal the directory name {directory.name!r}")
     description = " ".join((values.get("description") or "").split())
     sources = {"SKILL.md": strip_frontmatter(source)}
     unresolved: list[str] = []
@@ -1980,6 +1993,15 @@ def _unsafe_to_remove(root: Path, out: Path) -> str | None:
     return None
 
 
+def _skill_output_path(skills_out: Path, name: str) -> Path:
+    """Resolve one skill destination and require it to be a direct child of ``skills_out``."""
+    resolved_skills = skills_out.resolve()
+    destination = (skills_out / f"{name}.md").resolve()
+    if destination.parent != resolved_skills:
+        raise OSError(f"skill output for {name!r} is not directly under {skills_out}")
+    return destination
+
+
 def export(root: Path, out: Path, check: bool = False) -> int:
     plugins = find_plugins(root)
     if not plugins:
@@ -2057,8 +2079,18 @@ def export(root: Path, out: Path, check: bool = False) -> int:
             print(f"refusing to delete {out}: {unsafe}", file=sys.stderr)
             return 2
         shutil.rmtree(out)
-    (out / "skills").mkdir(parents=True)
+    skills_out = out / "skills"
+    skills_out.mkdir(parents=True)
     (out / "plugins").mkdir(parents=True)
+    try:
+        skill_destinations = {
+            (plugin, name): _skill_output_path(skills_out, name)
+            for plugin in rendered
+            for name, _, _ in rendered[plugin]
+        }
+    except OSError as error:
+        print(f"::error::{error}", file=sys.stderr)
+        return 2
     (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
     (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
     for name in ("LICENSE", "NOTICE"):
@@ -2074,7 +2106,7 @@ def export(root: Path, out: Path, check: bool = False) -> int:
         index += [f"## {plugin}", ""]
         bodies = []
         for name, description, document in sorted(rendered[plugin]):
-            (out / "skills" / f"{name}.md").write_text(document, encoding="utf-8")
+            skill_destinations[plugin, name].write_text(document, encoding="utf-8")
             index.append(f"- **{name}** — {description}")
             # Every document ends with the notice. The bundle is one file, so it carries
             # the notice once, at its foot, rather than once per skill it concatenates.

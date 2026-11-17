@@ -762,6 +762,53 @@ def test_export_writes_a_file_per_skill_a_bundle_per_plugin_and_an_index(mini_re
     assert (out / "README.md").is_file()
 
 
+def test_export_rejects_a_traversal_name_before_it_can_overwrite_markdown(
+    mini_repo, tmp_path, capsys
+):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8").replace("name: alpha", "name: ../../outside"),
+        encoding="utf-8",
+    )
+    outside = tmp_path / "outside.md"
+    outside.write_text("keep\n", encoding="utf-8")
+    out = tmp_path / "portable"
+
+    assert portable.export(mini_repo, out) == 1
+    assert outside.read_text(encoding="utf-8") == "keep\n"
+    assert not out.exists()
+    assert "name '../../outside' must be lowercase" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["../outside", "..\\outside", "/outside", "Alpha", "alpha--child", "a" * 65, "beta"],
+)
+def test_check_rejects_noncanonical_or_mismatched_skill_names(
+    mini_repo, tmp_path, capsys, name
+):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8").replace("name: alpha", f"name: {name}"),
+        encoding="utf-8",
+    )
+
+    assert portable.export(mini_repo, tmp_path / "portable", check=True) == 1
+    assert not (tmp_path / "portable").exists()
+    assert f"name {name!r}" in capsys.readouterr().err
+
+
+def test_a_skill_output_must_resolve_to_a_direct_child(tmp_path):
+    skills_out = tmp_path / "portable" / "skills"
+    skills_out.mkdir(parents=True)
+
+    assert portable._skill_output_path(skills_out, "alpha") == skills_out / "alpha.md"
+    with pytest.raises(OSError, match="not directly under"):
+        portable._skill_output_path(skills_out, "../outside")
+
+
 def test_export_writes_license_and_notice_at_the_output_root(mini_repo, tmp_path):
     out = tmp_path / "portable"
     assert portable.export(mini_repo, out) == 0
