@@ -67,13 +67,16 @@ version, not the newest one.
 ```bash
 set -Eeuo pipefail
 helm diff upgrade "$REL" "$CHART" --namespace "$NS" "${VALUES[@]}" \
-  --detailed-exitcode --context 3 --suppress-secrets || rc=$?
+  --allow-unreleased --detailed-exitcode --context 3 --suppress-secrets || rc=$?
 echo "diff exit: ${rc:-0}"
 # 0 is no change and 2 is changes; anything else is a plugin or render error
 case ${rc:-0} in 0|2) ;; *) exit "$rc" ;; esac
 ```
 
-With `--detailed-exitcode` the plugin exits non-zero when there are changes, which a
+`--allow-unreleased` makes a release that was never installed diff against an empty
+release, so a first install through `helm upgrade --install` passes this gate instead of
+failing with `release: not found`, which the `case` above would treat as fatal. With
+`--detailed-exitcode` the plugin exits non-zero when there are changes, which a
 `set -e` job reads as failure; handle the code explicitly as above and read its
 documentation for the pinned version. Secret values appear in the diff unless the plugin
 is told to suppress them. `--suppress-secrets` hides Secret data, so keep it on by

@@ -126,8 +126,9 @@ job are in `references/preflight-checks.md`.
    `--include-crds` if the chart ships CRDs, piped to `kubeconform` with `-strict`:
    schema errors against the Kubernetes version you run. Rendering offline cannot call
    `lookup` and assumes default API versions, so a clean render is not a clean install.
-3. `helm diff upgrade` (the `helm-diff` plugin) with `--detailed-exitcode`: what changes
-   against the stored release. Install the plugin at a pinned version from a source you
+3. `helm diff upgrade` (the `helm-diff` plugin) with `--allow-unreleased` and
+   `--detailed-exitcode`: what changes against the stored release, or against an empty
+   one on a first install. Install the plugin at a pinned version from a source you
    reviewed, since it runs code on the runner. It compares with the recorded manifest,
    so drift made by `kubectl edit` is not shown unless the plugin's drift option is used;
    check its docs.
