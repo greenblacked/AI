@@ -180,8 +180,8 @@ With Dinghy or managed pipeline templates, the repository is the source and the
 UI is a view. Check which engine the installation has: the open-source Dinghy, a vendor
 build's variant, or managed pipeline templates (v1 was deprecated in favour of v2; confirm
 what the pinned release supports) differ in syntax, modules and how a failed render is
-reported. Keep modules small, pin the module repository to a ref where the engine allows
-it, and review a generated change by diffing the rendered JSON, not the template. A
+reported. Keep modules small, pin the module repository to a full commit SHA where the engine allows
+it (a branch or tag can be moved), and review a generated change by diffing the rendered JSON, not the template. A
 template change affects every pipeline built on it at the next sync, which is a shared
 library problem: treat the template repository like production code.
 

@@ -16,5 +16,5 @@ Each line says why, so a change that breaks one is a decision rather than a drif
 - Keep deployment credentials in protected, environment-scoped variables, and run deploy jobs only from protected branches and tags.
 - Give every deploying job a `resource_group` named for its environment, so two pipelines cannot deploy at once.
 - Set `interruptible: true` on build and test jobs and leave deploy jobs alone, so a cancel never stops a deploy halfway.
-- Pin images by digest or immutable tag, and `include:` by tag or SHA, never `latest` or a moving branch.
+- Pin images by digest or immutable tag, and `include:` by full commit SHA, never `latest`, a tag or a branch.
 - Lint with `glab ci lint` or the project's CI Lint endpoint before pushing, and record the change with `pipeline-change-record.md`.

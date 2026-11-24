@@ -85,7 +85,8 @@ the rules-plus-needs interaction.
 ### 4. Reuse without hiding the pipeline
 
 Keep one project-level file readable end to end. Put shared jobs in an `include:` from a
-pinned ref (`include:project` with `ref:` set to a tag or SHA, not a moving branch),
+pinned ref (`include:project` with `ref:` set to a full 40-character commit SHA, not a tag
+or branch, which can be moved; note the tag in a comment),
 hidden jobs (`.name`) with `extends:`, and `!reference [.job, script]` to splice one
 section. `extends:` merges hashes but replaces arrays, so a `script:` or `rules:` in the
 child replaces the parent's rather than adding to it; use `!reference` to combine.

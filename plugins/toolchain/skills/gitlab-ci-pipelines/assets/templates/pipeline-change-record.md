@@ -31,4 +31,4 @@
 
 ## Rollback
 
-- Commit to revert, and the include ref or tag to restore:
+- Commit to revert, and the include commit SHA to restore:

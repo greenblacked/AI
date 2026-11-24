@@ -16,7 +16,8 @@ documentation for the pinned Pipeline and plugin versions.
 ## A declarative skeleton
 
 ```groovy
-@Library('build-lib@v1.4.2') _
+// build-lib v1.4.2, pinned to its full commit SHA because a tag can be moved
+@Library('build-lib@<full 40-character sha>') _
 
 pipeline {
   agent none

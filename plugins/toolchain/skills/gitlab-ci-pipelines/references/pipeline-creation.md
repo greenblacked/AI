@@ -52,8 +52,11 @@ the wrong one never matches, and the job silently disappears.
 
 ## include, extends, !reference
 
-- `include:project` and `include:component` take a `ref`/version. Pin to a tag or full
-  SHA; a branch ref changes every consumer when it moves.
+- `include:project` and `include:component` take a `ref`/version. Pin to a full
+  40-character commit SHA (`ref: <full sha>`, or `component: host/path/name@<full sha>`),
+  with the release tag in a comment for humans. A tag or branch can be moved or recreated,
+  and the included jobs run in your pipeline with its variables, so a moved ref changes
+  every consumer at once.
 - `include:local` resolves in the pipeline's own project; `include:remote` fetches a URL
   and is a supply-chain dependency with no pin.
 - `extends:` merges maps deeply but replaces arrays; a child `script:` or `rules:`

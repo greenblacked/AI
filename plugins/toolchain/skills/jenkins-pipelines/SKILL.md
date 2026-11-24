@@ -119,7 +119,8 @@ long-lived tokens where the plugins support it. Rotating a leaked value is
 
 ### 4. Pin shared libraries and review them as production code
 
-Load libraries at a tag or commit, not a moving branch: `@Library('build-lib@v1.4.2') _`.
+Load libraries at a full 40-character commit SHA, not a tag or a branch, both of which
+can be moved: `@Library('build-lib@<full sha>') _`, with the tag in a comment for humans.
 An unpinned `@Library('build-lib') _` takes whatever the configured default version is
 today, so a merge in the library changes every pipeline at once, unreviewed by their
 owners. Disable "allow default version to be overridden" on libraries that carry
@@ -229,7 +230,7 @@ needing confirmation against the pinned release.
 
 - **Builds on the built-in node.** Any job can read the controller's secrets.
 - **`sh "... ${SECRET} ..."`.** Groovy puts the value in the command before masking can help.
-- **An unpinned `@Library`.** One library merge rewrites every pipeline.
+- **An unpinned or tag-pinned `@Library`.** One library merge or moved tag rewrites every pipeline.
 - **Approving a signature to silence the prompt.** The approval is global and permanent.
 - **Disabling the sandbox on a job.** The Jenkinsfile's author now runs code as Jenkins.
 - **An `input` step inside a stage that holds an agent.** The executor is idle for days.
