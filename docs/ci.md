@@ -1030,8 +1030,8 @@ harness failing to run at all, and the JSON is published and uploaded either way
 ### Dispatch inputs
 
 The seven inputs are shared by the workflow's jobs. Six belong to `evaluate`;
-`evaluate-changed` takes none and always scores with the `claude` backend at three
-samples per query; `reviewer` belongs to `reviewer-benchmark`. `skill` is marked required
+`evaluate-changed` takes none and always scores with the `claude` backend on
+`EVAL_CLAUDE_MODEL` at three samples per query; `reviewer` belongs to `reviewer-benchmark`. `skill` is marked required
 and the others are not, but all carry a default, so dispatching the form unchanged scores
 everything against Claude and does not run the benchmark:
 
@@ -1042,7 +1042,7 @@ everything against Claude and does not run the benchmark:
 | `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
 | `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in the workflow's `env` and its matching lockfile. |
-| `model` | empty | A model name passed to the CLI. Blank uses the CLI's own default. |
+| `model` | empty | A model name passed to the CLI. Blank uses `EVAL_CLAUDE_MODEL` (set in the workflow's `env`) for the `claude` backend and the CLI's own default for `codex` and `gemini`. |
 | `reviewer` | `false` | Also run `reviewer-benchmark`. Off by default because the benchmark costs a full review run per case, so a dispatch that only wants to re-score a skill does not pay for it. |
 
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
@@ -1538,8 +1538,10 @@ and the section of this document describing what the numbers mean — currently 
 nothing. The collision it exists to catch, one skill quietly taking a neighbour's queries,
 has never been looked for.
 
-One secret fixes it, and no API key or billing account is needed: run `claude setup-token`
-on a signed-in workstation and store what it prints as `CLAUDE_CODE_OAUTH_TOKEN`.
+The owner adds one repository secret: Settings, Secrets and variables, Actions, New
+repository secret, named `CLAUDE_CODE_OAUTH_TOKEN`, with the value `claude setup-token`
+prints on a signed-in workstation. No API key or billing account is needed. Until that
+secret exists, scoring does not run.
 
 ```bash
 gh api /repos/greenblacked/AI/actions/secrets --jq '.secrets[].name'

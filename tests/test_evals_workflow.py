@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -427,3 +428,18 @@ def test_cap_counts_only_selected_changed_targets_and_neighbours(tmp_path, chang
     )
     assert f"Truncated at 12 targets; {changed_count + 2 - 12} more were dropped." in summary
     assert selected[:scored_changed] == [f"agent {path}" for path in definitions[:12]]
+
+
+def test_claude_backend_is_pinned_to_a_full_model_id():
+    text = WORKFLOW.read_text()
+    match = re.search(r"^env:\n((?:  .*\n|\n)+)", text, re.MULTILINE)
+    assert match, "no workflow-level env block"
+    pin = re.search(r"^  EVAL_CLAUDE_MODEL: '([^']+)'", match.group(1), re.MULTILINE)
+    assert pin, "workflow env does not set EVAL_CLAUDE_MODEL"
+    assert re.fullmatch(r"claude-[a-z]+-\d+(-\d+)*", pin.group(1)), pin.group(1)
+    evaluate_block = _extract_run_block(text, "Score the eval sets").split("\n")
+    pinned = [i for i, line in enumerate(evaluate_block) if "$EVAL_CLAUDE_MODEL" in line]
+    assert len(pinned) == 1
+    # Only the claude backend gets the pin; codex and gemini keep their CLI default.
+    assert evaluate_block[pinned[0] - 1].strip() == 'elif [ "$BACKEND" = "claude" ]; then'
+    assert "$EVAL_CLAUDE_MODEL" in _extract_run_block(text, "Score each target")
