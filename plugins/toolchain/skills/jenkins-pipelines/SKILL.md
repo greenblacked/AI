@@ -68,7 +68,13 @@ pipeline {
   agent none
   stages {
     stage('Build') { agent { label 'linux && docker' } steps { sh 'make test' } }
-    stage('Approve') { steps { input message: 'Deploy to production?' } }
+    stage('Approve') {
+      steps {
+        input message: 'Deploy to production?',
+              submitter: 'release-managers',
+              submitterParameter: 'APPROVER'
+      }
+    }
     stage('Deploy') { agent { label 'deployer' } steps { sh './deploy.sh' } }
   }
 }
@@ -165,8 +171,12 @@ options {
 For deploy jobs prefer `disableConcurrentBuilds()` without abort, or the `lock` step from
 the Lockable Resources plugin keyed by environment, so a newer commit waits rather than
 killing a deploy in flight. Wrap `input` in its own `timeout` so an abandoned approval
-releases the pipeline. Without `buildDiscarder`, history grows until `JENKINS_HOME` fills
-its disk; that is a controller outage caused by a Jenkinsfile.
+releases the pipeline. Name the release group in `input`'s `submitter` (comma-separated
+users or groups); without it any user can approve, so the stage is not an approval
+boundary. Replace `release-managers` with the controller's actual release group, record
+the approver with `submitterParameter`, and do not widen the group to compensate, since
+Jenkins administrators can always approve. Without `buildDiscarder`, history grows until
+`JENKINS_HOME` fills its disk; that is a controller outage caused by a Jenkinsfile.
 
 Gate deploy stages with `when { branch 'main' }` or a tag condition, and use
 `when { not { changeRequest() } }` to keep pull-request builds away from deploy credentials. A
