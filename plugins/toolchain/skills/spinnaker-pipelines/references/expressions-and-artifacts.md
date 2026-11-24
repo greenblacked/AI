@@ -84,5 +84,5 @@ service account permission on the account, application or role.
   expression returns one; convert explicitly.
 - Lists and maps from `#stage()` are copies of the stage context at evaluation time and
   can be large; do not paste a whole context into an annotation or label.
-- Do not put secrets in expressions or pipeline parameters. They are stored with the
-  execution and visible to anyone who can view it.
+- Do not put secrets in expressions, pipeline parameters or bake overrides. They are
+  stored with the execution and visible to anyone who can view it.

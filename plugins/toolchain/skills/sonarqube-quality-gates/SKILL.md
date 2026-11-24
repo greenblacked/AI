@@ -86,12 +86,13 @@ a timeout fails the job without a gate verdict. With the Maven and Gradle plugin
 .NET scanner the same behaviour is set through their own property or end-step; check the
 integration's documentation.
 
-Where the wait property is not available, read the task id from the scanner's report file
-(`report-task.txt` in the scanner work directory, `.scannerwork` by default), poll the
-compute engine task until it finishes, then query the project status endpoint of the web
-API for the gate result and fail on `ERROR`. A server webhook that calls the CI system is
-the other route. Do not make the gate non-blocking with `allow_failure` or
-`continue-on-error` and then read the result only in the UI.
+Where the wait property is not available, read the task id from the scanner's report
+file (`report-task.txt` in the scanner work directory, `.scannerwork` by default), poll
+the compute engine task until it finishes, then query the project status endpoint of the
+web API for the gate result and fail on `ERROR`. Send the token to those calls in a
+header read from stdin or a config file, not as a `curl -u` argument. A server webhook
+that calls the CI system is the other route. Do not make the gate non-blocking with
+`allow_failure` or `continue-on-error` and then read the result only in the UI.
 
 Run the quality-gate wait where a failure should block the merge: on the merge request
 or pull request pipeline and on the main branch, not only nightly. Cross-link the job
@@ -160,13 +161,15 @@ Analysis runs on the CI runner, not on the server: the scanner reads the checkou
 sends a report. The server never needs to reach the repository to analyse it, and the
 runner needs network access to the server and the credentials to submit.
 
-Use a token scoped to analysis for the project (or the narrowest scope the pinned version
-offers) rather than a user's personal token, supply it as a masked, protected CI variable
-(commonly `SONAR_TOKEN`), and never pass it on a command line that gets logged or echo it
-in a script. The property name for the token has changed across versions (a login property
-versus a token property); check the scanner's documentation. Do not expose the analysis
-token to jobs that build untrusted fork code; route that review to `pipeline-hardening`
-and the rotation schedule to `secret-rotation`.
+Use a token scoped to analysis for the project (or the narrowest scope the pinned
+version offers) rather than a user's personal token, and supply it as a masked CI
+variable, protected only when analysis runs solely on protected refs (otherwise rely on
+the token's analysis-only scope). Let the scanner read it from the `SONAR_TOKEN`
+environment variable (check the variable name for the pinned scanner). Do not pass it as
+a `-Dsonar.token=` or `-Dsonar.login=` argument, which puts it in the process arguments,
+and do not echo it. Do not expose the analysis token to jobs that build untrusted fork
+code; route that review to `pipeline-hardening` and the rotation schedule to
+`secret-rotation`.
 
 Persist the scanner's cache directory between runs, as the integration's guidance describes,
 and keep the scanner version pinned so a floating version cannot change results between runs.

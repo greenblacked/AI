@@ -19,8 +19,10 @@ Work down this list; the first hit is usually the answer.
 5. A job-level or file-level `variables:` entry shadows it. Check precedence in the docs.
 6. A typo: an undefined variable expands to an empty string with no error.
 
-Inspect by printing names only in a temporary job (for example `env | cut -d= -f1 | sort`),
-never values; never turn on `CI_DEBUG_TRACE` to find a value, because it prints secrets
+Inspect by printing names only in a temporary job (for example
+`awk 'BEGIN { for (k in ENVIRON) print k }' | sort`), never values. `env | cut -d= -f1`
+is not names-only: it prints the continuation lines of a multi-line value such as a PEM
+key. Never turn on `CI_DEBUG_TRACE` to find a value, because it prints secrets
 into the log.
 
 ## Exposure

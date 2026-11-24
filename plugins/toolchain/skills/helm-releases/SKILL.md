@@ -62,12 +62,15 @@ dead: the CI job that ran it is finished or cancelled, no one has a terminal ope
 second pipeline targets the same release. Deleting a record under a live upgrade makes
 two writers.
 
-Then prefer the recovery that goes through Helm: `helm rollback` to the last revision whose
-status was `deployed` or `superseded`. A stuck first install has no such revision; use
-`helm uninstall` and reinstall. Deleting the pending revision's Secret by hand is the last
-resort, because it edits Helm's own record: save the Secret to a file first, and say in the
-change record that it was done. Whether `rollback` is accepted from a pending state
-varies by version, so read the error rather than assuming.
+Then prefer the recovery that goes through Helm: `helm rollback` to the last revision
+whose status was `deployed` or `superseded`. A stuck first install has no such revision;
+use `helm uninstall` and reinstall. Deleting the pending revision's Secret by hand is
+the last resort, because it edits Helm's own record: save the Secret to a file first
+(treat that file as a credential, since it holds the values and every rendered Secret:
+keep it out of the repository, CI artifacts and the change record, and delete it once
+the release is healthy), and say in the change record that it was done. Whether
+`rollback` is accepted from a pending state varies by version, so read the error rather
+than assuming.
 
 Serialise the cause away: one release has one writer. Give the CI job a concurrency or
 `resource_group` key per release and namespace, and a job timeout longer than the Helm
@@ -106,7 +109,8 @@ and ignores defaults a newer chart added, so a template that reads a new key fai
 nil pointer or silently renders without it, and the values in effect are no longer in Git.
 If carrying values over is genuinely needed, check whether the pinned Helm has
 `--reset-then-reuse-values` and read its semantics in the docs. Inspect what is live with
-`helm get values "$REL" --all --namespace "$NS" -o yaml`.
+`helm get values "$REL" --all --namespace "$NS" -o yaml`. Run it at a terminal, not in a
+CI job, because it prints every value, including any credential set by value.
 
 Values are stored in the release record. Anyone who can read Secrets in that namespace can
 read them, so pass credentials as references (an existing Secret name, an external secret
@@ -134,13 +138,14 @@ job are in `references/preflight-checks.md`.
 
 ### 6. Pin the chart, not just the values
 
-Install an exact `--version`; with none Helm takes the latest, and a range resolves at run
-time to whatever is newest that day. For OCI registries use `oci://host/path/chart` with
-`helm registry login`; there is no `helm repo add` step, and OCI support differs between
-older and current Helm, so check the pinned version. Commit `Chart.lock` and build with
-`helm dependency build`, which honours the lock, rather than `dependency update`, which
-re-resolves it. Where the registry and Helm support it, verify provenance with
-`--verify` or pin by digest; read the docs for the pinned version.
+Install an exact `--version`; with none Helm takes the latest, and a range resolves at
+run time to whatever is newest that day. For OCI registries use `oci://host/path/chart`
+with `helm registry login` (use `--password-stdin`, not `-p`); there is no
+`helm repo add` step, and OCI support differs between older and current Helm, so check
+the pinned version. Commit `Chart.lock` and build with `helm dependency build`, which
+honours the lock, rather than `dependency update`, which re-resolves it. Where the
+registry and Helm support it, verify provenance with `--verify` or pin by digest; read
+the docs for the pinned version.
 
 ### 7. Handle CRDs separately
 

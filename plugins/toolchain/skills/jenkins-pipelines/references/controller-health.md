@@ -36,7 +36,9 @@ advisories and configuration problems for the pinned version.
   secret store, never as literal values. Check how the pinned plugin resolves a missing
   variable; some versions fail the load, some leave the placeholder.
 - Export the live configuration once to bootstrap, then diff and prune; an export
-  contains defaults and runtime state that do not belong in version control.
+  contains defaults and runtime state that do not belong in version control, and it can
+  also contain credential values (encrypted with the controller's key), so replace each
+  one with a `${NAME}` reference before committing.
 - Treat a reload of configuration as a change to production: it can reset hand-made
   settings, which is the point, so announce it.
 
@@ -75,3 +77,6 @@ Back up `JENKINS_HOME` without workspaces and caches, plus the configuration rep
 and the image tag. Restore into a scratch controller on a schedule and confirm that jobs
 load, credentials decrypt (the secret key files must travel with the credential store)
 and a build runs. A backup that was never restored is a hope, not a recovery plan.
+Encrypt the backup and restrict access to it like the credential store, since it
+includes the secret key files, and isolate the scratch controller from production
+targets and destroy it after the test.

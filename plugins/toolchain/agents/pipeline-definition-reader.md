@@ -27,7 +27,15 @@ Refuse, and say so in one line, anything that is not a pipeline definition: a ru
    JSON. Grep for the top-level keys rather than reading the whole file first.
 2. **Resolve what is local.** Follow `include:` entries, `extends:`, `!reference` and
    `Library` references only to files the caller supplied or that sit in the same
-   checkout. Record every one you could not open.
+   checkout. Open an include only when it is a relative path with no `..` segment that
+   stays inside the checkout root and names a pipeline file (`.yml`, `.yaml`, `.json`,
+   `.groovy`, a `Jenkinsfile`, or a shared-library `vars/` or `src/` file). Never open a
+   dotfile or anything named like `.env`, `*.pem`, `*.key` or credentials. You cannot
+   tell a symbolic link from a regular file, so when the checkout is not the caller's own
+   (a fork or an unreviewed branch), list local includes as unresolved unless the caller
+   confirms they are regular tracked files (git mode 100644). If an opened file is not a
+   pipeline definition, stop reading it and do not quote it. Record every one you could
+   not open.
 3. **List every job or stage** in execution order, as the definition states it: GitLab
    `stages:` and `needs:`, Jenkins `stage` blocks and `parallel`, Spinnaker
    `refId` and `requisiteStageRefIds`.

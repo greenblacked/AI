@@ -17,6 +17,10 @@ helm template "$REL" ./chart --namespace "$NS" --kube-version "$KUBE_VERSION" \
   --include-crds "${VALUES[@]}" > rendered.yaml
 ```
 
+`rendered.yaml` holds any Secret the chart renders, so do not upload it as an artifact or
+print it, and keep `--debug` or `--dry-run` output out of shared job logs for the same
+reason.
+
 `helm template` does not contact the cluster. `lookup` returns empty, `.Capabilities`
 reports defaults unless `--kube-version` and `--api-versions` are given, and `crds/` is
 skipped without `--include-crds`. A template that branches on `lookup` therefore renders
@@ -40,7 +44,7 @@ version, not the newest one.
 ```bash
 set -Eeuo pipefail
 helm diff upgrade "$REL" ./chart --namespace "$NS" "${VALUES[@]}" \
-  --detailed-exitcode --context 3 || rc=$?
+  --detailed-exitcode --context 3 --suppress-secrets || rc=$?
 echo "diff exit: ${rc:-0}"
 # 0 is no change and 2 is changes; anything else is a plugin or render error
 case ${rc:-0} in 0|2) ;; *) exit "$rc" ;; esac
@@ -49,7 +53,11 @@ case ${rc:-0} in 0|2) ;; *) exit "$rc" ;; esac
 With `--detailed-exitcode` the plugin exits non-zero when there are changes, which a
 `set -e` job reads as failure; handle the code explicitly as above and read its
 documentation for the pinned version. Secret values appear in the diff unless the plugin
-is told to suppress them, so do not post the raw output to a public pull request.
+is told to suppress them. `--suppress-secrets` hides Secret data, so keep it on by
+default in CI: the job log is readable by everyone who can read logs, not only by the
+pull request's audience. Check that the pinned plugin version supports the flag. If
+someone needs an unsuppressed diff, run it locally or in a job whose logs are
+restricted, never in shared CI output.
 
 ## Deploy job
 

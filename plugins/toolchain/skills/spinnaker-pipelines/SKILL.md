@@ -89,6 +89,9 @@ overlay into plain manifests as a produced artifact, and a Deploy (Manifest) sta
 them. Render in one place and promote the same rendered artifact to the next environment,
 rather than re-baking with different values per environment from a chart that may have
 changed in between. Pin the chart version and the values file revision in the bake input.
+The baked manifest and its override values are stored with the execution and visible to
+anyone who can view it, so do not render Secret objects with real values through the
+bake; reference a Secret that already exists in the cluster, or an external secret object.
 The helm binary the baker uses is the baker's, not yours; check the docs for which
 renderer versions the pinned release supports.
 
