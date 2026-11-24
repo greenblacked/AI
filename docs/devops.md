@@ -107,7 +107,8 @@ validate` in a checkout rather than trusting the figures above after a release.
 | Run a live incident | [incident-response](../plugins/operations/skills/incident-response/SKILL.md), `operations` | Symptoms, severity and who is on the call |
 | Design alerts that page for the right reasons | [alert-design](../plugins/operations/skills/alert-design/SKILL.md), `operations` | SLOs, current alerts and paging history |
 | Test an alert rule against history | [alert-backtest](../plugins/observability/skills/alert-backtest/SKILL.md), `observability` | The rule, metric history and the incident list |
-| Cut telemetry volume or find missing metrics | [log-volume-reduction](../plugins/observability/skills/log-volume-reduction/SKILL.md), `observability` | Volume by source and the bill or limit |
+| Cut log volume and its cost | [log-volume-reduction](../plugins/observability/skills/log-volume-reduction/SKILL.md), `observability` | Volume by source and the bill or limit |
+| Find why a metric is missing | [missing-metrics-hunt](../plugins/observability/skills/missing-metrics-hunt/SKILL.md), `observability` | The metric, the graph gap or flatline, and when it began |
 | Review a collector pipeline | [otel-collector-pipeline-review](../plugins/observability/skills/otel-collector-pipeline-review/SKILL.md), `observability` | Collector configuration and drop metrics |
 | DNS resolution fails on a host | [dns-resolution-debugging](../plugins/linux/skills/dns-resolution-debugging/SKILL.md), `linux` | The name, the resolver in use and the failing host |
 | DNS records, zones and delegation | [dns-operations](../plugins/platform/skills/dns-operations/SKILL.md), `platform` | Zone configuration and the change planned |
