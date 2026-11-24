@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Changed
+
+- Every agent under `.claude/agents/` now names the latest model by explicit ID rather than a bare alias, since an alias can resolve to an older release: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` and `claude-fable-5-2`. Efforts are unchanged. The shipped `family` plugin keeps the `sonnet` and `opus` aliases, which each provider resolves itself. The README agent table, `CLAUDE.md` and `docs/writing-agents.md` state the same IDs.
+
 ### Added
 
 - `security-audit` in the `security` plugin: a generic, source-first audit of a whole codebase with no Cloudflare-specific checks, adapted from Cloudflare's security-audit skill (cloudflare/security-audit-skill at c1c8a8c, MIT, licence kept beside it). The body and companion files are the upstream text unchanged; the description and tool grant are this repository's. It maps trust boundaries and a coverage ledger, hunts with isolated sub-agents, validates every candidate independently, and writes `findings.json` and a report, running target code only in a sandbox with no network. The upstream companion guides, `report-schema.json` and the two findings validators come with it. The `security` listing ceiling in `listing-budget.json` rises from 27,000 to 28,000 characters for its description.

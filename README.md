@@ -140,11 +140,11 @@ skipped graceful shutdown, and the source said otherwise.
 
 | Agent | Stage | Model | Effort | Editing tools |
 | --- | --- | --- | --- | --- |
-| `explorer` | Survey | Haiku | high | none |
-| `investigator` | Survey in parallel, or establish a claim | Opus | medium | none |
-| `implementer` | Write | Sonnet | medium | `Write`, `Edit` |
-| `reviewer` | Judge | Opus | medium | none |
-| `security-reviewer` | Judge security, when the diff touches a security trigger | Fable | medium | none |
+| `explorer` | Survey | claude-haiku-5-5 | high | none |
+| `investigator` | Survey in parallel, or establish a claim | claude-opus-5-5 | medium | none |
+| `implementer` | Write | claude-sonnet-5-5 | medium | `Write`, `Edit` |
+| `reviewer` | Judge | claude-opus-5-5 | medium | none |
+| `security-reviewer` | Judge security, when the diff touches a security trigger | claude-fable-5-2 | medium | none |
 
 The model and effort are the `model:` and `effort:` lines in each agent's frontmatter, and
 the tools are its `tools:` line. `Bash` stays on every agent, so "no editing tools" does not

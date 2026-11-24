@@ -399,18 +399,18 @@ Building something, run by [`/ship`](../.claude/commands/ship.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Survey | [`explorer`](../.claude/agents/explorer.md) | Haiku, high effort | none |
-| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Opus, medium effort | none |
-| Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet, medium effort | `Write`, `Edit` |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus, medium effort | none |
-| Judge security (parallel, when the diff touches a security trigger) | [`security-reviewer`](../.claude/agents/security-reviewer.md) | Fable, medium effort | none |
+| Survey | [`explorer`](../.claude/agents/explorer.md) | Haiku 5.5 (`claude-haiku-5-5`), high effort | none |
+| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Opus 5.5 (`claude-opus-5-5`), medium effort | none |
+| Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet 5.5 (`claude-sonnet-5-5`), medium effort | `Write`, `Edit` |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus 5.5 (`claude-opus-5-5`), medium effort | none |
+| Judge security (parallel, when the diff touches a security trigger) | [`security-reviewer`](../.claude/agents/security-reviewer.md) | Fable 5.2 (`claude-fable-5-2`), medium effort | none |
 
 Establishing whether something is true, run by [`/verify`](../.claude/commands/verify.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Establish | [`investigator`](../.claude/agents/investigator.md) | Opus, medium effort | none |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus, medium effort | none |
+| Establish | [`investigator`](../.claude/agents/investigator.md) | Opus 5.5 (`claude-opus-5-5`), medium effort | none |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus 5.5 (`claude-opus-5-5`), medium effort | none |
 
 The second loop exists because prose in this repository has twice asserted something that
 the source contradicted — a `kubectl drain` flag said to skip graceful shutdown when it
