@@ -18,5 +18,5 @@
   {"query": "pods went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "replace the AWS access key our deploy workflow stores with OIDC federation", "should_trigger": false, "expected": "workload-identity"},
   {"query": "set up ACME so our whole fleet of TLS certificates renews itself before the CA/Browser Forum shortens validity again", "should_trigger": false, "expected": "certificate-automation"},
-  {"query": "we committed a .env file two years ago, strip it out of every branch and tag in the repo history", "should_trigger": false, "expected": "git-history-purge"}
+  {"query": "can a fork pull request steal the secrets stored in our github actions workflow, audit the workflow for injection", "should_trigger": false, "expected": "pipeline-hardening"}
 ]

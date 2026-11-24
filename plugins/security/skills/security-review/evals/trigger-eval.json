@@ -17,7 +17,7 @@
   {"query": "our container image is huge and runs as root, fix it", "should_trigger": false, "expected": "image-hardening"},
   {"query": "bump express to v5 across the monorepo without breaking anything", "should_trigger": false, "expected": "dependency-upgrade"},
   {"query": "CI is red on this PR and I cannot tell why", "should_trigger": false, "expected": "ci-triage"},
-  {"query": "help me design the rest api for our new billing service", "should_trigger": false, "expected": "api-design"},
+  {"query": "stop storing a json key in github secrets, set up workload identity federation for the deploy job", "should_trigger": false, "expected": "workload-identity"},
   {"query": "write tests for this payments module", "should_trigger": false, "expected": "test-design"},
-  {"query": "walk me through how this repo is structured, I just joined", "should_trigger": false, "expected": "codebase-orientation"}
+  {"query": "can a fork pr steal our secrets through pull_request_target in our github actions workflow, and should we pin actions to a sha", "should_trigger": false, "expected": "pipeline-hardening"}
 ]

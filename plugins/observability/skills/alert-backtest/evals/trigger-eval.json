@@ -17,6 +17,6 @@
   {"query": "pick histogram buckets so the slo ratio is exact", "should_trigger": false, "expected": "latency-histogram-design"},
   {"query": "page the on-call during an active incident and coordinate the response", "should_trigger": false, "expected": "incident-response"},
   {"query": "a dashboard shows no data for a metric since friday", "should_trigger": false, "expected": "missing-metrics-hunt"},
-  {"query": "reduce our log storage bill", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "our siem alerts are all noise, write a detection rule for impossible travel with a hypothesis, a positive test and an owner", "should_trigger": false, "expected": "detection-engineering"},
   {"query": "write a runbook for the disk full alert", "should_trigger": false, "expected": "runbook"}
 ]

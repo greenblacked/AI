@@ -75,14 +75,14 @@
     "expected": "code-scaffold"
   },
   {
-    "query": "make this Dockerfile smaller and pin the base image to a digest",
+    "query": "kubectl is slow on every command, a controller logs 429 too many requests and etcd is near its quota, find the client causing it",
     "should_trigger": false,
-    "expected": "image-hardening"
+    "expected": "apiserver-pressure"
   },
   {
-    "query": "our container still runs as root and the scanner is complaining, fix the image",
+    "query": "we want to move a node pool to spot instances, which workloads must stay on demand and how do we survive the two minute interruption notice",
     "should_trigger": false,
-    "expected": "image-hardening"
+    "expected": "spot-readiness"
   },
   {
     "query": "how long should we bake the canary at 5 percent before we promote it",

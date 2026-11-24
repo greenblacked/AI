@@ -10,7 +10,7 @@
   {"query": "diff resource explorer against our terraform states and tell me what's unmanaged", "should_trigger": true},
   {"query": "a contractor built our whole gcp org by hand, we want it all codified with zero changes to what's running", "should_trigger": true},
   {"query": "import this one existing rds instance into our terraform, we already have the resource block written", "should_trigger": false, "expected": "terraform-state"},
-  {"query": "write a terraform module for a three-tier vpc for a brand new account", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "switch count to for_each in our published terraform module without breaking the state addresses of the teams that consume it", "should_trigger": false, "expected": "terraform-module-contracts"},
   {"query": "is this plan safe to apply, it replaces the nat gateway", "should_trigger": false, "expected": "iac-review"},
   {"query": "find and delete the unattached volumes and idle load balancers nobody owns", "should_trigger": false, "expected": "resource-decommission"},
   {"query": "our main terraform state has 5000 resources and plans take 35 minutes, split it into stacks", "should_trigger": false, "expected": "monolith-state-split"},
