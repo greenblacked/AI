@@ -1,0 +1,92 @@
+[
+  {
+    "query": "Our Spinnaker pipeline deployed the wrong image tag even though the new build finished",
+    "should_trigger": true
+  },
+  {
+    "query": "Expected artifact not found on a Docker registry trigger; how do I fix the match?",
+    "should_trigger": true
+  },
+  {
+    "query": "Manual Judgment stage waited for days and then approved a stale build; add a timeout",
+    "should_trigger": true
+  },
+  {
+    "query": "Kayenta canary analysis always returns a score of zero, what do I check",
+    "should_trigger": true
+  },
+  {
+    "query": "Spinnaker stage shows RUNNING for hours and nothing is happening, how do I recover it safely",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a rollback stage that runs only when the Deploy (Manifest) stage fails",
+    "should_trigger": true
+  },
+  {
+    "query": "Two Spinnaker pipeline executions deploy the same application at the same time; serialise them",
+    "should_trigger": true
+  },
+  {
+    "query": "Dinghyfile change did not update the pipeline in Spinnaker, how do I debug the render",
+    "should_trigger": true
+  },
+  {
+    "query": "A SpEL expression in my Deploy manifest stage stays as literal ${trigger.tag} text",
+    "should_trigger": true
+  },
+  {
+    "query": "Spinnaker UI shows the old server group but the cluster already has the new one",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this Argo CD application set that syncs our staging manifests",
+    "should_trigger": false,
+    "expected": "gitops-operations"
+  },
+  {
+    "query": "Choose between blue/green and canary for our checkout service rollout strategy",
+    "should_trigger": false,
+    "expected": "release-strategy"
+  },
+  {
+    "query": "My Jenkins pipeline stage hangs waiting for an executor",
+    "should_trigger": false,
+    "expected": "jenkins-pipelines"
+  },
+  {
+    "query": "The pod from the new deployment is in CrashLoopBackOff, find out why",
+    "should_trigger": false,
+    "expected": "k8s-triage"
+  },
+  {
+    "query": "Restructure our CI pipeline stages and caches so it runs faster",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "Our Terraform apply job replans after approval; how do we bind approval to the saved plan",
+    "should_trigger": false,
+    "expected": "iac-apply-pipeline"
+  },
+  {
+    "query": "GitLab CI job runs twice on branch and merge request pipelines",
+    "should_trigger": false,
+    "expected": "gitlab-ci-pipelines"
+  },
+  {
+    "query": "Audit which jobs can read our production deploy credentials",
+    "should_trigger": false,
+    "expected": "pipeline-hardening"
+  },
+  {
+    "query": "Plan the Kubernetes control plane upgrade from one minor version to the next",
+    "should_trigger": false,
+    "expected": "k8s-upgrade"
+  },
+  {
+    "query": "Why did the nightly build go red, here is the log",
+    "should_trigger": false,
+    "expected": "ci-triage"
+  }
+]

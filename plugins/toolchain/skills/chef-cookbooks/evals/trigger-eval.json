@@ -1,0 +1,92 @@
+[
+  {
+    "query": "chef-client fails with a resource error on one node but converges fine on the rest of the policy group",
+    "should_trigger": true
+  },
+  {
+    "query": "My Chef execute resource runs on every converge and reports an update, how do I make it idempotent",
+    "should_trigger": true
+  },
+  {
+    "query": "A variable I read in my recipe is nil at compile time but the file exists after the earlier resource runs",
+    "should_trigger": true
+  },
+  {
+    "query": "Should we move our Chef roles and environments to Policyfiles and what changes about versions",
+    "should_trigger": true
+  },
+  {
+    "query": "What does Policyfile.lock.json record and how do I review a chef update before pushing it",
+    "should_trigger": true
+  },
+  {
+    "query": "How do we promote a Chef cookbook change from a canary policy group to the rest of production",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I test a Chef cookbook with Test Kitchen and InSpec and check that the second converge changes nothing",
+    "should_trigger": true
+  },
+  {
+    "query": "Where should a database password live in a Chef cookbook instead of a node attribute",
+    "should_trigger": true
+  },
+  {
+    "query": "Does chef-client --why-run tell me what a converge will do or can I not trust it",
+    "should_trigger": true
+  },
+  {
+    "query": "A cookbook dependency upgrade changed behaviour on every node, how do we pin versions so that cannot happen",
+    "should_trigger": true
+  },
+  {
+    "query": "Our Terraform module needs a stable interface contract between teams",
+    "should_trigger": false,
+    "expected": "terraform-module-contracts"
+  },
+  {
+    "query": "Review this Terraform plan before we apply it to production",
+    "should_trigger": false,
+    "expected": "iac-review"
+  },
+  {
+    "query": "Which sysctl and SSH settings should I harden on our Ubuntu servers",
+    "should_trigger": false,
+    "expected": "host-hardening"
+  },
+  {
+    "query": "The nginx systemd unit enters a failed state right after boot, why",
+    "should_trigger": false,
+    "expected": "systemd-unit-failure"
+  },
+  {
+    "query": "Design our CI stages, caching and promotion flow whatever tool we use",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "Our GitLab pipeline runs twice for every merge request",
+    "should_trigger": false,
+    "expected": "gitlab-ci-pipelines"
+  },
+  {
+    "query": "A Jenkins build is stuck waiting for an executor",
+    "should_trigger": false,
+    "expected": "jenkins-pipelines"
+  },
+  {
+    "query": "Argo CD shows our application OutOfSync after a manifest change in git",
+    "should_trigger": false,
+    "expected": "gitops-operations"
+  },
+  {
+    "query": "A leaked API key needs to be rotated across all our services",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "Audit our CI for secrets reachable from pull requests",
+    "should_trigger": false,
+    "expected": "pipeline-hardening"
+  }
+]

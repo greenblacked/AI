@@ -791,6 +791,25 @@ def test_iac_topic_exposes_installation_and_each_shipped_skill():
         assert f'href="/plugins/iac/{name}/"' in page
 
 
+def test_toolchain_topic_exposes_installation_and_each_shipped_skill():
+    manifest = site._manifest(REPO)
+    skills = site._collect_skills(REPO)
+    catalogue = site.collect(REPO, manifest, [], skills)
+    page = _content(site.render_plugin("toolchain", catalogue, "dev"))
+    assert "/plugin install toolchain@greenblacked-ai" in page
+    assert 'class="page plugin-page plugin-toolchain"' in page
+    for name in (
+        "gitlab-ci-pipelines",
+        "jenkins-pipelines",
+        "spinnaker-pipelines",
+        "artifactory-repositories",
+        "sonarqube-quality-gates",
+        "chef-cookbooks",
+        "helm-releases",
+    ):
+        assert f'href="/plugins/toolchain/{name}/"' in page
+
+
 @pytest.mark.parametrize("name", sorted(site.site_style.PLUGIN_LOOKS))
 def test_a_plugin_page_carries_its_signature_and_its_plain_name(mini_repo, name):
     look = site.site_style.PLUGIN_LOOKS[name]
