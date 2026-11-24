@@ -120,7 +120,7 @@ jobs:
           deleted=0 would=0 gone=0 skipped=0 failed=0
           record() {
             # $1 outcome, $2 branch, $3 detail
-            printf '| %s | `%s` | %s |\n' "$1" "$2" "$3" >> "$rows"
+            printf "| %s | \`%s\` | %s |\n" "$1" "$2" "$3" >> "$rows"
             case "$1" in
               deleted) deleted=$((deleted + 1)) ;;
               would-delete) would=$((would + 1)) ;;
