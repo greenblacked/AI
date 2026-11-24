@@ -2217,6 +2217,61 @@ def test_cut_release_token_is_scoped_to_the_steps_that_call_the_api():
         assert "gh api" not in step and "gh workflow" not in step
 
 
+def test_prune_branches_is_a_main_only_dispatch_that_defaults_to_a_dry_run():
+    workflow = (REPO / ".github" / "workflows" / "prune-branches.yml").read_text(encoding="utf-8")
+    assert "\npermissions: {}\n" in workflow
+    triggers = workflow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert triggers.startswith("  workflow_dispatch:\n    inputs:\n      dry_run:\n")
+    assert "        required: false\n        type: boolean\n        default: true\n" in triggers
+    assert triggers.count("  push:") == 0 and "pull_request" not in triggers
+    assert "  group: prune-branches\n  cancel-in-progress: false\n" in workflow
+    job = workflow.split("jobs:\n", 1)[1]
+    header = job.split("    steps:\n", 1)[0]
+    assert "    if:" not in header
+    assert "    timeout-minutes: 10\n" in header
+    permissions = header.split("    permissions:\n", 1)[1]
+    grants = [line.split("#")[0].strip() for line in permissions.splitlines()]
+    grants = [grant for grant in grants if grant]
+    assert sorted(grants) == ["contents: write", "pull-requests: read"]
+    guard = job.split("    steps:\n", 1)[1].split("      - uses:", 1)[0]
+    assert '[ "$REF" != "refs/heads/main" ]' in guard
+    assert "REF: ${{ github.ref }}" in guard
+    assert "exit 1" in guard
+    assert "persist-credentials: false" in workflow
+    # Deletes are leased ref-deletion pushes: no REST delete, no token in a push argument.
+    assert "-X DELETE" not in workflow
+    assert ".head.ref, .base.ref" in workflow
+    assert "read -r -u 3 branch sha" in workflow and 'done 3< "$list"' in workflow
+    assert "true | false) ;;" in workflow and "exit 1" in workflow.split("true | false)", 1)[1]
+    assert "--force-with-lease=refs/heads/" in workflow
+    pushes = [line for line in workflow.splitlines() if "git push" in line]
+    assert pushes and all("GH_TOKEN" not in line and "$auth" not in line for line in pushes)
+    for block in _run_blocks(workflow):
+        assert "${{" not in block, f"an expression inside run: {block!r}"
+        assert "set -Eeuo pipefail" in block
+
+
+def test_the_prune_list_is_two_columns_of_branch_and_full_sha():
+    rows = [
+        line
+        for line in (REPO / ".github" / "prune-branches.tsv")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line and not line.startswith("#")
+    ]
+    assert rows
+    seen = set()
+    for row in rows:
+        columns = row.split("\t")
+        assert len(columns) == 2, row
+        branch, sha = columns
+        assert re.fullmatch(r"[A-Za-z0-9._/-]+", branch) and ".." not in branch, row
+        assert re.fullmatch(r"[0-9a-f]{40}", sha), row
+        assert branch not in ("main", "dev", "stage"), row
+        assert branch not in seen, row
+        seen.add(branch)
+
+
 def test_the_smoke_script_rejects_a_url_that_is_not_https():
     script = REPO / "scripts" / "smoke_site.sh"
     refused = subprocess.run(  # noqa: S603 - the script under test, fixed argv
