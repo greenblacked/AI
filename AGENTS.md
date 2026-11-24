@@ -327,7 +327,24 @@ blocking finding or a failing `ci` or `security` gate.
   sets `persist-credentials: false`. It refuses a version that has no changelog section,
   a tag already on `origin`, a version not greater than every existing tag, or a `HEAD`
   that is not `origin/main`. `release.yml` accepts that dispatch only on a `vX.Y.Z` tag
-  ref, so a dispatch on a branch publishes nothing. `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script acts only when the pushed commit is the `merge_commit_sha` of a merged `release/promote-*` pull request from this repository into that branch. Its `GITHUB_TOKEN` is `contents: read`; a GitHub App token, never `GITHUB_TOKEN`, creates one `chore/back-merge-*` branch at the pushed commit with `POST git/refs`, never moving, forcing, reusing or deleting a ref, and opens the pull request that merges it back down. It never merges or resolves a conflict.
+  ref, so a dispatch on a branch publishes nothing.
+  `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script
+  acts only when the pushed commit is the `merge_commit_sha` of a merged
+  `release/promote-*` pull request from this repository into that branch. Its
+  `GITHUB_TOKEN` is `contents: read`; a GitHub App token, never `GITHUB_TOKEN`, creates
+  one `chore/back-merge-*` branch at the pushed commit with `POST git/refs`, never
+  moving, forcing, reusing or deleting a ref, and opens the pull request that merges it
+  back down. It never merges or resolves a conflict.
+- `evals.yml` uses `pull_request_target` for same-repository changed-target scoring so
+  the workflow and executable harness come from the immutable base SHA rather than the
+  candidate checkout. The head SHA is checked out separately under `candidate/` and is
+  accepted only as regular definition and JSON data; the trusted harness imports its own
+  base-revision modules, receives the candidate root explicitly, and starts Claude with
+  no tools. Forks are excluded before the job starts. The reviewer benchmark stands down
+  on every pull request because its candidate agent, fixtures and worktree can execute
+  commands; it runs with model credentials only on a trusted schedule or dispatch. This
+  bounded use carries `# zizmor: ignore[dangerous-triggers]` beside the trigger because
+  zizmor cannot distinguish the data-only candidate checkout from execution.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

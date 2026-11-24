@@ -85,11 +85,12 @@ be relevant.
 That conditional loading is also its failure mode, and the reason `skillcheck` validates
 this directory. A glob with a typo in it matches nothing, so the rule never loads, and
 nothing anywhere reports it — the author simply believes a gate is in place that is not.
-`make validate` checks this directory for four things:
+`make validate` checks this directory for five things:
 
 | Code | Means | Fix |
 | --- | --- | --- |
 | `not-utf8` | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other rule. |
+| `complex-glob` | A `paths:` entry exceeds the safe length or brace-expansion budget. | Shorten the glob or split it into bounded entries. |
 | `dangling-glob` | A `paths:` entry selects nothing in the repository, so the rule never loads. | Correct the glob, or drop the key and let the rule load every session. |
 | `empty-paths` | `paths:` is present with no entries, which scopes the rule to nothing. | List a glob, or remove the key. |
 | `empty-rule` | The file has no content to load. | Write it or delete it. |
@@ -97,8 +98,9 @@ nothing anywhere reports it — the author simply believes a gate is in place th
 Prose pointers and capitalised shouting are checked as they are in a skill, with paths
 resolved against the repository root because that is where a rule's prose points. Brace
 groups (`src/**/*.{ts,tsx}`) are expanded before matching, since `pathlib` has none. A
-glob is matched against the working tree, so scope a rule to something committed rather
-than to `dist/`, which exists only after a build.
+glob may contain at most 4,096 characters, 32 brace groups, 64 alternatives per group
+and 256 expanded patterns. It is matched against the working tree, so scope a rule to
+something committed rather than to `dist/`, which exists only after a build.
 
 This repository has four, each scoped to a path class whose gate fails expensively:
 

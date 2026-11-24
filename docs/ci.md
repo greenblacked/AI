@@ -69,7 +69,7 @@ gives, and at workflow level so a cache key can name one.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `scope` | `scope` | [`scripts/ci_scope.py`](../scripts/ci_scope.py) could not run or write its outputs. It decides how much of the rest the run needs (see What runs where below) and never fails because a proof fails: anything it cannot prove is a full run. When it fails, every job that reads its output is skipped and `ci` fails, so a broken scope cannot pass anything. It holds `actions: read` and `pull-requests: read`, and reads earlier runs and their jobs and which pull request produced the commit `stage` is at. |
+| `scope` | `scope` | [`scripts/ci_scope.py`](../scripts/ci_scope.py) could not run or write its outputs. It decides how much of the rest the run needs (see What runs where below) and never fails because a proof fails: anything it cannot prove is a full run. When it fails, every job that reads its output is skipped and `ci` fails, so a broken scope cannot pass anything. It holds `actions: read` and `pull-requests: read`, and reads earlier runs and their jobs and which pull request produced the commit `stage` is at. Edited pull requests into `dev` or `stage` are always full runs because historical run metadata does not preserve the base SHA that run tested. |
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Every leg runs the suite on the runner's four cores through pytest-xdist; 3.13 additionally measures line and branch coverage in each worker through pytest-cov and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest, pytest-xdist, pytest-cov and coverage are each pinned. The coverage table lands in the 3.13 job summary. |
@@ -110,16 +110,15 @@ reads its `mode`:
 
 | Mode | When | What runs |
 | --- | --- | --- |
-| `full` | A pull request into `dev` or `stage`, `workflow_dispatch`, `merge_group`, and anything the two rows below cannot prove | Everything |
+| `full` | A pull request into `dev` or `stage`, including an edit, `workflow_dispatch`, `merge_group`, and anything the row below cannot prove | Everything |
 | `promotion` | A pull request into `main`, an edit to one, or the push to `main` after one merges, whose tree is `stage`'s apart from `CHANGELOG.md` and the release benchmark patch, where `stage` is the merge of a pull request whose head is that tree, whose branch headed no other pull request, and every CI run of which that checked the code passed it. A benchmark patch that differs must still apply to the tree, since only the skipped test matrix would otherwise read it | validate skills, check catalogue, lint spelling, lint markdown, check links, attribution, naming and package here, plus all of `security.yml`, and on the pull request the dry-run deploy. The test matrix, the browser tests, validate plugin manifest, lint yaml and lint workflows are skipped: their result depends only on files the promoted tree shares, byte for byte, with the one that passed |
-| `text` | An `edited` pull request whose event changed only the title or body (a retargeted base is `edited` too, and is `full`, or `promotion` into `main`), and whose commit, against the same base, had every code check pass in every earlier run that listed this pull request (a failure of attribution or naming alone does not count against it) | attribution and naming, the two that read the title and description |
 
 The aggregate accepts a skipped job only when `scope` named it, and the lists of what
 each mode may skip are fixed in the script rather than built from anything the API
 returns; a failed or cancelled job fails `ci` whatever the mode. A proof that cannot be
-completed, through an API error, a run still in progress, a fork's run that carries no
-pull request, or a tree that differs, makes the run `full`, so the worst a wrong
-answer costs is time.
+completed, through an API error, a run still in progress, a run from another branch or
+fork, or a tree that differs, makes the run `full`, so the worst a wrong answer costs is
+time.
 
 ## `.github/workflows/security.yml` — Security
 
@@ -139,7 +138,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
 | `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill or in a subagent or command definition that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned a number of skills or definitions that differs from what the tree holds. |
-| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding, in a skill or in a subagent or command definition, not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding, in a skill or in a subagent or command definition, not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason or lacks AE1's structured evidence identity. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -215,8 +214,10 @@ and how to refresh a baseline after a scanner bump.
   reports. It does not use SkillSpector's own baseline, whose fingerprint hashes the whole
   file and the scanner version, so any edit to a flagged file would reopen every finding
   in it. It keys each finding on its rule, its path and the matched text with whitespace
-  collapsed, and fails on a key not in the accepted list, on a scan that exited 2 or left
-  no readable report, on a report whose `analysisCompleteness` says it left a file
+  collapsed; AE1 keys also include every structured evidence reason's code and phase. It
+  fails on a key not in the accepted list, on an AE1 result or accepted entry without that
+  complete evidence identity, on a scan that exited 2 or left no readable report, on a
+  report whose `analysisCompleteness` says it left a file
   entirely uninspected, on a report count that differs from the skills scanned, and on
   an accepted entry with no reason or with a class other than a false positive or
   accepted-by-design. An accepted entry that no longer matches anything is printed as a
@@ -926,18 +927,20 @@ matches nothing is a warning to remove it. The id may be any alias of the adviso
 
 ## `.github/workflows/evals.yml` — Trigger evals
 
-Three triggers: a monthly `schedule` (`0 7 1 * *`), `workflow_dispatch`, and
-`pull_request`. There is no push trigger and, like `ci.yml`, no `paths:` filter — a
-workflow skipped by a path filter leaves its check Pending forever, which is the failure
-this repository refuses everywhere. Three jobs; the first two are guarded by a job-level
-`if:` so that exactly one of them runs on any given event, and the third decides inside
-itself whether the event is one it measures:
+The workflow triggers on a monthly `schedule` (`0 7 1 * *`), `workflow_dispatch`, and
+`pull_request_target` for pull requests targeting `main`. All three jobs require
+`refs/heads/main` and `github.ref_protected` before checkout. On pull request events,
+the changed-target and reviewer jobs also verify that `github.base_ref` is `main`.
+Executable checkouts use the GitHub Actions event revision. The changed-target job
+requires a same-repository head and separately checks out candidate files as data.
+There is no push trigger or `paths:` filter. A workflow skipped by a path filter
+leaves its check Pending. None of these jobs is required for merge.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request; skipped on a pull request. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
-| `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill or agent the pull request changed, or one of its declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
-| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request, and on a pull request only when the cases, `reviewer.md`, the harness, the installer or the locked Claude client under `.github/eval-clients/claude/` changed. Two-hour timeout. |
+| `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request from protected `main`. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
+| `evaluate-changed` | `score changed skills` | Only on a same-repository pull request targeting protected `main`. A skill or agent the pull request changed, or one of its declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
+| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or by opt-in dispatch from protected `main`. Pull requests targeting protected `main` get a stand-down summary because candidate worktrees can execute code. Two-hour timeout. |
 
 ### `evaluate-changed`, the pull request job
 
@@ -954,10 +957,13 @@ the case above, because the changed target is the one that scores well.
 
 What it does, in order:
 
-1. Checks out with `fetch-depth: 0` so the base branch is reachable, and lists the
-   changed files with `git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD"`. Plain
-   git rather than a changed-files action: this is one diff, and an action would be
-   another pinned dependency in the supply chain for it.
+1. Checks out the protected base event revision (`github.sha`) at the workspace root
+   for the workflow's scripts, then the immutable pull request head SHA under
+   `candidate/` with full history. The diff uses `github.sha` and that head SHA. It
+   rejects symlinks, submodules and every other non-regular tracked mode before any
+   credential-bearing step, and lists both sides of renames with a NUL-delimited
+   `git diff --no-renames --name-only`. Plain git rather than a changed-files action: this
+   is one diff, and an action would be another pinned dependency in the supply chain.
 2. Maps changed skill paths to their skill directory. Agent definitions under
    `plugins/*/agents/<name>.md` and `.claude/agents/<name>.md`, and their paired
    `evals/<name>.json` files, select that agent. Definition and eval changes select a
@@ -966,24 +972,25 @@ What it does, in order:
    declared neighbours, deduplicates them against changed targets, and caps the list at
    twelve, with changed targets first. The summary counts only selected changed targets
    and neighbours and reports how many targets the cap dropped.
-3. Runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) once per target.
-   The harness takes exactly one target per invocation and rewrites `--json` wholesale,
-   so each target writes its own results file and the publish step merges them into one
-   table — the same six columns the monthly job prints. The merged files upload as the
-   `trigger-evals-changed` artifact.
+3. Runs the base revision's
+   [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) once per candidate
+   target, with `--root` naming the candidate data tree. Its imports and executable code
+   remain in the trusted checkout, and Claude receives an empty tool set, so candidate
+   descriptions and queries can be classified but cannot read runner files or start a
+   subprocess. The harness takes exactly one target per invocation and rewrites `--json`
+   wholesale, so each target writes its own results file and the publish step merges them
+   into one table — the same six columns the monthly job prints. The merged files upload
+   as the `trigger-evals-changed` artifact.
 
 Three outcomes that are green on purpose:
 
 - **No scorable skill or agent changed.** The job reports success with a note in the summary rather than
   being skipped, so nothing sits Pending.
-- **No credential.** A pull request from a fork is handed no secrets. The job says so in
-  a notice and stands down, because a red check a contributor has no way to make green is
-  a check everybody learns to ignore. The same is now true of the scheduled run of
-  `evaluate`: a scheduled run skips with a notice, and only a dispatched run — where a person
-  asked for a score and is owed the error — fails on a missing credential. A pull request
-  from this same repository with no credential configured is a third case: it still
-  stands down rather than failing, but the step emits a warning annotation and says
-  scoring is inactive, rather than the fork's notice claiming something false of it.
+- **No credential.** A fork never enters the changed-target job, so it cannot spend or
+  receive the repository's model credential. A same-repository pull request with no
+  configured credential stands down with a warning that scoring is inactive. The
+  scheduled run of `evaluate` skips with a notice, and only a dispatched run — where a
+  person asked for a score and is owed the error — fails on a missing credential.
 - **A score between 0.7 and 0.8.** Reported in the summary and as a notice annotation,
   and advisory.
 
@@ -1017,17 +1024,20 @@ is a small unified diff and a `case.json` describing it: a `"defect"` case passe
 a `"clean"` case passes on `SHIP`. The harness runs each case in an isolated `git
 worktree`, detached from `HEAD`, and never touches the repository's own tree.
 
-It runs on the schedule and on request, and on a pull request only when the diff touches
-`.claude/agents/benchmarks/`, `.claude/agents/reviewer.md` or
-`scripts/run_review_benchmark.py` — the three things a benchmark number depends on. A
-pull request that changes none of them gets a green check with a note rather than the
-expensive run; the job carries no job-level `if:` for the reason above, so a skipped run
-never leaves a check Pending. The credential handling is `evaluate`'s: a scheduled run
-stands down with a notice, a fork's pull request stands down, and a dispatched run fails
-loudly. The harness's exit code is the job's: 1 is a rate below its threshold and 2 is the
-harness failing to run at all, and the JSON is published and uploaded either way.
+It runs on the schedule and on request from protected `main`. A pull request targeting
+protected `main` gets a green stand-down summary because the benchmark applies fixture
+patches, loads an agent definition and permits selected test commands inside a candidate
+worktree. Run it from protected `main` after reviewing a benchmark change. The
+credential handling is the same as for `evaluate`. A scheduled run stands down with a
+notice and a dispatched run fails loudly if credentials are missing. The harness's exit code is
+the job's: 1 is a rate below its threshold and 2 is the harness failing to run at all,
+and the JSON is published and uploaded either way.
 
 ### Dispatch inputs
+
+Select protected `main` when dispatching the workflow. This version skips its jobs
+on other refs. GitHub loads the workflow from the selected ref, so the guard applies
+to versions that contain it. Repository secrets remain scoped to the repository.
 
 The seven inputs are shared by the workflow's jobs. Six belong to `evaluate`;
 `evaluate-changed` takes none and always scores with the `claude` backend at three
@@ -1048,8 +1058,8 @@ everything against Claude and does not run the benchmark:
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
 the first step checks that the chosen backend has one, stopping with a one-line annotation
 if not, because failing there beats failing forty model calls later with a stack trace. A
-dispatched run fails on an absent credential; a scheduled run and a pull request skip with
-a notice instead, for the reasons above:
+dispatched run fails on an absent credential; a scheduled run skips with a notice, and
+the pull-request paths use the separate behavior above:
 
 | Backend | Repository secret | Where it comes from |
 | --- | --- | --- |
@@ -1209,9 +1219,10 @@ rather than the source of truth.
 ## Why there is no `paths:` filter
 
 No workflow here has a `paths:` filter, and this is deliberate. `evals.yml` is the one
-where the temptation is real — its pull request job has nothing to do unless a skill or agent
-changed — and it runs on every pull request anyway, reporting when no changed target has
-a trigger eval set to score in the job summary.
+where the temptation is real — its pull request job has nothing to do unless a skill or
+agent changed. The workflow starts for pull requests targeting `main` regardless of
+which files changed. On a same-repository pull request into protected `main` the job
+reports when no changed target has a trigger eval set. The job condition skips forks.
 
 A workflow skipped by a path filter does not report a result at all — its check sits
 Pending forever. If that check is required, the pull request can never merge, and the
@@ -1524,14 +1535,12 @@ automate in Actions.
 
 ### The eval credential
 
-`evals.yml` needs a model credential as a repository secret, and there is none. Each of
-its jobs stands down rather than failing on a scheduled run and on a pull request, which
-is right for a fork and for a check nobody is required to pass; only a run somebody
-dispatched by hand fails on the missing credential, because they asked for it and are owed
-the error. In practice the scoring has never run. Every pull request that reached the
-credential step reported
-`::notice title=no credentials::Not scoring the changed skills`, and the monthly run over
-the whole catalogue will do the same.
+`evals.yml` needs a model credential as a repository secret, and there is none. A
+scheduled run on protected `main` stands down rather than failing. The reviewer
+benchmark stands down on pull requests targeting protected `main`. A same-repository
+changed-target run into protected `main` reaches the credential step when there are
+scorable targets and warns that scoring is inactive. A manual run from protected
+`main` fails if the requested job needs the missing credential. Scoring has yet to run.
 
 So the trigger-eval machinery — the harness, the eval sets on every skill and subagent,
 and the section of this document describing what the numbers mean — currently measures

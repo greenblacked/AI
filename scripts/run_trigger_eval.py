@@ -171,9 +171,13 @@ class ToolFailureError(RuntimeError):
 # handles a key. The argv keeps `{prompt}` unsubstituted until each call; `{model}` is
 # substituted once, or the model is appended with the flag named in the second field.
 BACKENDS: dict[str, tuple[list[str], str | None]] = {
-    # Classification needs no new tool approvals. Pin the mode so a CLI upgrade cannot
-    # switch it to auto; existing approved tools and ordinary reads may still run.
-    "claude": (["claude", "-p", "{prompt}", "--permission-mode", "dontAsk"], "--model"),
+    # Classification needs no tools. An empty tool set prevents an eval query or
+    # description from turning its prompt text into a runner file read or subprocess,
+    # while the explicit mode keeps a CLI upgrade from switching approval policy.
+    "claude": (
+        ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk", "--tools", ""],
+        "--model",
+    ),
     "codex": (["codex", "exec", "--skip-git-repo-check", "{prompt}"], "--model"),
     "gemini": (["gemini", "-p", "{prompt}"], "--model"),
     "ollama": (["ollama", "run", "{model}", "{prompt}"], None),

@@ -14,6 +14,7 @@ the MIT copyright notice travels with the skill once it is unzipped somewhere el
 
 from __future__ import annotations
 
+import stat
 import sys
 import zipfile
 from pathlib import Path
@@ -77,13 +78,31 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
     # archive path immediately, so finding a missing LICENSE or NOTICE only once inside
     # the `with` block below left a valid-looking but incomplete `.skill` file in
     # `dist/` — every skill file present, the licence missing, and nothing about the
-    # failed run visible from the archive itself.
+    # failed run visible from the archive itself. `lstat` is deliberate: `is_file`
+    # follows a root legal-file symlink that the skill-level scan above never sees.
+    legal_sources: dict[str, Path] = {}
+    resolved_root = repo_root.resolve()
     for source_name in LICENSE_MEMBERS.values():
-        if not (repo_root / source_name).is_file():
+        source = repo_root / source_name
+        try:
+            mode = source.lstat().st_mode
+        except OSError:
             raise SystemExit(
                 f"refusing to package {skill.name}: no {source_name} at the "
                 f"repository root ({repo_root})"
+            ) from None
+        if not stat.S_ISREG(mode):
+            raise SystemExit(
+                f"refusing to package {skill.name}: {source_name} is not a regular "
+                f"file directly under the repository root ({repo_root})"
             )
+        resolved_source = source.resolve()
+        if resolved_source.parent != resolved_root:
+            raise SystemExit(
+                f"refusing to package {skill.name}: {source_name} is not a regular "
+                f"file directly under the repository root ({repo_root})"
+            )
+        legal_sources[source_name] = resolved_source
 
     output_dir.mkdir(parents=True, exist_ok=True)
     archive = output_dir / f"{skill.name}.skill"
@@ -92,7 +111,7 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
             if path.is_file() and _included(path, skill):
                 bundle.write(path, path.relative_to(skill.parent))
         for member, source_name in LICENSE_MEMBERS.items():
-            bundle.write(repo_root / source_name, f"{skill.name}/{member}")
+            bundle.write(legal_sources[source_name], f"{skill.name}/{member}")
     return archive
 
 
