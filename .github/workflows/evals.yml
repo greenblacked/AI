@@ -67,7 +67,9 @@ on:
           - codex
           - gemini
       model:
-        description: Model name passed to the CLI; blank uses the CLI's default
+        description: >-
+          Model name passed to the CLI; blank means EVAL_CLAUDE_MODEL for the claude
+          backend and the CLI's own default for codex and gemini
         required: false
         default: ''
         type: string
@@ -101,6 +103,11 @@ env:
   CLAUDE_CODE_VERSION: '2.1.291'
   CODEX_VERSION: '0.160.1'
   GEMINI_CLI_VERSION: '0.62.0'
+  # The model the claude backend scores on. Scores are only comparable run to run when
+  # the model is pinned, and the CLI's default moves under you. Sonnet balances a current
+  # routing model against the cost of about one call per query per sample across the
+  # catalogue. Bump it here when a newer model ships.
+  EVAL_CLAUDE_MODEL: 'claude-sonnet-5-5'
   PYTEST_VERSION: '9.1.1'
   COVERAGE_VERSION: '7.16.2'
   # The benchmarked reviewer runs `make test` and `make coverage` in a worktree, and
@@ -216,6 +223,8 @@ jobs:
           fi
           if [ -n "$MODEL" ]; then
             extra+=(--model "$MODEL")
+          elif [ "$BACKEND" = "claude" ]; then
+            extra+=(--model "$EVAL_CLAUDE_MODEL")
           fi
           python scripts/run_trigger_eval.py "${target[@]}" "${extra[@]}" \
             --runs "$RUNS" --threshold "$THRESHOLD" --jobs 4 --json evals.json --verbose
@@ -510,6 +519,7 @@ jobs:
             code=0
             python scripts/run_trigger_eval.py "$flag" "$CANDIDATE_ROOT/$path" \
               --root "$CANDIDATE_ROOT" \
+              --model "$EVAL_CLAUDE_MODEL" \
               --runs 3 --threshold "$REPORT_BAR" --jobs 4 --verbose \
               --json "eval-results/$(printf '%03d' "$index").json" || code=$?
             # 1 is "scored below the reporting bar", which the publish step judges

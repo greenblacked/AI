@@ -1105,13 +1105,13 @@ def test_a_ship_verdict_carries_no_no_verdict_detail(tmp_path, fake_claude):
 def test_model_costs_returns_every_model_with_its_own_cost():
     data = {
         "modelUsage": {
-            "claude-haiku-4-5": {"costUSD": 0.001},
-            "claude-fable-5-1": {"costUSD": 1.01},
+            "claude-haiku-5-5": {"costUSD": 0.001},
+            "claude-fable-5-2": {"costUSD": 1.01},
         }
     }
     assert set(benchmark.model_costs(data)) == {
-        ("claude-haiku-4-5", 0.001),
-        ("claude-fable-5-1", 1.01),
+        ("claude-haiku-5-5", 0.001),
+        ("claude-fable-5-2", 1.01),
     }
 
 
@@ -1120,8 +1120,8 @@ def test_model_costs_is_empty_with_no_model_usage():
 
 
 def test_model_costs_handles_a_missing_cost_key():
-    data = {"modelUsage": {"claude-fable-5-1": {}}}
-    assert benchmark.model_costs(data) == [("claude-fable-5-1", None)]
+    data = {"modelUsage": {"claude-fable-5-2": {}}}
+    assert benchmark.model_costs(data) == [("claude-fable-5-2", None)]
 
 
 def test_run_case_reports_every_model_with_its_cost(tmp_path, fake_claude):
@@ -1131,8 +1131,8 @@ def test_run_case_reports_every_model_with_its_cost(tmp_path, fake_claude):
     payload = cli_answer(
         "Verdict: SHIP",
         modelUsage={
-            "claude-haiku-4-5": {"costUSD": 0.0011},
-            "claude-fable-5-1": {"costUSD": 1.0103},
+            "claude-haiku-5-5": {"costUSD": 0.0011},
+            "claude-fable-5-2": {"costUSD": 1.0103},
         },
     )
     fake_claude({fake_query("Add a trailing line."): payload})
@@ -1142,8 +1142,8 @@ def test_run_case_reports_every_model_with_its_cost(tmp_path, fake_claude):
         benchmark.build_command(None, None, 40, 2.00),
         Args(),
     )
-    assert any("claude-fable-5-1" in m and "1.0103" in m for m in result["models"])
-    assert any("claude-haiku-4-5" in m and "0.0011" in m for m in result["models"])
+    assert any("claude-fable-5-2" in m and "1.0103" in m for m in result["models"])
+    assert any("claude-haiku-5-5" in m and "0.0011" in m for m in result["models"])
 
 
 # --- --agent: one harness, a benchmark directory and a brief per agent --------------
