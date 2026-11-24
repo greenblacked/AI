@@ -1450,6 +1450,49 @@
       "match": "--privileged",
       "class": "FP-defensive",
       "reason": "Line states the clean-room tutorial run pre-approves no docker command and never mounts host paths, passes --privileged or joins the host network."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/SKILL.md",
+      "match": "access tokens",
+      "class": "FP-defensive",
+      "reason": "The description and the authentication step name scoped, expiring access tokens as the replacement for personal API keys; nothing reads, prints or exposes a token."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/SKILL.md",
+      "match": "access token",
+      "class": "FP-defensive",
+      "reason": "The authentication step says to give each pipeline a scoped, expiring access token held in the CI platform's masked variable store and rotated; nothing reads, prints or exposes a token."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/evals/trigger-eval.json",
+      "match": "access tokens",
+      "class": "FP-eval/data",
+      "reason": "Trigger-eval query asking to move CI from a personal API key to scoped expiring access tokens; it is test data, not an instruction."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/references/repository-layout.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Names .npmrc as a client config file to keep in the repository without credentials, which come from the CI variable store; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/gitlab-ci-pipelines/references/variables-and-runners.md",
+      "match": "kubeconfig",
+      "class": "FP-defensive",
+      "reason": "Advises file-type variables for certificates and kubeconfigs rather than echoing them into files; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/toolchain/skills/jenkins-pipelines/SKILL.md",
+      "match": "references/jenkinsfile-patterns.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "static"}],
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     }
   ]
 }
