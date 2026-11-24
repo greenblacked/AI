@@ -1,10 +1,10 @@
 # DevOps: start here
 
-A DevOps or platform engineer's week crosses seven plugins here: `platform` for clusters,
+A DevOps or platform engineer's week crosses eight plugins here: `platform` for clusters,
 identity and cloud estates, `operations` for live systems and incidents, `delivery` for
 pipelines and releases, `security` for hardening and review, `linux` for the host
-underneath, `observability` for alerts and telemetry, and `iac` for Terraform modules and
-apply pipelines. `devtools` adds git recovery and build caching. This page maps everyday
+underneath, `observability` for alerts and telemetry, `iac` for Terraform modules and
+apply pipelines, and `devtools` for git recovery, build caching and dependency resolution. This page maps everyday
 tasks to the skill that owns them, and says what installing them together costs, because
 that cost is the decision that matters most.
 
@@ -39,7 +39,7 @@ Every description a plugin ships stays in context for the whole session, and the
 caps that listing at about 1% of the context window, roughly 8,000 characters on a 200k
 window. Past the cap it drops the descriptions of the skills you use least, which leaves
 them invocable by name and stops them being chosen on their own. `make validate` prints
-the per-plugin totals; at the time of writing the plugins on this page measure:
+the per-plugin totals; as of 2026-11 the plugins on this page measure:
 
 | Plugin | Description characters |
 | --- | --- |
@@ -67,8 +67,8 @@ dropped and most of these skills could only be reached by name, so raise the bud
 { "skillListingBudgetFraction": 0.2 }
 ```
 
-That value covers all eight plugins on the 8,000-character basis with headroom; `0.15` is
-the least that holds them, and the figure the repository prints for the whole marketplace
+That value covers all eight plugins on the 8,000-character basis with headroom; `0.16` is
+the least two-decimal value that holds them (`0.15` allows 120,000 characters, just short of 120,247), and the figure the repository prints for the whole marketplace
 is in [the README](../README.md#install). And a raised budget is spent, not free: the
 listing then occupies a double-digit share of every session's context. Install the four
 core plugins first, add another only when its skills fire for real work, and uninstall one

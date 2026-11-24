@@ -45,9 +45,9 @@
     "expected": "k8s-triage"
   },
   {
-    "query": "a pod just got OOMKilled in prod, the page is firing and customers are seeing errors",
+    "query": "make this Dockerfile smaller and pin the base image to a digest",
     "should_trigger": false,
-    "expected": "k8s-triage"
+    "expected": "image-hardening"
   },
   {
     "query": "everything is Pending with Insufficient cpu in the events and the release is blocked, help",
