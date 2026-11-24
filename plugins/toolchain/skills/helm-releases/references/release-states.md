@@ -28,7 +28,7 @@ List the pending and failed ones across a cluster with
 | --- | --- | --- |
 | `another operation (install/upgrade/rollback) is in progress` | Newest revision is pending | Prove the writer is dead, then recover as above |
 | `has no deployed releases` | Every revision is `failed`, so `upgrade` has nothing to diff against | `helm uninstall` the failed first install, or `rollback` if an earlier good revision exists |
-| `cannot re-use a name that is still in use` | `install` on an existing name | Use `upgrade --install`, or choose another name |
+| `cannot reuse a name that is still in use` | `install` on an existing name | Use `upgrade --install`, or choose another name |
 | `exists and cannot be imported into the current release: invalid ownership metadata` | An object the chart renders exists but Helm did not create it | See Adopting objects |
 | `field is immutable` | The upgrade changes a field Kubernetes forbids changing | Recreate the object deliberately (delete it, or use a new name), after checking data impact |
 | `resource mapping not found ... no matches for kind` during upgrade or rollback | The stored manifest uses an API version the cluster no longer serves | Use the `mapkubeapis` plugin or update the record per its docs; plan this before a cluster upgrade (`k8s-upgrade`) |

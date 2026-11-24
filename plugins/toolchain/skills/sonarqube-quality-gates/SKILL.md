@@ -168,8 +168,8 @@ versus a token property); check the scanner's documentation. Do not expose the a
 token to jobs that build untrusted fork code; route that review to `pipeline-hardening`
 and the rotation schedule to `secret-rotation`.
 
-Cache the scanner's download and its working data per the integration's guidance, and keep
-the scanner version pinned so a floating version cannot change results between runs.
+Persist the scanner's cache directory between runs, as the integration's guidance describes,
+and keep the scanner version pinned so a floating version cannot change results between runs.
 
 ### 9. Prove the gate blocks
 

@@ -152,13 +152,14 @@ Record the change with `assets/templates/pipeline-change-record.md`.
 
 ## Project kit
 
-- `assets/rules/gitlab-ci-rules.md`: copy into `.claude/rules/` so the rules load
-  whenever a GitLab CI file is read.
-- `assets/hooks/refuse-gitlab-only-except.json` and `.sh`: opt-in `PreToolUse` hook
-  that refuses a write adding `only:` or `except:` to a GitLab CI file. Merge the JSON
-  into your settings and copy the script to `.claude/hooks/`.
-- `assets/templates/pipeline-change-record.md`: use for every pipeline change, with the
-  lint output attached.
+- `${CLAUDE_SKILL_DIR}/assets/rules/gitlab-ci-rules.md`: copy into `.claude/rules/` so the
+  rules load whenever a GitLab CI file is read.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/refuse-gitlab-only-except.json` and `.sh`: opt-in
+  `PreToolUse` hook that refuses a write adding `only:` or `except:` to a GitLab CI file.
+  Merge the JSON into your settings and copy the script to `.claude/hooks/`. Read the
+  script first; it runs with your permissions on every matching tool call.
+- `${CLAUDE_SKILL_DIR}/assets/templates/pipeline-change-record.md`: use for every pipeline
+  change, with the lint output attached.
 
 ## Done when
 
