@@ -92,7 +92,7 @@ reference them in the shell as environment variables inside single quotes:
 
 ```groovy
 withCredentials([string(credentialsId: 'registry-token', variable: 'TOKEN')]) {
-  sh 'curl -sf -H "Authorization: Bearer $TOKEN" https://registry.example.com/v2/'
+  sh 'printf "Authorization: Bearer %s\\n" "$TOKEN" | curl -sf -H @- https://registry.example.com/v2/'
 }
 ```
 
@@ -102,6 +102,12 @@ log the shell echoes. Jenkins warns about this on some versions; do not treat th
 warning's absence as safety. Console masking replaces the exact bound value only and is
 a best-effort filter, so a base64 copy, a URL-encoded copy or a value split across lines
 is not masked. Never turn on `set -x` inside a credentialed block.
+
+Single quotes keep the secret out of the Groovy string, not out of argv: once the shell
+expands `$TOKEN` into a command's arguments, any process under the same OS account can
+read it from `/proc/<pid>/cmdline`. Feed it on stdin or from a file the tool reads, as
+above (`-H @-` needs curl 7.55.0 or later), and run credentialed stages on agents that
+do not share an OS account with untrusted builds.
 
 `environment { NAME = credentials('id') }` binds for the whole pipeline or stage and, for
 username and password credentials, also defines `NAME_USR` and `NAME_PSW`. Scope it to
