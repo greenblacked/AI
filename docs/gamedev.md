@@ -1,6 +1,8 @@
 # Gamedev: start here
 
-The `gamedev` plugin is thirteen skills, one subagent and one command. This page is the map:
+The `gamedev` plugin ships many more skills than this page routes. It covers the thirteen
+core production skills, and the specialist skills beside them are listed in the
+[README](../README.md#gamedev). This page is the map:
 how to size a project so the right amount of each skill's procedure applies, how to read
 what a game type needs from the plugin, and what order to run the skills in. It does not
 repeat any skill's procedure — every line below points at the section that carries the
@@ -33,7 +35,7 @@ signal, not the team photo.
 
 ## Pick your game type
 
-The plugin has no per-genre skill; genre changes which sections of the thirteen skills carry
+The plugin has no per-genre skill; genre changes which sections of the thirteen core skills carry
 the risk, not which skill applies. Six types come up often enough to name directly:
 
 | Type | Where the risk sits |

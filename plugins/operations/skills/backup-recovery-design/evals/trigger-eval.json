@@ -17,6 +17,6 @@
   {"query": "production is down now and the database primary will not accept writes; help me coordinate recovery", "should_trigger": false, "expected": "incident-response"},
   {"query": "terraform state is truncated after a failed apply and the backend version is missing; recover it safely", "should_trigger": false, "expected": "terraform-state"},
   {"query": "decide how GDPR deletion requests should propagate into archives and expired customer backups", "should_trigger": false, "expected": "data-privacy"},
-  {"query": "our cloud storage bill doubled this month; find the cost driver and recommend immediate savings", "should_trigger": false, "expected": "cost-review"},
+  {"query": "if github, our container registry and the identity provider are all down, could we still sign in and deploy to recover production, find the dependency loops", "should_trigger": false, "expected": "bootstrap-dependency-audit"},
   {"query": "turn this already-approved database recovery procedure into an operator runbook with exact commands and checks", "should_trigger": false, "expected": "runbook"}
 ]

@@ -17,6 +17,6 @@
   {"query": "an api key leaked in a public repo, walk me through rotating it without downtime", "should_trigger": false, "expected": "secret-rotation"},
   {"query": "pods keep getting OOMKilled under load, what should the limits be", "should_trigger": false, "expected": "k8s-workloads"},
   {"query": "falco is alerting on a shell spawning inside the api container in prod, what now", "should_trigger": false},
-  {"query": "review the terraform for our ECR repos, lifecycle policy and the cross account access", "should_trigger": false, "expected": "iac-review"},
+  {"query": "ssh says permission denied (publickey) since we tightened sshd_config with allowusers, find which setting rejects my key", "should_trigger": false, "expected": "ssh-access-debugging"},
   {"query": "is this endpoint vulnerable to idor, here is the diff", "should_trigger": false, "expected": "security-review"}
 ]

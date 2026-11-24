@@ -16,7 +16,7 @@
   {"query": "our single terraform state has 4000 resources and plans take 30 minutes, how do we split it into stacks", "should_trigger": false, "expected": "monolith-state-split"},
   {"query": "bring all these hand-built aws resources under terraform and report what is still unmanaged", "should_trigger": false, "expected": "brownfield-iac-adoption"},
   {"query": "terraform state is locked and the CI job that held it was cancelled", "should_trigger": false, "expected": "terraform-state"},
-  {"query": "write a new terraform module for an s3 bucket with versioning and encryption", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "we want to remove an output and change a variable type in our shared vpc module, classify it as breaking and keep older callers working", "should_trigger": false, "expected": "terraform-module-contracts"},
   {"query": "we can't move to python 3.13 until three of our libraries support it, plan the upgrade", "should_trigger": false, "expected": "dependency-upgrade"},
   {"query": "is this pull request that changes our iam policies in terraform safe to merge", "should_trigger": false, "expected": "iac-review"}
 ]

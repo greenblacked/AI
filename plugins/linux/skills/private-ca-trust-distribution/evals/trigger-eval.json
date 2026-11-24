@@ -18,5 +18,5 @@
   {"query": "ssh says permission denied for my key", "should_trigger": false, "expected": "ssh-access-debugging"},
   {"query": "a unit fails at start with exit code 203", "should_trigger": false, "expected": "systemd-unit-failure"},
   {"query": "a non-root user cannot read the file, permission denied", "should_trigger": false, "expected": "permission-denied-triage"},
-  {"query": "tighten the sshd configuration and kernel settings on the host", "should_trigger": false, "expected": "host-hardening"}
+  {"query": "our field devices ship with a ten year certificate and no rtc, how do we rotate the root ca without bricking units in the warehouse", "should_trigger": false, "expected": "device-trust-anchors"}
 ]

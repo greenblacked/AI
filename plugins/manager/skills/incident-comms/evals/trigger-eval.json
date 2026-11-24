@@ -18,6 +18,6 @@
   {"query": "why does everything feel slow to ship, our p95 cycle time is nine days", "should_trigger": false, "expected": "delivery-review"},
   {"query": "our incident review meeting produces nothing, should it even be on the calendar", "should_trigger": false, "expected": "design-team-cadence"},
   {"query": "help me write Q3 objectives for the reliability team that are not just a list of projects", "should_trigger": false, "expected": "okr-planning"},
-  {"query": "document why we chose to run the queue on SQS instead of self hosting it", "should_trigger": false, "expected": "decision-record"},
+  {"query": "we have an incident and checkout is down, who should be incident commander and what severity do we declare, mitigate first", "should_trigger": false, "expected": "incident-response"},
   {"query": "sam handled the outage badly and i need to raise it in his mid year review", "should_trigger": false, "expected": "growth-review"}
 ]

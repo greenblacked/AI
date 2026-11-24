@@ -45,9 +45,9 @@
     "expected": "backup-recovery-design"
   },
   {
-    "query": "set business RTO and RPO tiers for our platform",
+    "query": "if our ci, registry and identity provider are all down, could we still sign in, pull images and deploy to recover production",
     "should_trigger": false,
-    "expected": "backup-recovery-design"
+    "expected": "bootstrap-dependency-audit"
   },
   {
     "query": "set up a nightly job that restores the newest database backup into a scratch instance and alerts if the row counts differ",
@@ -65,9 +65,9 @@
     "expected": "game-day"
   },
   {
-    "query": "inject latency into a dependency and verify graceful degradation",
+    "query": "a postgres replication slot is filling pg_wal on the primary and the replica lags, which reads can safely go to the replica",
     "should_trigger": false,
-    "expected": "game-day"
+    "expected": "db-replication"
   },
   {
     "query": "test live failover of the primary database without restoring backups",
