@@ -10,10 +10,11 @@ touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the t
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
 `cut-release.yml` creates that tag from the Actions tab and hands it to `release.yml`,
+`prune-branches.yml` deletes a reviewed list of stale branches from the Actions tab,
 `back-merge.yml` opens the pull requests that merge `stage` and `main` back down once a
 promotion has merged, and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
-the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `cut-release.yml`, `back-merge.yml`,
-`release.yml` or `deploy.yml` is a required check.
+the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `cut-release.yml`, `prune-branches.yml`,
+`back-merge.yml`, `release.yml` or `deploy.yml` is a required check.
 
 ## Execution flow
 
@@ -318,7 +319,7 @@ Triggers on `pull_request` (`opened`, `synchronize`, `reopened`), never
 `pull_request_target` — the base-branch checkout and secret exposure that trigger allows
 is exactly what zizmor's dangerous-triggers audit exists to catch, and nothing here needs
 it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
-`pull-requests: write` (`release.yml`'s `release` job and `cut-release.yml`'s job also hold `contents: write`, and
+`pull-requests: write` (`release.yml`'s `release` job, `cut-release.yml`'s job and `prune-branches.yml`'s job also hold `contents: write`, and
 `codeql`
 in `security.yml` also writes, but only `security-events`, to publish its scan
 results, not to change anything a person reads as the repository's content).
@@ -554,6 +555,40 @@ one pushed by hand.
 Not a required check — nothing merges against it. The tag message is the changelog
 section, sent to the API as a JSON string built by Python so it arrives verbatim, with
 its `###` subheadings intact; the tagger is the user who dispatched the run.
+
+## `.github/workflows/prune-branches.yml` — Prune branches
+
+Triggers only on `workflow_dispatch`, with one optional boolean input, `dry_run`, which
+defaults to true. Top-level `permissions: {}`. The one job, `prune`, grants itself
+`contents: write`, spent only on deleting the refs listed in
+[`.github/prune-branches.tsv`](../.github/prune-branches.tsv) with `git push` ref deletions, and
+`pull-requests: read`, spent only on reading the open pull requests so their head
+and base branches are skipped — the fifth exception to "nothing here pushes from CI". It pushes only
+ref deletions, each under `--force-with-lease` against the recorded SHA, and never a
+commit; the checkout sets `persist-credentials: false` and fetches only that
+one file. It is bounded by when it runs and by what it may touch: its first step fails on
+any ref but `main`, before checkout and before the token is used, so the list is trusted
+only as committed on `main`. Every row is validated before any API call (a branch name
+from a narrow character set with no `..`, a 40-hex SHA, exactly two columns), and a bad
+row fails the run having changed nothing. A branch is deleted only when it exists as an
+exact ref, still points at the SHA recorded in the list, is not reported as protected by the API, is not `main`,
+`dev`, `stage` or the default branch, and is not the head or base of an open pull request;
+a ruleset that refuses the delete fails that row without deleting anything. Anything else is reported as skipped or gone. The lease is checked atomically by GitHub,
+so a branch that moved after the read is refused rather than deleted. The default
+branch and the open pull requests are read before anything is deleted: a failed read of
+either stops the run with nothing deleted, and so does an empty default branch. An empty
+list of open pull requests is normal. The input and the repository name reach the
+job only through `env:`, and no expression is interpolated into a `run:` block. Runs are
+serialised by the `prune-branches` concurrency group without cancelling one in flight.
+
+Run it first with `dry_run` left on and read the step summary, then again with it off.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `prune` | `prune` | The run is not on `main`, a row of the list is malformed, or an API call other than a 404 on a branch already gone failed (reading the open pull requests, the ref or its protection), or a delete push was rejected because the branch moved, is protected or was denied. Rows already processed stay deleted; run it again, since a branch that is gone is reported and not an error. |
+
+Not a required check — nothing merges against it. The result is the step summary: a count
+per outcome and one row per branch.
 
 ## `.github/workflows/back-merge.yml` — Back-merge
 

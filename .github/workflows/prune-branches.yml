@@ -1,0 +1,209 @@
+---
+# Deletes a reviewed list of stale branches from the Actions tab: run it on `main`. The list
+# is .github/prune-branches.tsv, one `branch<TAB>sha` row each, approved by the owner before
+# it was committed. A branch is deleted only while it is still at the recorded SHA, so a
+# branch that moved since review is skipped, never removed. Cloud agent sessions cannot
+# delete branches, which is the only reason this exists.
+#
+# `dry_run` defaults to true: the first run reports what would go and deletes nothing. The
+# run skips `main`, `dev`, `stage`, the default branch, a branch the API reports as
+# protected and the head or base of an open pull request. The delete is a leased ref-deletion push, so a branch that
+# moved after the check is refused by GitHub rather than removed.
+name: Prune branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would be deleted without deleting anything'
+        required: false
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: prune-branches
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    name: prune
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      # Spent on deleting the listed refs by a leased `git push`, never on pushing a commit.
+      contents: write
+      # Spent on reading the open pull requests, to skip their head and base branches.
+      pull-requests: read
+    steps:
+      - name: Refuse to run anywhere but main
+        # The list is trusted only as committed on main. This is a failing step, not a
+        # job-level `if`: a skipped job reports success.
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          set -Eeuo pipefail
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "::error::branches are pruned from main, not $REF" >&2
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/prune-branches.tsv
+          sparse-checkout-cone-mode: false
+
+      - name: Delete the listed branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -Eeuo pipefail
+          list=.github/prune-branches.tsv
+
+          # Fail closed: anything but exactly true or false would otherwise pick a mode by accident.
+          case "$DRY_RUN" in
+            true | false) ;;
+            *)
+              echo "dry_run must be true or false, got '$DRY_RUN'; nothing was deleted" >&2
+              exit 1
+              ;;
+          esac
+
+          # Validate every row before any API call: a malformed list changes nothing.
+          bad=0
+          lineno=0
+          while IFS= read -r line || [ -n "$line" ]; do
+            lineno=$((lineno + 1))
+            case "$line" in '' | '#'*) continue ;; esac
+            IFS=$'\t' read -r branch sha extra <<< "$line"
+            if [ -n "${extra:-}" ] || [ -z "${sha:-}" ] \
+              || ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]] || [[ "$branch" == *..* ]] \
+              || ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::$list line $lineno is malformed" >&2
+              bad=1
+            fi
+          done < "$list"
+          if [ "$bad" -ne 0 ]; then
+            exit 1
+          fi
+
+          # Fail closed: a failed or partial read must never look like "no open pull requests".
+          default_branch=$(gh api "repos/$REPO" --jq .default_branch)
+          if [ -z "$default_branch" ]; then
+            echo "could not read the default branch; nothing was deleted" >&2
+            exit 1
+          fi
+          pulls="repos/$REPO/pulls?state=open&per_page=100"
+          if ! heads=$(gh api --paginate "$pulls" --jq '.[] | .head.ref, .base.ref'); then
+            echo "could not list open pull requests; nothing was deleted" >&2
+            exit 1
+          fi
+          declare -A open_heads=()
+          while IFS= read -r ref; do
+            [ -n "$ref" ] && open_heads["$ref"]=1
+          done <<< "$heads"
+
+          # The delete is a git push under an explicit lease, which GitHub checks
+          # atomically against the recorded SHA. The token travels in the environment
+          # only, never in an argument, and is masked.
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth"
+
+          err=$(mktemp)
+          rows=$(mktemp)
+          deleted=0 would=0 gone=0 skipped=0 failed=0
+          record() {
+            # $1 outcome, $2 branch, $3 detail
+            printf '| %s | `%s` | %s |\n' "$1" "$2" "$3" >> "$rows"
+            case "$1" in
+              deleted) deleted=$((deleted + 1)) ;;
+              would-delete) would=$((would + 1)) ;;
+              gone) gone=$((gone + 1)) ;;
+              skipped) skipped=$((skipped + 1)) ;;
+              *) failed=$((failed + 1)) ;;
+            esac
+          }
+
+          # Read the list on fd 3 so no command in the body can consume it, with the same
+          # trailing-line guard as the validation loop.
+          while IFS=$'\t' read -r -u 3 branch sha || [ -n "${branch:-}" ]; do
+            case "$branch" in '' | '#'*) continue ;; esac
+            if [ "$branch" = main ] || [ "$branch" = dev ] || [ "$branch" = stage ] \
+              || [ "$branch" = "$default_branch" ]; then
+              record skipped "$branch" "never pruned"
+              continue
+            fi
+            if [ -n "${open_heads[$branch]:-}" ]; then
+              record skipped "$branch" "open pull request (head or base)"
+              continue
+            fi
+            ref_err="$RUNNER_TEMP/ref.err"
+            if ! ref=$(gh api "repos/$REPO/git/ref/heads/$branch" 2> "$ref_err"); then
+              if grep -q 'HTTP 404' "$ref_err"; then
+                record gone "$branch" "no such branch"
+              else
+                record failed "$branch" "reading the ref failed"
+              fi
+              continue
+            fi
+            # A prefix lookup can return an array of refs; only an exact match counts.
+            if ! current=$(printf '%s' "$ref" | jq -r --arg r "refs/heads/$branch" \
+              'if type == "object" and .ref == $r then .object.sha else empty end'); then
+              record failed "$branch" "unreadable ref response"
+              continue
+            fi
+            if [ -z "$current" ]; then
+              record gone "$branch" "no exact ref"
+              continue
+            fi
+            if [ "$current" != "$sha" ]; then
+              record skipped "$branch" "moved since review"
+              continue
+            fi
+            if ! protected=$(gh api "repos/$REPO/branches/$branch" --jq .protected 2> "$err"); then
+              record failed "$branch" "reading protection failed"
+              continue
+            fi
+            if [ "$protected" != false ]; then
+              record skipped "$branch" "protected"
+              continue
+            fi
+            if [ "$DRY_RUN" = true ]; then
+              record would-delete "$branch" "at $sha"
+              continue
+            fi
+            [ "$DRY_RUN" = false ] || exit 1
+            if git push --quiet "https://github.com/$REPO.git" \
+              "--force-with-lease=refs/heads/$branch:$sha" ":refs/heads/$branch" 2> "$err"; then
+              record deleted "$branch" "at $sha"
+            else
+              record failed "$branch" "push rejected (moved, protected or denied)"
+            fi
+          done 3< "$list"
+
+          {
+            echo "## Prune branches (dry run: $DRY_RUN)"
+            echo
+            echo "| Outcome | Count |"
+            echo "| --- | --- |"
+            echo "| deleted | $deleted |"
+            echo "| would delete | $would |"
+            echo "| gone | $gone |"
+            echo "| skipped | $skipped |"
+            echo "| failed | $failed |"
+            echo
+            echo "| Outcome | Branch | Detail |"
+            echo "| --- | --- | --- |"
+            cat "$rows"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::$failed branch operation(s) failed" >&2
+            exit 1
+          fi
