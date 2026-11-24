@@ -2,17 +2,17 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The twenty-nine plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform, devtools, smallbiz, backend, languages, linux, databases, observability, embedded, learning, research, growth and iac" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The thirty plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform, devtools, smallbiz, backend, languages, linux, databases, observability, embedded, learning, research, growth, iac and toolchain" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-528 agent skills, 51 subagents, eleven slash commands and 29 project kits, in
-twenty-nine plugins you install separately.
+535 agent skills, 52 subagents, eleven slash commands and 30 project kits, in
+thirty plugins you install separately.
 
-[![Skills](https://img.shields.io/badge/skills-528-7c3aed)](#plugins)
+[![Skills](https://img.shields.io/badge/skills-535-7c3aed)](#plugins)
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
@@ -49,12 +49,12 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window. Past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`personal` and `iac` fit the default budget on their own. The other twenty-seven are over it,
+`personal`, `iac` and `toolchain` fit the default budget on their own. The other twenty-seven are over it,
 each by enough that installed alone at least one of its descriptions is dropped. To install
 several, raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.5 }
+{ "skillListingBudgetFraction": 0.55 }
 ```
 
 That figure covers the whole marketplace, with a little headroom; anything smaller
@@ -86,6 +86,7 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills, 1 subagent | 1 |
 | [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills, 1 subagent | 1 |
 | [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills, 1 subagent | 1 |
+| [`toolchain`](#toolchain) | The DevOps toolchain, tool by tool: GitLab CI, Jenkins, Spinnaker, Artifactory, SonarQube, Chef and Helm | 7 skills, 1 subagent | 1 |
 | [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills, 1 subagent | 1 |
 | [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills, 1 subagent | 1 |
 | [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills, 1 subagent | 1 |
@@ -1279,6 +1280,41 @@ configuration error, and the cleanup result with any orphaned resource addresses
 | Skill | Rule | Hook | Template |
 | --- | --- | --- | --- |
 | `iac-apply-pipeline` | `terraform-apply-handoff` | `refuse-unsaved-terraform-apply` | `apply-approval-record` |
+
+### Toolchain
+
+The DevOps toolchain, tool by tool: GitLab CI that runs twice or skips a job, a Jenkinsfile that leaks a secret into the console, a Spinnaker pipeline that deployed the wrong tag, an Artifactory virtual repository that resolves the public package, a SonarQube gate that is green while the build is not blocked, a Chef cookbook upgrade that changed every node, and a Helm release stuck in a pending state. Tool-neutral pipeline design stays in `delivery`, and cloud and Kubernetes estates stay in `platform`.
+
+Hand one pipeline definition to `pipeline-definition-reader`, a `.gitlab-ci.yml` with the included files you supply, a Jenkinsfile or a Spinnaker pipeline JSON; it returns each job or stage with the events it runs on, what it needs, the environments it deploys to and the credentials or variables it references by name, plus what it could not resolve.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `pipeline-definition-reader` | One pipeline definition: a `.gitlab-ci.yml` with the included files supplied, a Jenkinsfile or a Spinnaker pipeline JSON | A table of each job or stage with its triggers, dependencies, target environments and the credential and variable names it references, and what could not be resolved |
+
+#### Skills
+
+<details>
+<summary>toolchain skills (7)</summary>
+
+| Skill | What it does |
+| --- | --- |
+| [`gitlab-ci-pipelines`](plugins/toolchain/skills/gitlab-ci-pipelines/SKILL.md) | Fix or write GitLab CI that runs twice, skips a job, leaks a variable or overlaps deploys. |
+| [`jenkins-pipelines`](plugins/toolchain/skills/jenkins-pipelines/SKILL.md) | Write or repair a declarative Jenkinsfile and keep the controller healthy. |
+| [`spinnaker-pipelines`](plugins/toolchain/skills/spinnaker-pipelines/SKILL.md) | Write or repair Spinnaker deploy pipelines, canary gates and stuck executions. |
+| [`artifactory-repositories`](plugins/toolchain/skills/artifactory-repositories/SKILL.md) | Lay out Artifactory repositories so resolution cannot be hijacked and releases stay immutable. |
+| [`sonarqube-quality-gates`](plugins/toolchain/skills/sonarqube-quality-gates/SKILL.md) | Make a SonarQube quality gate decide whether a pipeline passes, with numbers you can trust. |
+| [`chef-cookbooks`](plugins/toolchain/skills/chef-cookbooks/SKILL.md) | Write, test and roll out Chef Infra cookbooks through Policyfiles and policy groups. |
+| [`helm-releases`](plugins/toolchain/skills/helm-releases/SKILL.md) | Operate Helm 3 releases without leaving them stuck or half-changed. |
+
+</details>
+
+#### Project kit
+
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `gitlab-ci-pipelines` | `gitlab-ci-rules` | `refuse-gitlab-only-except` | `pipeline-change-record` |
 
 ### Devtools
 

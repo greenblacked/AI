@@ -18,7 +18,7 @@ plugins/<plugin>/skills/<name>/
 ```
 
 `<plugin>` is one of `coding`, `operations`, `delivery`, `security`, `gamedev`, `manager`,
-`personal`, `career`, `design`, `llm`, `data`, `techdocs`, `assurance`, `client-apps`, `product`, `platform`, `devtools`, `smallbiz`, `backend`, `languages`, `linux`, `databases`, `observability`, `embedded`, `learning`, `research`, `growth`, `iac` or `family` — the twenty-nine plugins in
+`personal`, `career`, `design`, `llm`, `data`, `techdocs`, `assurance`, `client-apps`, `product`, `platform`, `devtools`, `smallbiz`, `backend`, `languages`, `linux`, `databases`, `observability`, `embedded`, `learning`, `research`, `growth`, `iac`, `toolchain` or `family` — the thirty plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 
@@ -254,7 +254,7 @@ decision gets made on both numbers rather than on the alarming one.
 
 This repository's descriptions add up to far more than the default budget — `make
 validate` prints the current per-plugin figures and the total they build up to — which is
-why they are split across twenty-nine plugins rather than three. `personal` and `iac` fit
+why they are split across thirty plugins rather than three. `personal`, `iac` and `toolchain` fit
 the default budget on their own. `make validate`'s per-plugin line names
 the rest and how far over each sits; the ones most likely to be installed together are the
 ones whose descriptions are most at risk of being dropped in a real session. Read that
@@ -272,7 +272,7 @@ into a warning:
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-A single threshold cannot gate this, because every plugin but `personal` and `iac` is already above
+A single threshold cannot gate this, because every plugin but `personal`, `iac` and `toolchain` is already above
 the runtime default and a gate set there would fail on every run forever. So the gate is a ratchet
 instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
 per plugin with a few hundred characters of slack, `make catalogue` enforces it, and

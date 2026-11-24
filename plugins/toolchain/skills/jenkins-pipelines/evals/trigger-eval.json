@@ -1,0 +1,92 @@
+[
+  {
+    "query": "Our Jenkins build sits in the queue saying waiting for next available executor, what do we check",
+    "should_trigger": true
+  },
+  {
+    "query": "A secret token appeared in the Jenkins console log from an sh step, how do we stop that",
+    "should_trigger": true
+  },
+  {
+    "query": "I get java.io.NotSerializableException in my declarative pipeline after parsing JSON",
+    "should_trigger": true
+  },
+  {
+    "query": "Jenkins says Scripts not permitted to use method, should I approve it",
+    "should_trigger": true
+  },
+  {
+    "query": "Two builds of the same Jenkins job deploy to production at once, how do I serialise them",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I pin our shared library version in the Jenkinsfile so a library merge cannot break every job",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up Jenkins Configuration as Code and pin the plugins so an update cannot break all jobs",
+    "should_trigger": true
+  },
+  {
+    "query": "Should builds run on the Jenkins built-in node? We set it to zero executors and now jobs wait in the queue",
+    "should_trigger": true
+  },
+  {
+    "query": "What does @NonCPS do and when should I use it in a Jenkinsfile",
+    "should_trigger": true
+  },
+  {
+    "query": "Is it safe to use Jenkins replay to hotfix and deploy a pipeline change",
+    "should_trigger": true
+  },
+  {
+    "query": "Design our CI stages and caching so builds are fast regardless of which CI tool we use",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "Audit who can reach our deploy secrets through pull request workflows",
+    "should_trigger": false,
+    "expected": "pipeline-hardening"
+  },
+  {
+    "query": "The CI run is red, work out whether it is a flake or a real failure",
+    "should_trigger": false,
+    "expected": "ci-triage"
+  },
+  {
+    "query": "Choose between canary and blue green for our next release",
+    "should_trigger": false,
+    "expected": "release-strategy"
+  },
+  {
+    "query": "Our Argo CD application is out of sync with git and keeps reverting",
+    "should_trigger": false,
+    "expected": "gitops-operations"
+  },
+  {
+    "query": "The Jenkins controller JVM keeps hitting OutOfMemoryError, analyse the heap",
+    "should_trigger": false,
+    "expected": "jvm-oom-triage"
+  },
+  {
+    "query": "Read this Jenkins controller thread dump and tell me what is blocked",
+    "should_trigger": false,
+    "expected": "jvm-thread-dump-triage"
+  },
+  {
+    "query": "Rotate the credentials that leaked in our build logs",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "Write the new workflow file from our agreed design for the repo",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "The Jenkins server disk is full, find what is using the space",
+    "should_trigger": false,
+    "expected": "disk-full-triage"
+  }
+]
