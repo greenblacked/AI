@@ -170,14 +170,17 @@ any branch. When analysis must cover merge requests from unprotected branches, g
 token only to a separate analysis job that never runs branch code: it runs on a fresh
 runner or container, takes the build's coverage and test reports only as artifacts, uses
 the standalone scanner rather than a Maven or Gradle plugin (those run the branch's
-build logic), and has a definition from configuration contributors cannot change.
-Otherwise, skip authenticated analysis on those branches and gate on the
-protected-branch run. Let the scanner read it from the `SONAR_TOKEN` environment
-variable (check the variable name for the pinned scanner). Do not pass it as a
-`-Dsonar.token=` or `-Dsonar.login=` argument, which puts it in the process arguments,
-and do not echo it. Do not expose the analysis token to jobs that build untrusted fork
-code; route that review to `pipeline-hardening` and the rotation schedule to
-`secret-rotation`.
+build logic), has a definition from configuration contributors cannot change, pins the
+server and the project on the scanner command line from that configuration
+(`-Dsonar.host.url=` and `-Dsonar.projectKey=`, which take precedence over
+`sonar-project.properties`) so a branch cannot redirect the token or the result, and has
+a runner that can reach only the SonarQube server. Otherwise, skip authenticated
+analysis on those branches and gate on the protected-branch run. Let the scanner read it
+from the `SONAR_TOKEN` environment variable (check the variable name for the pinned
+scanner). Do not pass it as a `-Dsonar.token=` or `-Dsonar.login=` argument, which puts
+it in the process arguments, and do not echo it. Do not expose the analysis token to
+jobs that build untrusted fork code; route that review to `pipeline-hardening` and the
+rotation schedule to `secret-rotation`.
 
 Persist the scanner's cache directory between runs, as the integration's guidance describes,
 and keep the scanner version pinned so a floating version cannot change results between runs.
