@@ -166,15 +166,18 @@ version offers) rather than a user's personal token, and supply it as a masked a
 protected CI variable, so jobs on unprotected branches cannot read it. Do not unprotect
 it to make merge-request analysis work: anyone who can push a branch could then
 exfiltrate it and submit an analysis for any branch, because a project token can analyse
-any branch. When analysis must run on merge requests from unprotected branches, run it
-from pipeline configuration contributors cannot change (for example a protected or
-included pipeline definition the project controls), or skip the authenticated analysis
-there and gate on the protected-branch run. Let the scanner read it from the
-`SONAR_TOKEN` environment variable (check the variable name for the pinned scanner).
-Do not pass it as a `-Dsonar.token=` or `-Dsonar.login=` argument, which puts it in the
-process arguments, and do not echo it. Do not expose the analysis token to jobs that
-build untrusted fork code; route that review to `pipeline-hardening` and the rotation
-schedule to `secret-rotation`.
+any branch. When analysis must cover merge requests from unprotected branches, give the
+token only to a separate analysis job that never runs branch code: it runs on a fresh
+runner or container, takes the build's coverage and test reports only as artifacts, uses
+the standalone scanner rather than a Maven or Gradle plugin (those run the branch's
+build logic), and has a definition from configuration contributors cannot change.
+Otherwise, skip authenticated analysis on those branches and gate on the
+protected-branch run. Let the scanner read it from the `SONAR_TOKEN` environment
+variable (check the variable name for the pinned scanner). Do not pass it as a
+`-Dsonar.token=` or `-Dsonar.login=` argument, which puts it in the process arguments,
+and do not echo it. Do not expose the analysis token to jobs that build untrusted fork
+code; route that review to `pipeline-hardening` and the rotation schedule to
+`secret-rotation`.
 
 Persist the scanner's cache directory between runs, as the integration's guidance describes,
 and keep the scanner version pinned so a floating version cannot change results between runs.
