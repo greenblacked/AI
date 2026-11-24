@@ -3,7 +3,7 @@ name: security-reviewer
 description: Review a finished change to this repository for security before it is committed, when the diff touches a workflow, a permissions block, a token or secret, a new third-party action or tool, a new API write in a shipped script, a workflow_run, schedule or pull_request_target trigger, .claude/settings.json or a hook, the allowed-tools of a skill that reads third-party input, or anything credential-shaped or personal. Use beside reviewer, never instead of it. It walks the vulnerability classes in the security-review skill's order and states for each finding a reachable path, the impact and the smallest fix, with no exploit code. It has no editing tools, so it returns a verdict and never the fix. General correctness is reviewer, claims of fact are investigator.
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
-model: fable
+model: claude-fable-5-2
 effort: medium
 ---
 

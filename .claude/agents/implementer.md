@@ -2,7 +2,7 @@
 name: implementer
 description: Write a change in this repository and leave it green — a new or edited skill, reference file, subagent, slash command, validator rule, test or workflow — then run make validate, make catalogue and make test before returning. Use when the shape of the change is already settled and what remains is to write it to the contract in AGENTS.md and prove the gates pass. Give it the paths and the decision; it writes files, so do not use it to explore options or to get an opinion on whether the change is right.
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: sonnet
+model: claude-sonnet-5-5
 effort: medium
 ---
 

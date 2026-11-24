@@ -27,11 +27,11 @@ Claude-specific notes:
   `investigator` runs inside that same plan mode, before any brief exists to approve —
   which costs no editing, since neither agent holds an editing tool to lose — though a
   non-read-only command such as `make validate` may still prompt.
-- The models follow `.claude/agents/`, not the Codex split in `AGENTS.md`: Haiku at high
-  effort surveys (`explorer`), Opus at medium effort settles a claim (`investigator`; `/ship`
+- The models follow `.claude/agents/`, not the Codex split in `AGENTS.md`: Haiku 5.5 (`claude-haiku-5-5`) at high
+  effort surveys (`explorer`), Opus 5.5 (`claude-opus-5-5`) at medium effort settles a claim (`investigator`; `/ship`
   runs it beside `explorer` when the change rests on an outside claim, otherwise two
-  `explorer`s on disjoint questions), Sonnet at medium effort implements (`implementer`),
-  Opus at medium effort reviews (`reviewer`) and Fable at medium effort reviews security
+  `explorer`s on disjoint questions), Sonnet 5.5 (`claude-sonnet-5-5`) at medium effort implements (`implementer`),
+  Opus 5.5 at medium effort reviews (`reviewer`) and Fable 5.2 (`claude-fable-5-2`) at medium effort reviews security
   (`security-reviewer`, which `/ship` runs beside `reviewer` when the diff touches a
   security trigger). When a model or effort changes, change the
   agent's `model:` or `effort:` line, this sentence, the agent table in `README.md` (which

@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Changed
+
+- Every agent under `.claude/agents/` now names the latest model by explicit ID rather than a bare alias, since an alias can resolve to an older release: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` and `claude-fable-5-2`. Efforts are unchanged. The shipped `family` plugin keeps the `sonnet` and `opus` aliases, which each provider resolves itself. The README agent table, `CLAUDE.md` and `docs/writing-agents.md` state the same IDs.
+
 ### Added
 
 - The `toolchain` plugin, the thirtieth: the DevOps toolchain tool by tool, with seven skills (`gitlab-ci-pipelines`, `jenkins-pipelines`, `spinnaker-pipelines`, `artifactory-repositories`, `sonarqube-quality-gates`, `chef-cookbooks` and `helm-releases`), the read-only `pipeline-definition-reader` subagent for a `.gitlab-ci.yml`, a Jenkinsfile or a Spinnaker pipeline JSON, and a project kit under `gitlab-ci-pipelines`: a path-scoped rule, a `PreToolUse` hook template that refuses a write adding `only:` or `except:` to a GitLab CI file, and a pipeline change record. A new plugin rather than more skills in `delivery` or `platform`: those own tool-neutral pipeline design and cloud estates, and a separate plugin stays installable alone. Its seven descriptions fit the runtime's default listing budget on their own, so `listing-budget.json` gains a `toolchain` ceiling of 6,000 characters, the README and `docs/` name `toolchain` beside `personal` and `iac` as fitting alone, and the recommended `skillListingBudgetFraction` moves from 0.5 to 0.55 because the marketplace listing now needs 0.502. `tests/test_kit_hooks.py` covers thirty hooks, the site gains a `toolchain` page look with its own palette and entrance, and both banners add the plugin.
