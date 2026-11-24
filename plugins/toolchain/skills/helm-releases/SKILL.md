@@ -138,14 +138,15 @@ job are in `references/preflight-checks.md`.
 
 ### 6. Pin the chart, not just the values
 
-Install an exact `--version`; with none Helm takes the latest, and a range resolves at
-run time to whatever is newest that day. For OCI registries use `oci://host/path/chart`
-with `helm registry login` (use `--password-stdin`, not `-p`); there is no
-`helm repo add` step, and OCI support differs between older and current Helm, so check
-the pinned version. Commit `Chart.lock` and build with `helm dependency build`, which
-honours the lock, rather than `dependency update`, which re-resolves it. Where the
-registry and Helm support it, verify provenance with `--verify` or pin by digest; read
-the docs for the pinned version.
+Pin an exact `--version` where the chart is resolved, and check and install that same
+pulled chart (`references/preflight-checks.md`); with none Helm takes the latest, and a
+range resolves at run time to whatever is newest that day. For OCI registries use
+`oci://host/path/chart` with `helm registry login` (use `--password-stdin`, not `-p`);
+there is no `helm repo add` step, and OCI support differs between older and current
+Helm, so check the pinned version. Commit `Chart.lock` and build with
+`helm dependency build`, which honours the lock, rather than `dependency update`, which
+re-resolves it. Where the registry and Helm support it, verify provenance with
+`--verify` or pin by digest; read the docs for the pinned version.
 
 ### 7. Handle CRDs separately
 

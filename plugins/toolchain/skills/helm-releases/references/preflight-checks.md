@@ -1,19 +1,42 @@
 # Pre-flight checks and deploy job
 
-Contents: lint and render, schema validation, diff, a deploy job, what each check cannot
-see.
+## Contents
+
+Resolve the chart, lint and render, schema validation, diff, a deploy job, what each
+check cannot see.
 
 Pin the versions of `helm`, `kubeconform` and the `helm-diff` plugin in the CI image, and
 verify downloads against a recorded checksum rather than piping a script into a shell.
 Flag names below are for current Helm 3 and should be checked against the pinned one.
+
+## Resolve the chart
+
+```bash
+set -Eeuo pipefail
+if [[ -n "${CHART_REF:-}" ]]; then
+  # A published chart: pull the pinned version once and unpack it into the workspace.
+  # CHART_NAME is the chart's name as packaged, the last path element of the reference.
+  helm pull "$CHART_REF" --version "$CHART_VERSION" --untar --untardir build
+  CHART="build/${CHART_NAME}"
+else
+  # A chart kept in this repository.
+  CHART=./chart
+fi
+```
+
+Set `CHART_REF` for a published chart; leave it unset for a chart kept in this
+repository. Every check below and the deploy use that same `$CHART`, so the gates test
+exactly what is installed. Resolve it in the same job as the deploy, or pass the pulled
+directory between jobs as an internal artifact. Where the registry and Helm support it,
+add `--verify` to the pull.
 
 ## Lint and render
 
 ```bash
 set -Eeuo pipefail
 VALUES=(-f values.yaml -f "values-${ENV_NAME}.yaml")
-helm lint ./chart --strict "${VALUES[@]}"
-helm template "$REL" ./chart --namespace "$NS" --kube-version "$KUBE_VERSION" \
+helm lint "$CHART" --strict "${VALUES[@]}"
+helm template "$REL" "$CHART" --namespace "$NS" --kube-version "$KUBE_VERSION" \
   --include-crds "${VALUES[@]}" > rendered.yaml
 ```
 
@@ -43,7 +66,7 @@ version, not the newest one.
 
 ```bash
 set -Eeuo pipefail
-helm diff upgrade "$REL" ./chart --namespace "$NS" "${VALUES[@]}" \
+helm diff upgrade "$REL" "$CHART" --namespace "$NS" "${VALUES[@]}" \
   --detailed-exitcode --context 3 --suppress-secrets || rc=$?
 echo "diff exit: ${rc:-0}"
 # 0 is no change and 2 is changes; anything else is a plugin or render error
@@ -63,7 +86,7 @@ restricted, never in shared CI output.
 
 ```bash
 set -Eeuo pipefail
-helm upgrade --install "$REL" "$CHART_REF" --version "$CHART_VERSION" \
+helm upgrade --install "$REL" "$CHART" \
   --namespace "$NS" --create-namespace \
   "${VALUES[@]}" \
   --wait --timeout 10m --history-max 5
