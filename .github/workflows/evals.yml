@@ -1,13 +1,9 @@
 ---
-# Trigger evaluation. Three jobs: the whole catalogue monthly or on request, the skills
-# and agents a pull request changed plus their declared neighbours, and a
-# quality benchmark of the `reviewer` subagent — monthly, on request, or on a pull
-# request that changes the benchmark itself. None is a required check, and the pull
-# request one fails only below a floor well
-# under its reporting bar: scoring costs money, it is sampled rather than deterministic,
-# and a gate that is occasionally wrong is a gate people learn to override. The schema of
-# every eval set is checked on every push by `skillcheck`; this workflow scores the
-# queries.
+# Trigger evaluation on protected main. The monthly schedule and manual dispatch score
+# the catalogue and can run the reviewer benchmark. Same-repository pull requests score
+# changed skills and agents plus their declared neighbours. These jobs are advisory.
+# Sampling is nondeterministic and costs money, so the pull request job fails only below
+# a floor well under its reporting bar. `skillcheck` validates eval schemas on every push.
 name: Trigger evals
 
 on:
@@ -18,13 +14,22 @@ on:
   # answer changes when the catalogue does.
   schedule:
     - cron: '0 7 1 * *'
-  # On every pull request, for changed skills and agents plus their neighbours.
+  # On pull requests targeting main, for changed skills and agents plus their neighbours.
+  # The target form keeps this workflow and its executable harness on GitHub's event
+  # revision while the candidate checkout is read only as evaluation data. Forks are
+  # excluded at the job boundary so they cannot spend the repository's model credential.
   # A monthly cadence does not tell the author of a new skill that it took a neighbour's
   # queries, and that collision is invisible in the new skill's own score — one merged
   # at 95% while breaking the skill next door. Deliberately no `paths:` filter, for the
   # reason ci.yml gives: a workflow skipped by a path filter leaves its check Pending
-  # forever. The job runs every time and reports that nothing changed when nothing did.
-  pull_request:
+  # forever. The job also requires main to be protected before it checks out either tree.
+  # zizmor flags every pull_request_target checkout of a candidate revision, even when
+  # the checkout is isolated as data. The changed-target job below rejects non-regular
+  # candidate entries, executes only the base revision's harness, disables model tools,
+  # and grants a read-only token; the reviewer benchmark never runs for this event.
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       skill:
@@ -62,7 +67,9 @@ on:
           - codex
           - gemini
       model:
-        description: Model name passed to the CLI; blank uses the CLI's default
+        description: >-
+          Model name passed to the CLI; blank means EVAL_CLAUDE_MODEL for the claude
+          backend and the CLI's own default for codex and gemini
         required: false
         default: ''
         type: string
@@ -81,8 +88,8 @@ permissions: {}
 # since both are on main and the monthly run takes two hours.
 concurrency:
   group: >-
-    ${{ github.workflow }}-${{ github.event_name == 'pull_request'
-    && github.ref || github.run_id }}
+    ${{ github.workflow }}-${{ github.event_name == 'pull_request_target'
+    && github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 # The backend CLIs, pinned at workflow level the way ci.yml and security.yml pin theirs.
@@ -96,6 +103,11 @@ env:
   CLAUDE_CODE_VERSION: '2.1.291'
   CODEX_VERSION: '0.160.1'
   GEMINI_CLI_VERSION: '0.62.0'
+  # The model the claude backend scores on. Scores are only comparable run to run when
+  # the model is pinned, and the CLI's default moves under you. Sonnet balances a current
+  # routing model against the cost of about one call per query per sample across the
+  # catalogue. Bump it here when a newer model ships.
+  EVAL_CLAUDE_MODEL: 'claude-sonnet-5-5'
   PYTEST_VERSION: '9.1.1'
   COVERAGE_VERSION: '7.16.2'
   # The benchmarked reviewer runs `make test` and `make coverage` in a worktree, and
@@ -109,7 +121,9 @@ jobs:
     # The whole catalogue, monthly or on request. A pull request scores only what it
     # touched, in `evaluate-changed` below; running this one per push would be three
     # thousand model calls a commit.
-    if: github.event_name != 'pull_request'
+    if: >-
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' && github.ref_protected
     runs-on: ubuntu-latest
     # At the defaults this is fifty targets x twenty queries x three samples, three
     # thousand model calls with four in flight at a time. The runner writes its results
@@ -163,7 +177,7 @@ jobs:
             # down for a second reason: one from a fork is handed no secrets at all, and
             # a contributor must never face a red check they have no way to make green.
             case "${GITHUB_EVENT_NAME}" in
-              schedule | pull_request)
+              schedule)
                 echo "::notice title=no credentials::Skipping the trigger eval:" \
                   "set the $wanted repository secret to enable it"
                 echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -209,6 +223,8 @@ jobs:
           fi
           if [ -n "$MODEL" ]; then
             extra+=(--model "$MODEL")
+          elif [ "$BACKEND" = "claude" ]; then
+            extra+=(--model "$EVAL_CLAUDE_MODEL")
           fi
           python scripts/run_trigger_eval.py "${target[@]}" "${extra[@]}" \
             --runs "$RUNS" --threshold "$THRESHOLD" --jobs 4 --json evals.json --verbose
@@ -255,7 +271,10 @@ jobs:
     # Only a pull request has a base to diff against. A job skipped by an `if:` reports
     # success, which is the mechanism ci.yml documents as the safe one — unlike a
     # workflow-level `paths:` filter, which leaves the check Pending and blocks a merge.
-    if: github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'pull_request_target' && github.base_ref == 'main' &&
+      github.ref == 'refs/heads/main' && github.ref_protected &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     # Twelve targets at twenty queries and three samples is seven hundred calls with
     # four in flight, well inside this. The monthly job's two hours is for fifty.
@@ -263,11 +282,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Check out the trusted eval harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-          # The base branch has to be reachable for the diff below; the default shallow
-          # clone has only the pull request's own commits.
+      - name: Check out the candidate data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+          # Both immutable endpoints have to be reachable for the changed-path diff.
           fetch-depth: 0
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
@@ -278,30 +303,45 @@ jobs:
         # would be another pinned dependency in the supply chain for it.
         run: |
           set -Eeuo pipefail
-          if ! git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" > /dev/null; then
-            git fetch --no-tags --prune --quiet origin \
-              "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+          # Git can represent symlinks and submodules, either of which could make a
+          # candidate path resolve outside this checkout. Trigger evals need regular
+          # definition and JSON files only, so reject every other tracked mode before a
+          # later step receives a model credential.
+          if ! git -C candidate ls-files --stage | \
+            awk '$1 != "100644" && $1 != "100755" { unsafe = 1 } END { exit unsafe }'
+          then
+            echo "::error title=unsafe candidate data::Trigger evals accept regular files only"
+            exit 1
           fi
-          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > changed-paths.txt
+          git -C candidate diff --no-ext-diff --no-textconv --no-renames \
+            --name-only -z "$BASE_SHA...$HEAD_SHA" > changed-paths.bin
           python - <<'EOF'
           import json
           import os
           import pathlib
+          import re
 
           # Past a dozen targets the run stops being a pull request check and starts
           # being the monthly job, so it truncates and says that it did.
           CAP = 12
 
-          root = pathlib.Path(".")
+          root = pathlib.Path("candidate")
+          canonical_path = re.compile(
+              r"^\.?[A-Za-z0-9_][A-Za-z0-9._-]*"
+              r"(?:/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$"
+          )
+          target_name = re.compile(r"^[a-z][a-z0-9-]*$")
           changed = [
-              line.strip()
-              for line in pathlib.Path("changed-paths.txt").read_text(encoding="utf-8").splitlines()
-              if line.strip()
+              os.fsdecode(value)
+              for value in pathlib.Path("changed-paths.bin").read_bytes().split(b"\0")
+              if value
           ]
 
 
           def target_of(path):
               """A changed skill, agent definition, or paired agent eval set."""
+              if canonical_path.fullmatch(path) is None:
+                  return None
               parts = pathlib.PurePosixPath(path).parts
               if len(parts) >= 4 and parts[0] == "plugins" and parts[2] == "skills":
                   return ("skill", pathlib.Path(*parts[:4]))
@@ -320,11 +360,13 @@ jobs:
 
           def definition(target):
               kind, path = target
+              path = root / path
               return path / "SKILL.md" if kind == "skill" else path
 
 
           def eval_set(target):
               kind, path = target
+              path = root / path
               if kind == "skill":
                   return path / "evals" / "trigger-eval.json"
               return path.parent / "evals" / (path.stem + ".json")
@@ -336,14 +378,16 @@ jobs:
               Both places a subagent legitimately lives are searched, because a skill's
               near-miss queries are routinely owned by one.
               """
+              if not isinstance(name, str) or target_name.fullmatch(name) is None:
+                  return None
               for candidate in sorted(root.glob(f"plugins/*/skills/{name}")):
-                  target = ("skill", candidate)
+                  target = ("skill", candidate.relative_to(root))
                   if definition(target).is_file() and eval_set(target).is_file():
                       return target
               for parent in ("plugins/*/agents", ".claude/agents"):
                   for candidate in sorted(root.glob(f"{parent}/{name}.md")):
                       if (candidate.parent / "evals" / f"{name}.json").is_file():
-                          return ("agent", candidate)
+                          return ("agent", candidate.relative_to(root))
               return None
 
 
@@ -417,21 +461,15 @@ jobs:
           for kind, path in selected:
               print(f"{kind} {path.as_posix()}")
           EOF
+        env:
+          BASE_SHA: ${{ github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       - name: Check the backend has a credential
         id: credentials
         if: steps.targets.outputs.count != '0'
-        # A pull request from a fork is handed no secrets, so a missing credential
-        # there cannot be an error: the contributor could do nothing about it, and a red
-        # check nobody can make green is a check everybody learns to ignore. A pull
-        # request from this same repository is a different case — the maintainer could
-        # set the secret and has not, so a notice claiming "expected on a fork" would be
-        # false for them, and it is how the 0.7 floor below went unenforced with nothing
-        # saying so. SAME_REPO is computed in `env`, never interpolated into the script
-        # itself, so the head repo's name never reaches the shell as literal text.
-        # A same-repository pull request opened by Dependabot is a third shape: GitHub
-        # withholds repository secrets from those too, so this warning can still fire
-        # there even with CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY configured — that
-        # is expected, not a sign the secret is missing or misnamed.
+        # Forks never reach this job. A missing credential on a same-repository pull
+        # request therefore means scoring is not configured, so say that directly rather
+        # than claiming the absence is an expected fork restriction.
         run: |
           set -Eeuo pipefail
           if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}${ANTHROPIC_API_KEY:-}" ]; then
@@ -439,30 +477,18 @@ jobs:
             exit 0
           fi
           echo "skip=true" >> "$GITHUB_OUTPUT"
-          if [ "$SAME_REPO" = "true" ]; then
-            echo "::warning title=no credential configured::Trigger-eval scoring is" \
-              "inactive: set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY as a" \
-              "repository secret to enforce the 0.7 floor on pull requests"
-            {
-              echo "Not scored: no model credential is configured as a repository"
-              echo "secret. Scoring is inactive until CLAUDE_CODE_OAUTH_TOKEN or"
-              echo "ANTHROPIC_API_KEY is set."
-              echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::notice title=no credentials::Not scoring the changed skills and agents:" \
-              "this run has no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY," \
-              "which is expected on a pull request from a fork"
-            {
-              echo "Not scored: this run has no model credential. That is expected on a"
-              echo "pull request from a fork, and is not a failure."
-              echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+          echo "::warning title=no credential configured::Trigger-eval scoring is" \
+            "inactive: set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY as a" \
+            "repository secret to enforce the 0.7 floor on pull requests"
+          {
+            echo "Not scored: no model credential is configured as a repository"
+            echo "secret. Scoring is inactive until CLAUDE_CODE_OAUTH_TOKEN or"
+            echo "ANTHROPIC_API_KEY is set."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
         with:
@@ -491,7 +517,9 @@ jobs:
               *) echo "::error title=unknown target kind::$kind"; exit 1 ;;
             esac
             code=0
-            python scripts/run_trigger_eval.py "$flag" "$path" \
+            python scripts/run_trigger_eval.py "$flag" "$CANDIDATE_ROOT/$path" \
+              --root "$CANDIDATE_ROOT" \
+              --model "$EVAL_CLAUDE_MODEL" \
               --runs 3 --threshold "$REPORT_BAR" --jobs 4 --verbose \
               --json "eval-results/$(printf '%03d' "$index").json" || code=$?
             # 1 is "scored below the reporting bar", which the publish step judges
@@ -505,6 +533,7 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CANDIDATE_ROOT: ${{ github.workspace }}/candidate
           REPORT_BAR: '0.8'
       - name: Publish the scores
         # `!= 'skipped'` rather than `== 'success'`: when the harness itself dies
@@ -592,11 +621,14 @@ jobs:
     # back is any good — whether a seeded defect from docs/review-lessons.md is caught,
     # and whether an honest clean change is shipped rather than stalled on an invented
     # objection. It runs the real subagent through the real CLI, so it costs a model call
-    # per case per sample. On a pull request it therefore runs only when the thing it
-    # measures changed: the cases, the agent, or the harness. A scheduled or dispatched
-    # run always goes. The job carries no job-level `if:`, because one that skips reports
-    # success but a pull request that touches none of those inputs should still get a
-    # green check rather than a Pending one; the gate step below decides instead.
+    # per case per sample. Candidate agents, fixtures and worktrees can execute commands,
+    # so a pull request never runs this secret-bearing benchmark. A scheduled or
+    # dispatched run evaluates the protected main event revision. The gate step below
+    # still records a stand-down on eligible pull request events.
+    if: >-
+      github.ref == 'refs/heads/main' && github.ref_protected &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && github.base_ref == 'main'))
     runs-on: ubuntu-latest
     # Twenty-seven cases, three samples each, four in flight — every sample a full review
     # run with up to forty turns. Two hours covers that with headroom, and each sample is
@@ -608,8 +640,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-          # The base branch has to be reachable for the diff the gate step runs.
-          fetch-depth: 0
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.13'
@@ -632,37 +662,28 @@ jobs:
               fi
               exit 0
               ;;
+            pull_request_target)
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              {
+                echo "### Reviewer benchmark"
+                echo ""
+                echo "Not run: pull request worktrees never receive model credentials."
+                echo "Run the benchmark from protected main after review."
+                echo ""
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+              ;;
           esac
-          # A pull request: run only when it changes one of the things a benchmark
-          # number depends on — the cases, the agent under test, the harness, or the
-          # locked Claude client it executes with. The Codex and Gemini clients are
-          # never installed here, so a change to theirs measures nothing.
-          if ! git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" > /dev/null; then
-            git fetch --no-tags --prune --quiet origin \
-              "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
-          fi
-          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > changed-paths.txt
-          measured='^(\.claude/agents/benchmarks/|\.claude/agents/reviewer\.md$|\.github/eval-clients/claude/|scripts/(run_review_benchmark|install_eval_cli)\.py$)'
-          if grep -Eq "$measured" changed-paths.txt; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            {
-              echo "### Reviewer benchmark"
-              echo ""
-              echo "Not run: this pull request changes nothing the benchmark measures."
-              echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+          echo "::error title=unsupported event::$GITHUB_EVENT_NAME"
+          exit 1
         env:
           REVIEWER_INPUT: ${{ inputs.reviewer }}
       - name: Check the benchmark has a credential
         id: credentials
         if: steps.gate.outputs.run == 'true'
-        # Same split as `evaluate`: a scheduled run with no secret stands down with a
-        # notice, because a red mark nobody can clear is one people learn to ignore, and
-        # a pull request from a fork is handed no secrets at all. A run somebody asked
-        # for is owed the error and fails loudly.
+        # A scheduled run with no secret stands down with a notice, because a red mark
+        # nobody can clear is one people learn to ignore. A run somebody asked for is
+        # owed the error and fails loudly. Pull requests never reach this step.
         run: |
           set -Eeuo pipefail
           if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}${ANTHROPIC_API_KEY:-}" ]; then
@@ -671,7 +692,7 @@ jobs:
           fi
           echo "skip=true" >> "$GITHUB_OUTPUT"
           case "${GITHUB_EVENT_NAME}" in
-            schedule | pull_request)
+            schedule)
               echo "::notice title=no credentials::Skipping the reviewer benchmark:" \
                 "set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY to enable it"
               ;;

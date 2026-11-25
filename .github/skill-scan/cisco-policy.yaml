@@ -412,6 +412,18 @@ suppressions:
       does not run it and the allowed-tools grant (Read, Grep, Glob) is not widened.
     expires: 2027-05-02
 
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["gitlab-ci-pipelines"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/refuse-gitlab-only-except.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads one stdin payload, refuses a
+      Write, Edit or MultiEdit whose new content puts an only: or except: key line in a .gitlab-ci.yml or .gitlab/ci/
+      YAML file, allows every other file and any payload it cannot parse, uses standard tools only, and has no network
+      access, secrets or eval. The skill itself does not run it and the allowed-tools grant (Read, Grep, Glob) is not
+      widened.
+    expires: 2027-05-02
+
   # Subagent and slash-command definitions, scanned as one-file skills by scripts/definition_shims.py. Cisco matches
   # `skills` on the shim's frontmatter name, which the wrapper sets to the shim id for agents and commands alike.
   - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE

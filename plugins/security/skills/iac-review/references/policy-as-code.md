@@ -17,6 +17,8 @@ Run both. Source scanners on every commit, plan scanners on every plan, before t
 - [Infracost](#infracost)
 - [Wiring it into CI](#wiring-it-into-ci)
 
+Apply the IaC review trust gate before running the commands on this page. In source-only review, use checks from a trusted pipeline for the reviewed revision or report them as unverified. Before any tool reads raw configuration or plan data, review its configuration, policies, and handling of network requests, logs, reports, and storage. Limit outbound access to approved destinations and inputs.
+
 ## Source scanners
 
 ### tflint
@@ -301,25 +303,25 @@ Run it against the same `plan.json` everything else reviewed, not a fresh plan. 
 
 ## Wiring it into CI
 
-Order matters. Cheap checks first so a formatting error does not consume a plan slot:
+Run the cheap checks first so a formatting error does not consume a plan slot. In this sequence, use an isolated workspace and create `private-review` with restricted access before running any command. Keep shell tracing off. Review the captured output inside the trusted environment and publish only sanitized summaries.
 
 ```yaml
-- terraform fmt -check -recursive -diff
-- terraform init -input=false -lockfile=readonly
-- terraform validate
-- tflint --recursive --minimum-failure-severity=error
-- trivy config --severity HIGH,CRITICAL --exit-code 1 .
-- terraform plan -input=false -lock-timeout=120s -out=tfplan
-- terraform show -json tfplan > plan.json
-- conftest test --policy policy/ --namespace terraform.review plan.json
-- checkov -f plan.json --framework terraform_plan --compact
-- infracost diff --path plan.json --compare-to base.json
-# approval gate here, on the artefacts above
-- terraform apply -input=false tfplan
+- terraform fmt -check -recursive -diff >> private-review/run.log 2>&1
+- terraform init -input=false -lockfile=readonly >> private-review/run.log 2>&1
+- terraform validate >> private-review/run.log 2>&1
+- tflint --recursive --minimum-failure-severity=error >> private-review/run.log 2>&1
+- trivy config --severity HIGH,CRITICAL --exit-code 1 . >> private-review/run.log 2>&1
+- terraform plan -input=false -lock-timeout=120s -out=tfplan >> private-review/run.log 2>&1
+- terraform show -json tfplan > plan.json 2>> private-review/run.log
+- conftest test --policy policy/ --namespace terraform.review plan.json >> private-review/run.log 2>&1
+- checkov -f plan.json --framework terraform_plan --compact >> private-review/run.log 2>&1
+- infracost diff --path plan.json --compare-to base.json >> private-review/run.log 2>&1
+# explicit apply approval for this exact saved plan and target
+- terraform apply -input=false tfplan >> private-review/run.log 2>&1
 ```
 
 Three properties make this a gate rather than theatre:
 
 1. `tfplan` is stored as a pipeline artefact and the apply step consumes *that file*. Re-running `plan` in the apply job means the approval applied to a different change.
 2. `init -lockfile=readonly` means a provider bump fails here rather than being absorbed silently.
-3. `plan.json` contains plaintext sensitive values. Keep it inside the job's workspace, exclude it from artefact upload or encrypt it, and do not post it to a PR comment. Post the policy output and the cost diff instead — those are derived and safe.
+3. `tfplan` and `plan.json` can contain sensitive values and infrastructure metadata. Keep both in the trusted pipeline or access-controlled artefact storage with limited retention. Check policy and cost output for sensitive values and metadata before publishing a sanitized summary.

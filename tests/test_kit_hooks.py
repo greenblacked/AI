@@ -1,4 +1,4 @@
-"""Behaviour tests for the twenty-nine kit hooks under `plugins/*/skills/*/assets/hooks/`.
+"""Behaviour tests for the thirty kit hooks under `plugins/*/skills/*/assets/hooks/`.
 
 `tests/test_plugin_shape.py` checks what a hook is allowed to look like; this file runs
 each one. The cases live in `tests/fixtures/kit_hooks.json` as data: a hook, a payload,
@@ -58,6 +58,7 @@ HOOK_FILES = {
     "rbk": "runbook-stamp",
     "wkrev": "weekly-review-shape",
     "tlsoff": "tls-verification-off",
+    "glci": "refuse-gitlab-only-except",
 }
 
 # Everything a hook may call besides its parser. A tool a hook starts using that is not here
@@ -2417,6 +2418,54 @@ EARLY = {
 for _key, _items in EARLY.items():
     BIG[_key] = BIG[_key] + _items
 
+BIG["glci"] = [
+    (
+        "many-lines",
+        lambda: {"file_path": ".gitlab-ci.yml", "content": "  script: make\n" * 100000},
+        0,
+        {},
+    ),
+    (
+        "one-huge-line",
+        lambda: {"file_path": ".gitlab-ci.yml", "content": "only" + " " * (2 * MB)},
+        0,
+        {},
+    ),
+    (
+        "only-at-the-end",
+        lambda: {"file_path": ".gitlab-ci.yml", "content": "x: 1\n" * 200000 + "  only:\n"},
+        2,
+        {},
+    ),
+    (
+        "quoted-key",
+        lambda: {"file_path": ".gitlab-ci.yml", "content": 'job:\n  "only":\n    - main\n'},
+        2,
+        {},
+    ),
+    (
+        "spaced-key",
+        lambda: {"file_path": ".gitlab-ci.yml", "content": "job:\n  except : [main]\n"},
+        2,
+        {},
+    ),
+    (
+        "many-near-keys",
+        lambda: {"file_path": ".gitlab-ci.yml", "content": "  only_changes: x\n" * 100000},
+        0,
+        {},
+    ),
+    (
+        "many-edits",
+        lambda: {
+            "file_path": ".gitlab-ci.yml",
+            "edits": [{"old_string": "a", "new_string": "  rules: []"}] * 20000,
+        },
+        0,
+        {},
+    ),
+]
+
 BIG_CASES = [
     pytest.param(key, name, build, want, files, id=f"{key}-{name}")
     for key, items in BIG.items()
@@ -2469,6 +2518,7 @@ NO_SCAN = {
     # The closed-object hook reads the file but pipes its findings through a here-string; this
     # schema has enough open objects that the findings outgrow the 1 KiB write limit.
     "closed": lambda: {"file_path": "schemas/many-open.json"},
+    "glci": lambda: {"file_path": ".gitlab-ci.yml", "content": "x: 1\n" * 20000},
 }
 
 

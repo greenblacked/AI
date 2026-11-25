@@ -76,6 +76,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/product/skills/` | Evidence-led product management and go-to-market: discovery, pricing, metrics, churn, deals and support load |
 | `plugins/platform/skills/` | Cloud and platform engineering: Kubernetes, Terraform estates, cloud networks, identity, databases, the edge and commitments |
 | `plugins/iac/skills/` | Infrastructure as code: shared module contracts, module regression tests and reviewed-plan delivery |
+| `plugins/toolchain/skills/` | The DevOps toolchain, tool by tool: GitLab CI, Jenkins, Spinnaker, Artifactory, SonarQube, Chef and Helm |
 | `plugins/devtools/skills/` | Developer tooling and build systems: git recovery, monorepos, build caching, dependencies and benchmarks |
 | `plugins/smallbiz/skills/` | Freelancing and small-business operations: pricing, scope, invoicing, contracts, bookkeeping and tax preparation |
 | `plugins/backend/skills/` | Backend and distributed-systems correctness: webhooks, races, retry budgets, overload, locks, sagas, events and jobs |
@@ -100,7 +101,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the twenty-nine plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the thirty plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `prune-branches.yml`, `back-merge.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
@@ -339,7 +340,24 @@ blocking finding or a failing `ci` or `security` gate.
   request, and a ruleset refusal fails that row without deleting anything. It validates every row before any API call,
   fails closed when it cannot list open pull requests, and defaults to a dry run; its
   checkout fetches that one file with `persist-credentials: false`, and the token reaches
-  `git` only through the environment, masked, never in an argument. `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script acts only when the pushed commit is the `merge_commit_sha` of a merged `release/promote-*` pull request from this repository into that branch. Its `GITHUB_TOKEN` is `contents: read`; a GitHub App token, never `GITHUB_TOKEN`, creates one `chore/back-merge-*` branch at the pushed commit with `POST git/refs`, never moving, forcing, reusing or deleting a ref, and opens the pull request that merges it back down. It never merges or resolves a conflict.
+  `git` only through the environment, masked, never in an argument.
+  `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script
+  acts only when the pushed commit is the `merge_commit_sha` of a merged
+  `release/promote-*` pull request from this repository into that branch. Its
+  `GITHUB_TOKEN` is `contents: read`; a GitHub App token, never `GITHUB_TOKEN`, creates
+  one `chore/back-merge-*` branch at the pushed commit with `POST git/refs`, never
+  moving, forcing, reusing or deleting a ref, and opens the pull request that merges it
+  back down. It never merges or resolves a conflict.
+- `evals.yml` uses `pull_request_target` for same-repository changed-target scoring so
+  the workflow and executable harness come from the immutable base SHA rather than the
+  candidate checkout. The head SHA is checked out separately under `candidate/` and is
+  accepted only as regular definition and JSON data; the trusted harness imports its own
+  base-revision modules, receives the candidate root explicitly, and starts Claude with
+  no tools. Forks are excluded before the job starts. The reviewer benchmark stands down
+  on every pull request because its candidate agent, fixtures and worktree can execute
+  commands; it runs with model credentials only on a trusted schedule or dispatch. This
+  bounded use carries `# zizmor: ignore[dangerous-triggers]` beside the trigger because
+  zizmor cannot distinguish the data-only candidate checkout from execution.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

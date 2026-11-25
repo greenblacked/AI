@@ -17,13 +17,10 @@ from tests.conftest import REPO, load_script
 scope = load_script("ci_scope.py")
 
 REPO_NAME = "owner/repo"
-HEAD = "a" * 40
-BASE = "b" * 40
 STAGE = "c" * 40
 STAGE_HEAD = "d" * 40
 TREE = "e" * 40
 STAGE_REF = "feat/promote-to-stage"
-NUMBER = 42
 PATCH = ".claude/agents/benchmarks/reviewer/unpublished-release-links/change.patch"
 
 
@@ -67,11 +64,10 @@ def jobs_path(run_id):
     return f"/repos/{REPO_NAME}/actions/runs/{run_id}/jobs?per_page=100"
 
 
-def run(run_id, base=BASE, status="completed", branch=STAGE_REF, repo=REPO_NAME, number=NUMBER):
+def run(run_id, status="completed", branch=STAGE_REF, repo=REPO_NAME):
     return {
         "id": run_id,
         "status": status,
-        "pull_requests": [{"number": number, "base": {"sha": base}}],
         "head_branch": branch,
         "head_repository": {"full_name": repo},
     }
@@ -81,15 +77,10 @@ CODE_GREEN = [
     {"name": "test (3.13)", "conclusion": "success"},
     {"name": "validate skills", "conclusion": "success"},
 ]
-TEXT_ONLY = [
-    {"name": "test (3.13)", "conclusion": "skipped"},
-    {"name": "validate skills", "conclusion": "skipped"},
-    {"name": "attribution", "conclusion": "success"},
-]
 
 
 def env(**values):
-    return {"REPOSITORY": REPO_NAME, "RUN_ID": "999", **values}
+    return {"REPOSITORY": REPO_NAME, **values}
 
 
 def edited(**values):
@@ -97,10 +88,6 @@ def edited(**values):
         **{
             "EVENT_NAME": "pull_request",
             "EVENT_ACTION": "edited",
-            "HEAD_SHA": HEAD,
-            "BASE_SHA": BASE,
-            "PR_NUMBER": str(NUMBER),
-            "CHANGES": '{"body": {"from": "old"}}',
             **values,
         }
     )
@@ -131,115 +118,17 @@ def test_skippable_lists_are_fixed_and_full_skips_nothing():
     assert scope.skippable("full") == ()
     assert scope.skippable("anything else") == ()
     assert "test" in scope.skippable("promotion") and "package" not in scope.skippable("promotion")
-    assert set(scope.TEXT_JOBS).isdisjoint(scope.skippable("text"))
 
 
-# --- text -----------------------------------------------------------------------------
+# --- edits ----------------------------------------------------------------------------
 
 
-def test_an_edit_after_a_green_run_rechecks_only_the_description():
-    get = table_get(
-        {
-            runs_path(HEAD): {"workflow_runs": [run(999, status="in_progress"), run(7)]},
-            jobs_path(7): {"jobs": CODE_GREEN + [{"name": "attribution", "conclusion": "failure"}]},
-        }
-    )
-    mode, reason = scope.decide(edited(), get, table_git({}))
-    # The current run is passed over, and an earlier failure of a description check
-    # (the footer a new pull request briefly carries) does not force a full run.
-    assert mode == "text" and "run 7" in reason
+def test_an_edit_into_dev_runs_everything_without_reusing_a_historical_run():
+    def unexpected_get(path):
+        raise AssertionError(f"edited runs must not query historical CI: {path}")
 
-
-def test_an_edit_reaches_past_earlier_text_runs_to_the_run_that_checked_the_code():
-    get = table_get(
-        {
-            runs_path(HEAD): {"workflow_runs": [run(9), run(8)]},
-            jobs_path(9): {"jobs": TEXT_ONLY},
-            jobs_path(8): {"jobs": CODE_GREEN},
-        }
-    )
-    assert scope.decide(edited(), get, table_git({}))[0] == "text"
-
-
-@pytest.mark.parametrize(
-    ("runs", "jobs", "why"),
-    [
-        ([run(7)], {7: [{"name": "test (3.10)", "conclusion": "failure"}]}, "did not pass"),
-        ([run(7)], {7: [{"name": "test (3.10)", "conclusion": "cancelled"}]}, "did not pass"),
-        ([run(7, status="in_progress")], {}, "not finished"),
-        ([run(7, base="0" * 40)], {}, "no earlier run"),
-        ([{"id": 7, "status": "completed", "pull_requests": []}], {}, "no earlier run"),
-        ([], {}, "no earlier run"),
-        ([run(7)], {7: []}, "did not pass"),
-        (
-            [run(8), run(7)],
-            {8: CODE_GREEN, 7: [{"name": "test (3.11)", "conclusion": "failure"}]},
-            "run 7",
-        ),
-        ([run("7?x=1")], {}, "ValueError"),
-    ],
-)
-def test_an_edit_runs_everything_unless_the_code_already_passed_against_this_base(runs, jobs, why):
-    # A failed or cancelled code check, a run still going, a base that has moved since,
-    # a fork's run (which carries no pull request), no run at all, an older red run
-    # behind a newer green one, and a run id that is not a number are each a full run.
-    table = {runs_path(HEAD): {"workflow_runs": runs}}
-    table.update({jobs_path(run_id): {"jobs": listed} for run_id, listed in jobs.items()})
-    mode, reason = scope.decide(edited(), table_get(table), table_git({}))
-    assert mode == "full" and why in reason, reason
-
-
-RETARGET = '{"base": {"ref": {"from": "dev"}, "sha": {"from": "' + "0" * 40 + '"}}}'
-
-
-@pytest.mark.parametrize(
-    "changes",
-    [RETARGET, '{"title": {"from": "a"}, "base": {"ref": {"from": "dev"}}}', "{}", "null", "", "["],
-)
-def test_an_edit_that_is_not_only_title_or_body_runs_everything(changes):
-    # A retargeted base is an `edited` event too, and an earlier green run's
-    # `pull_requests` already reports the new base, so only the event can tell.
-    get = table_get(
-        {runs_path(HEAD): {"workflow_runs": [run(7)]}, jobs_path(7): {"jobs": CODE_GREEN}}
-    )
-    mode, reason = scope.decide(edited(CHANGES=changes, BASE_REF="dev"), get, table_git({}))
+    mode, reason = scope.decide(edited(BASE_REF="dev"), unexpected_get, table_git({}))
     assert mode == "full" and "into dev" in reason, reason
-
-
-def test_a_pull_request_retargeted_to_main_gets_the_promotion_proof_not_text():
-    get, git = stage_world(diff="CHANGELOG.md\nscripts/site_style.py\n")
-    table = {runs_path(HEAD): {"workflow_runs": [run(7)]}, jobs_path(7): {"jobs": CODE_GREEN}}
-
-    def both(path):
-        return table[path] if path in table else get(path)
-
-    mode, reason = scope.decide(edited(CHANGES=RETARGET, BASE_REF="main"), both, git)
-    assert mode == "full" and "differs from stage" in reason, reason
-
-
-@pytest.mark.parametrize("number", [7, None])
-def test_an_edit_counts_only_runs_that_list_this_pull_request(number):
-    # One branch heading pull requests into dev and stage gives each run both; a run
-    # whose entry for another pull request carries this base proves nothing here.
-    other = run(7, number=number)
-    get = table_get(
-        {runs_path(HEAD): {"workflow_runs": [other]}, jobs_path(7): {"jobs": CODE_GREEN}}
-    )
-    mode, reason = scope.decide(edited(), get, table_git({}))
-    assert mode == "full" and "no earlier run" in reason, reason
-
-
-def test_an_edit_with_no_pull_request_number_runs_everything():
-    get = table_get(
-        {runs_path(HEAD): {"workflow_runs": [run(7)]}, jobs_path(7): {"jobs": CODE_GREEN}}
-    )
-    mode, reason = scope.decide(edited(PR_NUMBER=""), get, table_git({}))
-    assert mode == "full" and "not proven" in reason, reason
-
-
-def test_an_edit_with_a_malformed_sha_runs_everything():
-    mode, reason = scope.decide(edited(HEAD_SHA="not-a-sha"), table_get({}), table_git({}))
-    assert mode == "full" and "not proven" in reason
 
 
 # --- promotion from stage ----------------------------------------------------------------
@@ -389,32 +278,10 @@ def test_the_push_to_main_runs_everything_when_main_is_not_stage():
     assert mode == "full" and "differs from stage" in reason, reason
 
 
-PROMOTION_RUN = [
-    {"name": "test (3.13)", "conclusion": "skipped"},
-    {"name": "validate skills", "conclusion": "success"},
-]
-
-
-def test_an_edit_to_a_promotion_is_proven_by_stage_rather_than_by_its_own_run():
+def test_an_edit_to_a_promotion_is_proven_by_stage():
     get, git = stage_world()
-    table = {runs_path(HEAD): {"workflow_runs": [run(11)]}, jobs_path(11): {"jobs": PROMOTION_RUN}}
-
-    def both(path):
-        return table[path] if path in table else get(path)
-
-    mode, reason = scope.decide(edited(BASE_REF="main"), both, git)
+    mode, reason = scope.decide(edited(BASE_REF="main"), get, git)
     assert mode == "promotion" and "#152" in reason, reason
-
-
-def test_an_edit_into_dev_with_no_green_run_is_not_rescued_by_the_stage_proof():
-    get, git = stage_world()
-    table = {runs_path(HEAD): {"workflow_runs": [run(11)]}, jobs_path(11): {"jobs": PROMOTION_RUN}}
-
-    def both(path):
-        return table[path] if path in table else get(path)
-
-    mode, reason = scope.decide(edited(BASE_REF="dev"), both, git)
-    assert mode == "full" and "run 11" in reason, reason
 
 
 # --- plumbing ----------------------------------------------------------------------------
@@ -445,36 +312,20 @@ def test_main_writes_mode_and_the_jobs_it_may_skip(tmp_path, monkeypatch):
     assert "`promotion`" in summary.read_text(encoding="utf-8")
 
 
-def test_every_listed_job_exists_in_ci_and_every_code_job_is_listed():
-    # The lists are written by hand and the workflow is not; a renamed or added job
-    # either breaks a skip silently or stays unskippable forever, so they are checked
-    # against each other here.
+def test_every_promotion_skip_names_a_workflow_job():
+    # The skip list is written by hand and the workflow is not; a renamed job would make
+    # the aggregate reject an otherwise valid promotion.
     text = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     jobs = set(re.findall(r"^  ([a-z][a-z0-9-]*):\n", text.split("\njobs:\n", 1)[1], re.M))
-    listed = set(scope.TEXT_SKIPS) | set(scope.PROMOTION_SKIPS)
-    assert listed <= jobs, listed - jobs
-    assert jobs - set(scope.TEXT_SKIPS) == set(scope.TEXT_JOBS) | set(scope.ALWAYS)
-    assert set(scope.PROMOTION_SKIPS) <= set(scope.TEXT_SKIPS)
+    assert set(scope.PROMOTION_SKIPS) <= jobs
 
 
-def test_the_names_a_text_run_ignores_are_the_display_names_of_those_jobs():
-    # The runs API reports a job by its `name:`, not its id, so a renamed description
-    # check would silently stop being ignored, and one renamed onto a code check's name
-    # would let that check fail unseen.
+def test_non_code_check_names_match_the_workflow_display_names():
+    # The runs API reports a job by its `name:`, not its id. A renamed code check must not
+    # become ignored by the historical promotion proof.
     text = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     names = {
         job: re.search(rf"^  {job}:\n(?:    #.*\n)*    name: (.+)$", text, re.M).group(1)
-        for job in (*scope.TEXT_JOBS, *scope.ALWAYS)
+        for job in ("attribution", "naming", "ci", "scope")
     }
-    assert set(names.values()) == set(scope.TEXT_CHECK_NAMES), names
-
-
-def test_the_scope_step_passes_the_edit_and_the_pull_request_number():
-    # Without either, every `edited` run is full with no failure anywhere; the values
-    # reach the script through env only, never interpolated into `run:`.
-    text = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    step = text.split("      - name: Decide what this run needs\n", 1)[1].split(
-        "        run: |", 1
-    )[0]
-    assert "CHANGES: ${{ toJSON(github.event.changes) }}" in step
-    assert "PR_NUMBER: ${{ github.event.pull_request.number }}" in step
+    assert set(names.values()) == set(scope.NON_CODE_CHECK_NAMES), names

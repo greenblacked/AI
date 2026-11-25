@@ -1,0 +1,92 @@
+[
+  {
+    "query": "Every push to a branch with an open merge request starts two GitLab pipelines, one branch and one merge request; how do I stop the duplicate?",
+    "should_trigger": true
+  },
+  {
+    "query": "A deploy job in my .gitlab-ci.yml was never created on the release branch and I cannot see why it is skipped",
+    "should_trigger": true
+  },
+  {
+    "query": "Convert our only/except blocks in .gitlab-ci.yml to rules without changing which pipelines run",
+    "should_trigger": true
+  },
+  {
+    "query": "My protected CI variable is empty in the job log on a feature branch but fine on main",
+    "should_trigger": true
+  },
+  {
+    "query": "Pipeline creation fails with a job needs a job that is not in the pipeline; how do I use needs optional",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I split a monorepo into per-directory child pipelines in GitLab CI and make the parent fail when a child fails?",
+    "should_trigger": true
+  },
+  {
+    "query": "Two pipelines deployed to production at the same time; add resource_group so deploys queue",
+    "should_trigger": true
+  },
+  {
+    "query": "Does extends in GitLab CI merge or replace the script array, and how do I use !reference to keep the parent's lines?",
+    "should_trigger": true
+  },
+  {
+    "query": "How can I run glab ci lint or the CI Lint API on my pipeline including its includes before I push?",
+    "should_trigger": true
+  },
+  {
+    "query": "Make the production deploy manual in GitLab CI but still block later stages until someone clicks it",
+    "should_trigger": true
+  },
+  {
+    "query": "Our CI takes forty minutes; redesign the stage order and cache strategy for any provider",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "Audit which jobs in our pipelines could leak the deploy token to a pull request from a fork",
+    "should_trigger": false,
+    "expected": "pipeline-hardening"
+  },
+  {
+    "query": "CI is red and the job log ends with exit code 137; is it a flake or a real failure?",
+    "should_trigger": false,
+    "expected": "ci-triage"
+  },
+  {
+    "query": "Pick between canary and blue-green for rolling out our payment service",
+    "should_trigger": false,
+    "expected": "release-strategy"
+  },
+  {
+    "query": "Our registry token appeared in a job log; rotate it and find where else it was used",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "Write the GitHub Actions workflow that builds and pushes our container image on tags",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "Argo CD shows the application OutOfSync after a merge; how do I resync it",
+    "should_trigger": false,
+    "expected": "gitops-operations"
+  },
+  {
+    "query": "Terraform apply in CI used a different plan than the one we approved",
+    "should_trigger": false,
+    "expected": "iac-apply-pipeline"
+  },
+  {
+    "query": "Harden the base image our pipeline builds, remove the shell and run as non-root",
+    "should_trigger": false,
+    "expected": "image-hardening"
+  },
+  {
+    "query": "Summarise this 4000-line CI job log and tell me the first error",
+    "should_trigger": false,
+    "expected": "ci-log-reader"
+  }
+]
