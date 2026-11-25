@@ -4,7 +4,8 @@
 # from without the commit that landed on the branch it went to; this keeps the three
 # long-lived branches converging instead of drifting:
 #
-#   release/promote-dev-to-stage*   merged into stage  ->  stage into dev
+#   release/promote-dev-to-stage* or chore/promote-dev-to-stage*
+#                                   merged into stage  ->  stage into dev
 #   release/promote-stage-to-main*  merged into main   ->  main into stage, main into dev
 #
 # The trigger is a `push` to `stage` or `main` and nothing else: no run on a pull request
@@ -12,11 +13,10 @@
 # happens only when a pull request has merged into it, so "only after merge" is a property
 # of the trigger, and the script then checks it rather than assuming it: it asks GitHub
 # which pull request the pushed commit belongs to and acts only when that pull request is
-# merged, was merged into the pushed branch, has a head in this repository named
-# release/promote-dev-to-stage or release/promote-stage-to-main (for that base, followed by
-# the end of the name, `-` or `/`), and has the pushed commit as its merge_commit_sha. A
-# direct push, a push that no promotion produced, and the merge of a back-merge pull
-# request itself, which would otherwise loop, all do nothing.
+# merged, was merged into the pushed branch, has a head in this repository matching a prefix
+# above for that base (followed by the end of the name, `-` or `/`), and has the pushed
+# commit as its merge_commit_sha. A direct push, a push that no promotion produced,
+# and the merge of a back-merge pull request itself all do nothing.
 #
 # A `push` run, unlike a `pull_request` run, has GITHUB_REF set to the branch itself, so
 # the `back-merge` environment's deployment branch policy (stage and main) is evaluated

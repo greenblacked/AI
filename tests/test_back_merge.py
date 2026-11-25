@@ -279,6 +279,14 @@ MAIN_TARGETS = [("main", "stage"), ("main", "dev")]
 MATRIX = [
     ("merged dev-to-stage into stage", "push", push(), [pull()], True, [("stage", "dev")]),
     (
+        "merged 0.7.0 chore promotion into stage",
+        "push",
+        push(),
+        [pull(head="chore/promote-dev-to-stage-0-7-0")],
+        True,
+        [("stage", "dev")],
+    ),
+    (
         "merged stage-to-main into main",
         "push",
         push("refs/heads/main"),
@@ -326,6 +334,14 @@ MATRIX = [
         "push",
         push(),
         [pull(head="release/promote-dev-to-stagex")],
+        True,
+        [],
+    ),
+    (
+        "look-alike chore promotion prefix, no separator",
+        "push",
+        push(),
+        [pull(head="chore/promote-dev-to-stagex")],
         True,
         [],
     ),
@@ -579,7 +595,7 @@ def test_the_job_if_alone_admits_only_a_push_to_the_two_branches(event_name, ref
 
 def test_the_matrix_covers_what_a_guard_has_to_refuse():
     assert len(MATRIX) >= 25
-    assert sum(1 for row in MATRIX if row[5]) == 5  # the rows that open anything
+    assert sum(1 for row in MATRIX if row[5]) == 6  # the rows that open anything
     assert sum(1 for row in MATRIX if not row[4]) == 8  # the rows the job never runs for
 
 

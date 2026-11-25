@@ -617,11 +617,11 @@ pushed commit belongs to, reads each one, and acts only when one satisfies all o
 - it is **merged** (`merged` is exactly true);
 - its **base** is the branch that was pushed;
 - its head is in **this repository**, not a fork;
-- its head is `release/promote-dev-to-stage` (base `stage`) or `release/promote-stage-to-main`
-  (base `main`), followed by the end of the name, `-` or `/`. Promotions here are
-  `release/promote-*` branches (`release/promote-dev-to-stage-0.6.0-live-ops`,
-  `release/promote-stage-to-main-0.6.0`), never `dev` or `stage` themselves, and the
-  anchoring keeps a look-alike such as `release/promote-dev-to-stagex` out;
+- its head starts with `release/promote-dev-to-stage` or `chore/promote-dev-to-stage`
+  for base `stage`, or `release/promote-stage-to-main` for base `main`. The prefix must
+  be followed by the end of the name, `-` or `/`, as in
+  `chore/promote-dev-to-stage-0-7-0`. A look-alike such as `chore/promote-dev-to-stagex`
+  does not match;
 - its `merge_commit_sha` is the commit that was pushed, which is what rules out a push
   that merely follows an earlier promotion.
 
@@ -670,7 +670,7 @@ a person merges it:
 
 | A promotion merged into | Pull requests opened |
 | --- | --- |
-| `stage`, from `release/promote-dev-to-stage*` | `stage` into `dev` |
+| `stage`, from `release/promote-dev-to-stage*` or `chore/promote-dev-to-stage*` | `stage` into `dev` |
 | `main`, from `release/promote-stage-to-main*` | `main` into `stage`, and `main` into `dev` |
 
 Each is titled `Merge <source> into <destination> after the promotion in #<number>`, and

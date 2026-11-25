@@ -37,7 +37,10 @@ pipeline {
       post { always { junit allowEmptyResults: true, testResults: 'reports/*.xml' } }
     }
     stage('Deploy') {
-      when { branch 'main' }
+      when {
+        beforeOptions true
+        branch 'main'
+      }
       agent { label 'deployer' }
       options { lock(resource: 'deploy-production') }
       steps {
