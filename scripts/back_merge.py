@@ -9,19 +9,19 @@ already released. `docs/ci.md#releasing-a-version` has always asked for a back-m
 after a release, by hand. This script is that step, run by `.github/workflows/back-merge.yml`
 on a push to `stage` or `main`:
 
-- a `release/promote-dev-to-stage` pull request merged into `stage` leaves one
-  back-merge, `stage` into `dev`;
+- a `release/promote-dev-to-stage` or `chore/promote-dev-to-stage` pull request merged
+  into `stage` leaves one back-merge, `stage` into `dev`;
 - a `release/promote-stage-to-main` pull request merged into `main` leaves two, `main`
   into `stage` and `main` into `dev`.
 
 A push is not a promotion, so the script finds out what was pushed. It asks GitHub which
 pull requests the pushed commit belongs to, reads each one, and acts only when one of
 them satisfies all of: it is merged; it was merged into the branch that was pushed; its
-head is in this repository; its head is `release/promote-dev-to-stage` or
-`release/promote-stage-to-main` for that base, followed by the end of the name, `-` or
-`/`; and its `merge_commit_sha` is the commit that was pushed. A direct push, a push of
-anything a promotion did not merge, and a later push to a branch an earlier promotion
-once reached all fail one of those and do nothing. So does the merge of a back-merge
+head is in this repository; its head matches one of the prefixes above for that base,
+followed by the end of the name, `-` or `/`; and its `merge_commit_sha` is the commit
+that was pushed. A direct push, a push of anything a promotion did not merge, and a
+later push to a branch an earlier promotion once reached all fail one of those and
+do nothing. So does the merge of a back-merge
 pull request itself, whose head is `main` or `stage`, which is what stops a loop.
 
 Each back-merge is a pull request from a branch of its own,
@@ -68,10 +68,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-# (base the promotion merged into, head-branch prefix of a promotion, back-merges to open)
-PROMOTIONS: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (
-    ("stage", "release/promote-dev-to-stage", (("stage", "dev"),)),
-    ("main", "release/promote-stage-to-main", (("main", "stage"), ("main", "dev"))),
+# (base the promotion merged into, allowed head-branch prefixes, back-merges to open)
+PROMOTIONS: tuple[tuple[str, tuple[str, ...], tuple[tuple[str, str], ...]], ...] = (
+    ("stage", ("release/promote-dev-to-stage", "chore/promote-dev-to-stage"), (("stage", "dev"),)),
+    ("main", ("release/promote-stage-to-main",), (("main", "stage"), ("main", "dev"))),
 )
 
 MARKER = "<!-- back-merge -->"
@@ -115,8 +115,8 @@ def plan(pull: Any, repository: str, branch: str, sha: str) -> list[tuple[str, s
     head_ref = head.get("ref")
     if head_repo != repository or not isinstance(head_ref, str) or base.get("ref") != branch:
         return []
-    for promoted_base, prefix, back_merges in PROMOTIONS:
-        if branch == promoted_base and head_matches(head_ref, prefix):
+    for promoted_base, prefixes, back_merges in PROMOTIONS:
+        if branch == promoted_base and any(head_matches(head_ref, prefix) for prefix in prefixes):
             return list(back_merges)
     return []
 
