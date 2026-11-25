@@ -17,6 +17,6 @@
   {"query": "the database password needs rotating every 90 days without downtime", "should_trigger": false, "expected": "secret-rotation"},
   {"query": "decide which roles in our app may read which customer records and enforce it in the api", "should_trigger": false, "expected": "authorization-design"},
   {"query": "our base container image has 40 critical cves, how do we harden it", "should_trigger": false, "expected": "image-hardening"},
-  {"query": "a pod fails with ImagePullBackOff after we changed registries", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "can you security review this pull request before merge, it adds a webhook endpoint that fetches a user supplied url", "should_trigger": false, "expected": "security-review"},
   {"query": "can production still be deployed if our identity provider and CI are both down at the same time", "should_trigger": false, "expected": "bootstrap-dependency-audit"}
 ]

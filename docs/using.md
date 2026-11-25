@@ -90,11 +90,15 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 session — without it you will wonder why nothing fires.
 
 Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
-type and routes through the plugin's thirteen skills from there, rather than leaving you to
-read all thirteen cold.
+type and routes through the plugin's thirteen core skills from there, rather than leaving you to
+read the whole list cold. The plugin's specialist skills are listed in the README.
 
 Installing `iac`: [`docs/iac.md`](iac.md) maps everyday Terraform tasks to the plugin's three
 skills and to the review, state and platform skills they sit beside.
+
+Installing the platform and operations plugins: [`docs/devops.md`](devops.md) maps a DevOps
+engineer's daily tasks across eight plugins to the skill that owns each, and prices the
+listing budget of installing them together.
 
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the

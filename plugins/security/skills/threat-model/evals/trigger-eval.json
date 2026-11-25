@@ -17,7 +17,7 @@
   {"query": "we think a host is compromised and a key may have leaked, what now", "should_trigger": false, "expected": "secret-rotation"},
   {"query": "write up the architecture decision and the options we rejected", "should_trigger": false, "expected": "decision-record"},
   {"query": "what personal data does this schema hold and how long may we keep it", "should_trigger": false, "expected": "data-privacy"},
-  {"query": "harden this dockerfile, it runs as root on a full debian base", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "roll out default-deny networkpolicy namespace by namespace without breaking dns or the api server, observe flows first", "should_trigger": false, "expected": "k8s-network-policy"},
   {"query": "here's the terraform plan json, what does the apply destroy", "should_trigger": false, "expected": "plan-reviewer"},
   {"query": "design the rest interface for this resource before anyone builds it", "should_trigger": false, "expected": "api-design"}
 ]
