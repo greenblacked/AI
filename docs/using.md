@@ -100,6 +100,9 @@ Installing the platform and operations plugins: [`docs/devops.md`](devops.md) ma
 engineer's daily tasks across eight plugins to the skill that owns each, and prices the
 listing budget of installing them together.
 
+Installing `iac`: [`docs/iac.md`](iac.md) maps everyday Terraform tasks to the plugin's three
+skills and to the review, state and platform skills they sit beside.
+
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
