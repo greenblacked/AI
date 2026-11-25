@@ -1,0 +1,22 @@
+[
+  {"query": "Our SonarQube quality gate fails on the server but the GitLab job is green; how do we make the pipeline fail with it?", "should_trigger": true},
+  {"query": "SonarQube shows 0% coverage on new code even though our JaCoCo report is generated in the test job", "should_trigger": true},
+  {"query": "sonar.qualitygate.wait times out in CI before the server finishes computing; how do I size the timeout?", "should_trigger": true},
+  {"query": "The new code period in SonarQube seems wrong and it flags files nobody touched", "should_trigger": true},
+  {"query": "Pull request decoration from SonarQube never appears on our merge requests", "should_trigger": true},
+  {"query": "Someone added sonar.coverage.exclusions for half our services to get the gate passing; how should we audit it?", "should_trigger": true},
+  {"query": "How should the CI job authenticate the sonar scanner without a personal token?", "should_trigger": true},
+  {"query": "Our scanner runs on a shallow clone and everything shows up as new code; what do we change?", "should_trigger": true},
+  {"query": "Which conditions should our custom quality gate keep for a legacy project that cannot fix old issues?", "should_trigger": true},
+  {"query": "Python coverage.xml is read by the SonarQube scanner but every file reports uncovered because of the container path", "should_trigger": true},
+  {"query": "Restructure our CI stages and caches so the whole pipeline runs in ten minutes", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "Our GitLab job runs twice for branch and merge request; fix the workflow rules", "should_trigger": false, "expected": "gitlab-ci-pipelines"},
+  {"query": "Why did this CI run go red? Read the log and find the first failure", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "Audit our CI for secrets reachable by fork pull requests", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "Which unit tests should we write for this payment module?", "should_trigger": false, "expected": "test-design"},
+  {"query": "Check whether our tests would catch a bug by mutating the code", "should_trigger": false, "expected": "mutation-testing"},
+  {"query": "Review this diff for correctness bugs before I merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "Rotate our CI tokens on a schedule without downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "Write the Jenkinsfile stage that runs unit tests and archives the reports", "should_trigger": false, "expected": "jenkins-pipelines"},
+  {"query": "Upgrade our npm dependencies and fix the breakages", "should_trigger": false, "expected": "dependency-upgrade"}
+]

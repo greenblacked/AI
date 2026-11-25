@@ -86,4 +86,6 @@ quiet-level = 3
 # "CNA" is a CVE Numbering Authority, which vulnerability-disclosure asks for a CVE ID.
 # "nd" is the ordinal suffix of 2nd in the (st|nd|rd|th) alternation that close-lock-date.sh
 # uses to accept a written date such as "2nd Oct 2026"; codespell suggests "and" or "end".
-ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape,etcp,chage,iif,fram,cna,nd"
+# "invokable" is upstream's spelling in the vendored security-audit companion
+# DESKTOP-MOBILE-AND-LOCAL-IPC.md, which is kept byte for byte; codespell suggests "invocable".
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape,etcp,chage,iif,fram,cna,nd,invokable"

@@ -17,6 +17,6 @@
   {"query": "half our aws account was built by clicking in the console, how do we get all of it into terraform", "should_trigger": false, "expected": "brownfield-iac-adoption"},
   {"query": "write a reusable terraform module for an rds instance with sane defaults", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "the terraform plan step in ci keeps timing out at provider init", "should_trigger": false, "expected": "ci-triage"},
-  {"query": "argo cd shows the app out of sync after someone edited the deployment by hand", "should_trigger": false, "expected": "gitops-operations"},
+  {"query": "we are splitting the networking resources out of a shared terraform module six teams consume, how do we release version 2 without breaking old callers", "should_trigger": false, "expected": "terraform-module-contracts"},
   {"query": "what's the difference between terraform workspaces and a directory per environment", "should_trigger": false, "expected": "terraform-state"}
 ]

@@ -52,7 +52,7 @@ Follow [`docs/writing-skills.md`](docs/writing-skills.md). In short: copy
 `description` last and make it explicit about when the skill should fire, put depth in
 `references/` and write every file you name, and write `evals/trigger-eval.json`. There is
 nothing to register: each plugin discovers its own `skills/`, so the only structural rule
-is that the skill sits inside one of the twenty-nine under `plugins/`. Pick the plugin by the
+is that the skill sits inside one of the thirty under `plugins/`. Pick the plugin by the
 work it belongs to, not by who would do it — a skill stranded outside a plugin installs
 for nobody, and the validator says so.
 
@@ -90,8 +90,9 @@ Releases are git tags, cut by the maintainer in two steps documented in
 [docs/ci.md#releasing-a-version](docs/ci.md#releasing-a-version):
 `make release-prepare VERSION=x.y.z` on the branch that promotes `stage` into `main`,
 then Cut release (or `make release VERSION=x.y.z`) on `main` once that promotion has
-merged. After every release `main` is merged back into `dev` with a merge commit, so
-`dev` carries the dated changelog and any bumps that landed only on `main`. A new pull
+merged. After a promotion `back-merge.yml` opens the pull requests that merge `main`
+back down. Merged with a merge commit, they leave
+`dev` carrying the dated changelog and any bumps that landed only on `main`. A new pull
 request should add its entry under
 `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) rather than to a version section,
 since the version and its date are only decided at release time.

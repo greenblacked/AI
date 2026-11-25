@@ -1337,6 +1337,57 @@
       "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
     },
     {
+      "rule_id": "AE1",
+      "path": "plugins/security/skills/security-audit/SKILL.md",
+      "match": "validate-coverage-ledger.cjs (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "static"}],
+      "class": "FP-scanner-limitation",
+      "reason": "Pointer to the bundled local validator that checks the run's own coverage-ledger.json; it uses only fs, path and util, reads only, and has no child_process, network, eval or Function. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/security/skills/security-audit/SKILL.md",
+      "match": "validate-findings.cjs (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "static"}],
+      "class": "FP-scanner-limitation",
+      "reason": "Pointer to the bundled local validator that checks the run's own findings.json; it uses only fs, path and util, reads only, and has no child_process, network, eval or Function. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/security/skills/security-audit/references/ai-and-llm.md",
+      "match": "delete memory",
+      "class": "FP-defensive",
+      "reason": "An auditor's review question under Persistent memory poisoning: it asks who may create, update, merge and delete memory, and does not instruct deleting memory. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/references/attack-classes.md",
+      "match": "credentials.json",
+      "class": "FP-defensive",
+      "reason": "A checklist question asking whether credential files such as credentials.json, .env, *.pem or *.key are committed to the target repo; it detects exposure and reads, collects and sends nothing. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/references/desktop-mobile-and-local-ipc.md",
+      "match": "keychain",
+      "class": "FP-defensive",
+      "reason": "Names keychain ACLs as a platform control to evaluate when visible; no instruction to access a keychain. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/validate-coverage-ledger.test.cjs",
+      "match": "/etc/passwd",
+      "class": "FP-defensive",
+      "reason": "/etc/passwd is a negative test input in the unsafe-path cases, which the ledger validator must refuse; the test never opens or reads it. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/security-audit/validate-findings.test.cjs",
+      "match": "/etc/passwd",
+      "class": "FP-defensive",
+      "reason": "/etc/passwd is a negative test input that the findings validator must reject as an unsafe absolute source path; the test never opens or reads it. upstream c1c8a8c; re-review on any upstream bump."
+    },
+    {
       "rule_id": "PE3",
       "path": "plugins/smallbiz/skills/client-offboarding/SKILL.md",
       "match": "access tokens",
@@ -1399,6 +1450,49 @@
       "match": "--privileged",
       "class": "FP-defensive",
       "reason": "Line states the clean-room tutorial run pre-approves no docker command and never mounts host paths, passes --privileged or joins the host network."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/SKILL.md",
+      "match": "access tokens",
+      "class": "FP-defensive",
+      "reason": "The description and the authentication step name scoped, expiring access tokens as the replacement for personal API keys; nothing reads, prints or exposes a token."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/SKILL.md",
+      "match": "access token",
+      "class": "FP-defensive",
+      "reason": "The authentication step says to give each pipeline a scoped, expiring access token held in the CI platform's masked variable store and rotated; nothing reads, prints or exposes a token."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/evals/trigger-eval.json",
+      "match": "access tokens",
+      "class": "FP-eval/data",
+      "reason": "Trigger-eval query asking to move CI from a personal API key to scoped expiring access tokens; it is test data, not an instruction."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/artifactory-repositories/references/repository-layout.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Names .npmrc as a client config file to keep in the repository without credentials, which come from the CI variable store; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/toolchain/skills/gitlab-ci-pipelines/references/variables-and-runners.md",
+      "match": "kubeconfig",
+      "class": "FP-defensive",
+      "reason": "Advises file-type variables for certificates and kubeconfigs rather than echoing them into files; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/toolchain/skills/jenkins-pipelines/SKILL.md",
+      "match": "references/jenkinsfile-patterns.md (partial)",
+      "evidence": [{"reason_code": "static_parse_limit", "phase": "static"}],
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
     }
   ]
 }

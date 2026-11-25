@@ -1,0 +1,22 @@
+[
+  {"query": "helm upgrade fails with 'another operation (install/upgrade/rollback) is in progress' after our CI job was cancelled", "should_trigger": true},
+  {"query": "Release shows pending-upgrade in helm history and nothing will deploy; how do I clear it safely?", "should_trigger": true},
+  {"query": "helm upgrade --install says 'has no deployed releases' after the first install failed", "should_trigger": true},
+  {"query": "After helm rollback the pods are back but the database migration from the pre-upgrade hook is still applied; what did rollback skip?", "should_trigger": true},
+  {"query": "Should our pipeline use helm upgrade --atomic, and how does --timeout interact with --wait?", "should_trigger": true},
+  {"query": "Our new chart values keys are missing after helm upgrade --reuse-values and templates fail with nil pointer", "should_trigger": true},
+  {"query": "CRDs in our chart's crds directory were not updated when we upgraded the chart; how do we roll them out?", "should_trigger": true},
+  {"query": "Add helm lint, helm template with kubeconform and helm diff as a gate before helm upgrade in CI", "should_trigger": true},
+  {"query": "Helm complains the resource exists and cannot be imported into the current release: invalid ownership metadata", "should_trigger": true},
+  {"query": "Helm release history keeps growing and an upgrade failed with a secret too large error; how do we set history-max?", "should_trigger": true},
+  {"query": "Pods are in CrashLoopBackOff after the deploy; work out why they restart", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "Argo CD shows our Helm application OutOfSync and keeps reverting a manual change", "should_trigger": false, "expected": "gitops-operations"},
+  {"query": "Plan the upgrade of our production Kubernetes cluster to the next minor version and check removed APIs", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "Harden the container image our chart deploys: smaller base, non-root user, no shell", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "Restructure our CI stages and caches so the pipeline runs in ten minutes", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "Our GitLab CI job runs twice for each merge request, fix the workflow rules", "should_trigger": false, "expected": "gitlab-ci-pipelines"},
+  {"query": "Set up a virtual Artifactory repository so our Helm charts resolve internal before remote", "should_trigger": false, "expected": "artifactory-repositories"},
+  {"query": "Decide between canary and blue-green for the next release of our payments service", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "Write a Deployment manifest with readiness probes, resource limits and a pod disruption budget", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "Check this chart's dependencies for known vulnerabilities and decide which to upgrade", "should_trigger": false, "expected": "dependency-triage"}
+]

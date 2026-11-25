@@ -2,17 +2,17 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The twenty-nine plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform, devtools, smallbiz, backend, languages, linux, databases, observability, embedded, learning, research, growth and iac" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The thirty plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform, devtools, smallbiz, backend, languages, linux, databases, observability, embedded, learning, research, growth, iac and toolchain" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-527 agent skills, 51 subagents, eleven slash commands and 29 project kits, in
-twenty-nine plugins you install separately.
+535 agent skills, 52 subagents, eleven slash commands and 30 project kits, in
+thirty plugins you install separately.
 
-[![Skills](https://img.shields.io/badge/skills-527-7c3aed)](#plugins)
+[![Skills](https://img.shields.io/badge/skills-535-7c3aed)](#plugins)
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
@@ -49,12 +49,12 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window. Past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`personal` and `iac` fit the default budget on their own. The other twenty-seven are over it,
+`personal`, `iac` and `toolchain` fit the default budget on their own. The other twenty-seven are over it,
 each by enough that installed alone at least one of its descriptions is dropped. To install
 several, raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.5 }
+{ "skillListingBudgetFraction": 0.55 }
 ```
 
 That figure covers the whole marketplace, with a little headroom; anything smaller
@@ -73,7 +73,7 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`gamedev`](#gamedev) | Making games, and shipping them | 39 skills, 2 subagents, 2 commands | 1 |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands | 1 |
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent | 1 |
-| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 1 |
+| [`security`](#security) | The defensive side of shipping software | 32 skills, 5 subagents, 2 commands | 1 |
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands | 1 |
 | [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 1 |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills, 1 subagent | 1 |
@@ -86,6 +86,7 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills, 1 subagent | 1 |
 | [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills, 1 subagent | 1 |
 | [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills, 1 subagent | 1 |
+| [`toolchain`](#toolchain) | The DevOps toolchain, tool by tool: GitLab CI, Jenkins, Spinnaker, Artifactory, SonarQube, Chef and Helm | 7 skills, 1 subagent | 1 |
 | [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills, 1 subagent | 1 |
 | [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills, 1 subagent | 1 |
 | [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills, 1 subagent | 1 |
@@ -140,11 +141,11 @@ skipped graceful shutdown, and the source said otherwise.
 
 | Agent | Stage | Model | Effort | Editing tools |
 | --- | --- | --- | --- | --- |
-| `explorer` | Survey | Haiku | high | none |
-| `investigator` | Survey in parallel, or establish a claim | Opus | medium | none |
-| `implementer` | Write | Sonnet | medium | `Write`, `Edit` |
-| `reviewer` | Judge | Opus | medium | none |
-| `security-reviewer` | Judge security, when the diff touches a security trigger | Fable | medium | none |
+| `explorer` | Survey | claude-haiku-5-5 | high | none |
+| `investigator` | Survey in parallel, or establish a claim | claude-opus-5-5 | medium | none |
+| `implementer` | Write | claude-sonnet-5-5 | medium | `Write`, `Edit` |
+| `reviewer` | Judge | claude-opus-5-5 | medium | none |
+| `security-reviewer` | Judge security, when the diff touches a security trigger | claude-fable-5-2 | medium | none |
 
 The model and effort are the `model:` and `effort:` lines in each agent's frontmatter, and
 the tools are its `tools:` line. `Bash` stays on every agent, so "no editing tools" does not
@@ -186,6 +187,23 @@ whose only change since a passing run is its title or body. A failed or cancelle
 | ruff with flake8-bandit, and CodeQL | Python security findings in the validator and the scripts | `security` |
 | Cisco skill-scanner | A high or critical finding in any skill, subagent or command definition that no reviewed baseline accepts | `security` |
 | NVIDIA SkillSpector | The same, on the skills a pull request changes (every skill when the pull request changes the scan configuration), and on all of them for other events | `security` |
+
+The two skill scanners read every skill and every subagent and command definition, and they
+work differently. Cisco's cisco-ai-skill-scanner 2.3.1, installed from hash-pinned wheels,
+scans all of them on every run and fails on a high or critical finding unless
+`cisco-policy.yaml` suppresses it, each suppression naming one rule, the skills and the file;
+it also fails if it scanned fewer skills than the tree holds. NVIDIA's SkillSpector 2.13.1 is
+built from a pinned commit and runs with `--no-llm`. It scans the skills and definitions a pull
+request changes, or all of them when the pull request changes the scan configuration, and
+`scripts/skill_scan_gate.py` fails on any high or critical finding missing from
+`skillspector-accepted.json`, where every entry needs a class and a reason. Both run static
+rules on the runner and need no AI API key or secret: the job has a read-only `contents`
+permission and nothing else. The LLM, VirusTotal, AI Defense, OSV and adjudication modes of
+Cisco's scanner, and SkillSpector without `--no-llm`, would each send skill text or hashes to a third party
+or need a key, so none is switched on; the one network call that remains is SkillSpector's
+`api.osv.dev` lookup for a declared dependency file, and the tree has none. What the entries
+mean and how to add one is in [skill scan baselines](.github/skill-scan/README.md); the jobs
+are in [CI](docs/ci.md#the-security-jobs-in-detail).
 
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
 for months naming `references/*.md` files nobody had written: the model loaded nothing
@@ -645,7 +663,7 @@ resolved or executed a bad version, with the secrets each job could reach.
 #### Skills
 
 <details>
-<summary>security skills (31)</summary>
+<summary>security skills (32)</summary>
 
 | Skill | What it does |
 | --- | --- |
@@ -665,6 +683,7 @@ resolved or executed a bad version, with the secrets each job could reach.
 | [`image-hardening`](plugins/security/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
 | [`reverse-engineering`](plugins/security/skills/reverse-engineering/SKILL.md) | Reverse engineer a binary, packaged mobile app, JVM class file or a web app's shipped bundle you are authorised to examine: identify its format, read its static structure before running it, then confirm a hypothesis dynamically in an isolated environment — for malware triage, vulnerability research, CTFs and coursework. |
 | [`secret-rotation`](plugins/security/skills/secret-rotation/SKILL.md) | Rotate a credential, or contain one that has leaked. |
+| [`security-audit`](plugins/security/skills/security-audit/SKILL.md) | Audit a whole codebase from source for the flaws that cross a real trust boundary: map the trust boundaries and a coverage ledger, hunt with isolated sub-agents, validate every candidate independently, and report each confirmed finding with evidence, a safe local reproduction and the smallest fix, running target code only in a sandbox with no network. Generic, with no Cloudflare-specific checks; adapted from Cloudflare's security-audit skill at c1c8a8c (MIT). |
 | [`security-review`](plugins/security/skills/security-review/SKILL.md) | Walk a diff through the classes that actually get exploited — object-level authorisation, injection, deserialisation, request forgery, secrets, the supply-chain change — reporting each as reachable path, impact, fix. |
 | [`security-test-engagement`](plugins/security/skills/security-test-engagement/SKILL.md) | Commission or run an authorised pentest, red-team or bug-bounty engagement from the asset owner's side: signed authorisation and scope before anything starts, rules of engagement with stop conditions, a reachable emergency contact, rules for test data, and a path from each finding to a confirmed retest. |
 | [`threat-model`](plugins/security/skills/threat-model/SKILL.md) | Model a design before the code exists: draw the flows, mark every trust boundary, apply STRIDE per crossing rather than per component, and write down the threats you chose to accept with a name against each. |
@@ -1261,6 +1280,41 @@ configuration error, and the cleanup result with any orphaned resource addresses
 | Skill | Rule | Hook | Template |
 | --- | --- | --- | --- |
 | `iac-apply-pipeline` | `terraform-apply-handoff` | `refuse-unsaved-terraform-apply` | `apply-approval-record` |
+
+### Toolchain
+
+The DevOps toolchain, tool by tool: GitLab CI that runs twice or skips a job, a Jenkinsfile that leaks a secret into the console, a Spinnaker pipeline that deployed the wrong tag, an Artifactory virtual repository that resolves the public package, a SonarQube gate that is green while the build is not blocked, a Chef cookbook upgrade that changed every node, and a Helm release stuck in a pending state. Tool-neutral pipeline design stays in `delivery`, and cloud and Kubernetes estates stay in `platform`.
+
+Hand one pipeline definition to `pipeline-definition-reader`, a `.gitlab-ci.yml` with the included files you supply, a Jenkinsfile or a Spinnaker pipeline JSON; it returns each job or stage with the events it runs on, what it needs, the environments it deploys to and the credentials or variables it references by name, plus what it could not resolve.
+
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `pipeline-definition-reader` | One pipeline definition: a `.gitlab-ci.yml` with the included files supplied, a Jenkinsfile or a Spinnaker pipeline JSON | A table of each job or stage with its triggers, dependencies, target environments and the credential and variable names it references, and what could not be resolved |
+
+#### Skills
+
+<details>
+<summary>toolchain skills (7)</summary>
+
+| Skill | What it does |
+| --- | --- |
+| [`gitlab-ci-pipelines`](plugins/toolchain/skills/gitlab-ci-pipelines/SKILL.md) | Fix or write GitLab CI that runs twice, skips a job, leaks a variable or overlaps deploys. |
+| [`jenkins-pipelines`](plugins/toolchain/skills/jenkins-pipelines/SKILL.md) | Write or repair a declarative Jenkinsfile and keep the controller healthy. |
+| [`spinnaker-pipelines`](plugins/toolchain/skills/spinnaker-pipelines/SKILL.md) | Write or repair Spinnaker deploy pipelines, canary gates and stuck executions. |
+| [`artifactory-repositories`](plugins/toolchain/skills/artifactory-repositories/SKILL.md) | Lay out Artifactory repositories so resolution cannot be hijacked and releases stay immutable. |
+| [`sonarqube-quality-gates`](plugins/toolchain/skills/sonarqube-quality-gates/SKILL.md) | Make a SonarQube quality gate decide whether a pipeline passes, with numbers you can trust. |
+| [`chef-cookbooks`](plugins/toolchain/skills/chef-cookbooks/SKILL.md) | Write, test and roll out Chef Infra cookbooks through Policyfiles and policy groups. |
+| [`helm-releases`](plugins/toolchain/skills/helm-releases/SKILL.md) | Operate Helm 3 releases without leaving them stuck or half-changed. |
+
+</details>
+
+#### Project kit
+
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `gitlab-ci-pipelines` | `gitlab-ci-rules` | `refuse-gitlab-only-except` | `pipeline-change-record` |
 
 ### Devtools
 
@@ -1909,8 +1963,9 @@ pages you open in your own browser so they can be read offline, and nothing leav
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
 - [The repository workflow in ChatGPT](docs/chatgpt-agents.md) — adapted coordinator and role prompts for the survey, write and review loop, and where actual delegation depends on the session's tools
 - [DeepSeek via OpenRouter](docs/deepseek.md) — routing Claude Code to a DeepSeek model through OpenRouter, and what that costs you
-- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the thirteen gamedev skills
+- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the thirteen core gamedev skills
 - [Infrastructure as code: start here](docs/iac.md) — mapping everyday Terraform tasks to the three `iac` skills and the existing review, state and platform skills
+- [DevOps: start here](docs/devops.md) — mapping daily platform, operations, delivery, security and Linux tasks to the skill that owns them, and what installing those plugins together costs in listing budget
 - [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline

@@ -90,8 +90,15 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 session — without it you will wonder why nothing fires.
 
 Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
-type and routes through the plugin's thirteen skills from there, rather than leaving you to
-read all thirteen cold.
+type and routes through the plugin's thirteen core skills from there, rather than leaving you to
+read the whole list cold. The plugin's specialist skills are listed in the README.
+
+Installing `iac`: [`docs/iac.md`](iac.md) maps everyday Terraform tasks to the plugin's three
+skills and to the review, state and platform skills they sit beside.
+
+Installing the platform and operations plugins: [`docs/devops.md`](devops.md) maps a DevOps
+engineer's daily tasks across eight plugins to the skill that owns each, and prices the
+listing budget of installing them together.
 
 Installing `iac`: [`docs/iac.md`](iac.md) maps everyday Terraform tasks to the plugin's three
 skills and to the review, state and platform skills they sit beside.
@@ -100,12 +107,12 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-`personal` and `iac` fit the default budget by themselves. If you
+`personal`, `iac` and `toolchain` fit the default budget by themselves. If you
 install any of the other twenty-seven, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.5 }
+{ "skillListingBudgetFraction": 0.55 }
 ```
 
 ### How a skill fires

@@ -10,13 +10,13 @@
   {"query": "diff resource explorer against our terraform states and tell me what's unmanaged", "should_trigger": true},
   {"query": "a contractor built our whole gcp org by hand, we want it all codified with zero changes to what's running", "should_trigger": true},
   {"query": "import this one existing rds instance into our terraform, we already have the resource block written", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "switch count to for_each in our published terraform module without breaking the state addresses of the teams that consume it", "should_trigger": false, "expected": "terraform-module-contracts"},
   {"query": "write a terraform module for a three-tier vpc for a brand new account", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "is this plan safe to apply, it replaces the nat gateway", "should_trigger": false, "expected": "iac-review"},
   {"query": "find and delete the unattached volumes and idle load balancers nobody owns", "should_trigger": false, "expected": "resource-decommission"},
   {"query": "our main terraform state has 5000 resources and plans take 35 minutes, split it into stacks", "should_trigger": false, "expected": "monolith-state-split"},
   {"query": "bump terraform core from 1.5 to 1.9 and the azurerm provider to the next major", "should_trigger": false, "expected": "iac-version-upgrade"},
   {"query": "who has admin in our aws org and which of those grants are stale", "should_trigger": false, "expected": "access-review"},
-  {"query": "our gcp bill went up 25 percent last month, what's driving it", "should_trigger": false, "expected": "cost-review"},
   {"query": "plan our move from cloudformation stacks to terraform across all accounts, phases and rollback", "should_trigger": false, "expected": "plan-platform-migration"},
   {"query": "a terraform state file ended up in a public bucket, what do we rotate", "should_trigger": false, "expected": "secret-rotation"}
 ]

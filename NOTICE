@@ -17,8 +17,8 @@ the views of any of them.
 2. No affiliation or endorsement
 
 This project is not affiliated with, endorsed by, sponsored by or in partnership with
-Anthropic, OpenAI, Google, xAI, DeepSeek, GitHub, Microsoft, Mistral, OpenRouter
-or any other company, product or service named in it. Any such name is used only to
+Anthropic, OpenAI, Google, xAI, DeepSeek, GitHub, Microsoft, Mistral, OpenRouter,
+Cloudflare or any other company, product or service named in it. Any such name is used only to
 identify the product or service a skill, guide or configuration refers to or works with,
 and implies no partnership or approval.
 
@@ -45,6 +45,14 @@ liability arising from, out of or in connection with it or its use.
 
 CODE_OF_CONDUCT.md is adapted from the Contributor Covenant, version 2.1, used under
 CC BY 4.0. That file is not covered by the MIT licence above.
+
+plugins/security/skills/security-audit/ is vendored from cloudflare/security-audit-skill at
+commit c1c8a8c1471069fb0e188eeaff69b8e8db6564a8, Copyright (c) 2025-2026 Cloudflare, Inc., used
+under the MIT licence. Its licence text is plugins/security/skills/security-audit/LICENSE,
+and that directory is not covered by this repository's copyright notice above. Local changes
+to it: the guides moved to references/ with their file names lowercased in pointers and a
+contents list added to six of them, and validate-coverage-ledger.cjs fixed for artifact reuse
+across checks of one attempt, with a test added; everything else is unchanged.
 
 The catalogue website serves two typefaces from its own domain, both under the SIL Open
 Font License, Version 1.1. They are the latin subsets, in WOFF2, that Google Fonts

@@ -75,9 +75,9 @@
   "expected": "hard-fault-triage"
  },
  {
-  "query": "the device hangs and needs a watchdog design",
+  "query": "x509 certificate signed by unknown authority from python requests and java behind the corporate proxy, get our internal root ca trusted in every runtime",
   "should_trigger": false,
-  "expected": "watchdog-design"
+  "expected": "private-ca-trust-distribution"
  },
  {
   "query": "settings stored in flash get corrupted after many writes",

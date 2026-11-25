@@ -1,0 +1,22 @@
+[
+  {"query": "the .gitlab-ci.yml plus the three included files is huge, list every job with the rules it runs on and what it needs", "should_trigger": true},
+  {"query": "read this Jenkinsfile and give me a table of stages, their when conditions and which credentials they reference by name", "should_trigger": true},
+  {"query": "here is a Spinnaker pipeline JSON, list the stages in order with their requisiteStageRefIds and where each deploys", "should_trigger": true},
+  {"query": "which jobs in this gitlab ci config deploy to production, and are they manual or automatic", "should_trigger": true},
+  {"query": "summarise what this pipeline does on a merge request versus a tag, from the definition files I attached", "should_trigger": true},
+  {"query": "go through this Jenkinsfile and tell me which variables and credentials IDs it uses, names only", "should_trigger": true},
+  {"query": "map the needs graph of this .gitlab-ci.yml, which jobs run in parallel and which wait", "should_trigger": true},
+  {"query": "this pipeline definition includes a remote template and a shared library, list what you could not resolve", "should_trigger": true},
+  {"query": "read the spinnaker pipeline config and tell me the triggers and which stages are manual judgment", "should_trigger": true},
+  {"query": "walk through this CI definition and list each job's environment and the CI variables it references", "should_trigger": true},
+  {"query": "why did the deploy job fail in this GitLab run, here is the log", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "which triage bucket does this red pipeline belong to", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "how should I structure stages and caching for a new pipeline", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "audit this pipeline for secret exposure and unpinned actions", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "my GitLab pipeline runs twice on every merge request, how do I fix the rules", "should_trigger": false, "expected": "gitlab-ci-pipelines"},
+  {"query": "our Jenkins build fails with NotSerializableException in a shared library", "should_trigger": false, "expected": "jenkins-pipelines"},
+  {"query": "a Spinnaker execution is stuck running and will not cancel", "should_trigger": false, "expected": "spinnaker-pipelines"},
+  {"query": "choose between blue green and canary for our checkout service", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "argocd shows the app out of sync after the chart bump", "should_trigger": false, "expected": "gitops-operations"},
+  {"query": "review this terraform plan before apply", "should_trigger": false, "expected": "plan-reviewer"}
+]

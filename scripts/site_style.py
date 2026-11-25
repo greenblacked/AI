@@ -1493,6 +1493,20 @@ PLUGIN_LOOKS: dict[str, PluginLook] = {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Stages lit one after another, left to right, as a pipeline runs.
+    "toolchain": PluginLook(
+        day=("#9a3412", "#0f766e", "#3f6212"),
+        night=("#fdba74", "#5eead4", "#bef264"),
+        width=0.66,
+        still="%P .plugin-word { font-family: var(--font-mono); font-weight: 700; }",
+        rules="""\
+%P .pl { animation: pw-toolchain-lit 0.3s ease-out calc(var(--i) * 0.08s) backwards; }""",
+        keyframes="""\
+@keyframes pw-toolchain-lit {
+  from { opacity: 0; transform: translateX(-0.3em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
     # Typed one key at a time, the caret trailing the last letter.
     "coding": PluginLook(
         day=("#1d4ed8", "#4338ca", "#0f766e"),

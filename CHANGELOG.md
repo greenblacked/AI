@@ -8,6 +8,33 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Changed
+
+- Every agent under `.claude/agents/` now names the latest model by explicit ID rather than a bare alias, since an alias can resolve to an older release: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` and `claude-fable-5-2`. Efforts are unchanged. The shipped `family` plugin keeps the `sonnet` and `opus` aliases, which each provider resolves itself. The README agent table, `CLAUDE.md` and `docs/writing-agents.md` state the same IDs.
+
+### Added
+
+- The `toolchain` plugin, the thirtieth: the DevOps toolchain tool by tool, with seven skills (`gitlab-ci-pipelines`, `jenkins-pipelines`, `spinnaker-pipelines`, `artifactory-repositories`, `sonarqube-quality-gates`, `chef-cookbooks` and `helm-releases`), the read-only `pipeline-definition-reader` subagent for a `.gitlab-ci.yml`, a Jenkinsfile or a Spinnaker pipeline JSON, and a project kit under `gitlab-ci-pipelines`: a path-scoped rule, a `PreToolUse` hook template that refuses a write adding `only:` or `except:` to a GitLab CI file, and a pipeline change record. A new plugin rather than more skills in `delivery` or `platform`: those own tool-neutral pipeline design and cloud estates, and a separate plugin stays installable alone. Its seven descriptions fit the runtime's default listing budget on their own, so `listing-budget.json` gains a `toolchain` ceiling of 6,000 characters, the README and `docs/` name `toolchain` beside `personal` and `iac` as fitting alone, and the recommended `skillListingBudgetFraction` moves from 0.5 to 0.55 because the marketplace listing now needs 0.502. `tests/test_kit_hooks.py` covers thirty hooks, the site gains a `toolchain` page look with its own palette and entrance, and both banners add the plugin.
+
+- `prune-branches.yml`: a manual workflow that deletes the stale branches listed in `.github/prune-branches.tsv`, because cloud agent sessions cannot delete branches. It runs on `workflow_dispatch` on `main` only, with `contents: write` spent on deleting the listed refs and `pull-requests: read` on skipping open pull request heads. It validates every row first, deletes a branch only while it is still at its recorded SHA, never touches `main`, `dev`, `stage`, the default branch, a protected branch or an open pull request head, and defaults to a dry run. The list is the 83 branches the owner approved on 2026-11-24. `docs/ci.md` and `AGENTS.md` record it as the fifth bounded exception to "nothing here pushes from CI".
+
+- `security-audit` in the `security` plugin: a generic, source-first audit of a whole codebase with no Cloudflare-specific checks, adapted from Cloudflare's security-audit skill (cloudflare/security-audit-skill at c1c8a8c, MIT, licence kept beside it). The body and companion files are the upstream text unchanged; the description and tool grant are this repository's. It maps trust boundaries and a coverage ledger, hunts with isolated sub-agents, validates every candidate independently, and writes `findings.json` and a report, running target code only in a sandbox with no network. The upstream companion guides, `report-schema.json` and the two findings validators come with it. The `security` listing ceiling in `listing-budget.json` rises from 27,000 to 28,000 characters for its description.
+
+- `back-merge.yml`: once a promotion pull request has merged, it opens the pull requests that merge `stage` and `main` back down, `stage` into `dev` after a promotion into `stage`, and `main` into `stage` and `main` into `dev` after one into `main`. It runs on a `push` to `stage` or `main` only, and `scripts/back_merge.py` then asks GitHub which pull request the pushed commit belongs to and acts only when it is merged into that branch from this repository, from a `release/promote-dev-to-stage` or `release/promote-stage-to-main` head, with the pushed commit as its `merge_commit_sha`; anything else is a notice. Because a push has `GITHUB_REF` set to the branch, the `back-merge` environment limited to `stage` and `main` is effective, and the checkout is the protected branch's tip. Each pull request comes from a branch the job creates with `POST git/refs` at the pushed commit, `chore/back-merge-<source>-to-<destination>-<shortsha>`, using the App's token; it never moves, forces, reuses or deletes a ref, and the workflow token is `contents: read` only. It skips a pair that already has an open pull request or nothing to merge, and flags a conflict without resolving it. A GitHub App token in that environment is required, since pull requests made with `GITHUB_TOKEN` start none of the required checks: without it the job only prints a notice, and a bad key fails the job. `scripts/check_naming.py` gains `_PRE_RULE_COMMITS`, a list of released commits exempt from the subject rules by full 40-character SHA, holding only `5a91a7d`, so the first `stage` into `dev` back-merge passes `naming`. `docs/ci.md` says what to set up and how to resolve a conflict by hand.
+
+## [0.6.1] - 2026-11-17
+
+### Security
+
+- Require verified Terraform plan provenance and approved handling of plan data for IaC reviews. Keep raw values and sensitive identifiers out of review reports, and retain state backups under the backend's access and retention controls.
+- Restrict credentialed pull request evaluations to same-repository PRs targeting protected `main`. Run the harness from the trusted event revision and handle candidate definitions and queries as data.
+- Match accepted SkillSpector AE1 findings to their recorded evidence reasons and analysis phases. Reuse staging CI results only when the promotion checks can verify the matching tree and its successful runs.
+
+### Fixed
+
+- Reject symlinked legal files during skill packaging and reject unsafe skill names before writing portable exports.
+- Bound nested rule-glob expansion during validation. Refresh reviewer benchmark fixtures to match the current code.
+
 ## [0.6.0] - 2026-11-06
 
 ### Added
@@ -1118,7 +1145,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/greenblacked/AI/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/greenblacked/AI/compare/v0.5.2...v0.6.0
 [0.5.2]: https://github.com/greenblacked/AI/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/greenblacked/AI/compare/v0.5.0...v0.5.1

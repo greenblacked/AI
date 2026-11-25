@@ -76,6 +76,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/product/skills/` | Evidence-led product management and go-to-market: discovery, pricing, metrics, churn, deals and support load |
 | `plugins/platform/skills/` | Cloud and platform engineering: Kubernetes, Terraform estates, cloud networks, identity, databases, the edge and commitments |
 | `plugins/iac/skills/` | Infrastructure as code: shared module contracts, module regression tests and reviewed-plan delivery |
+| `plugins/toolchain/skills/` | The DevOps toolchain, tool by tool: GitLab CI, Jenkins, Spinnaker, Artifactory, SonarQube, Chef and Helm |
 | `plugins/devtools/skills/` | Developer tooling and build systems: git recovery, monorepos, build caching, dependencies and benchmarks |
 | `plugins/smallbiz/skills/` | Freelancing and small-business operations: pricing, scope, invoicing, contracts, bookkeeping and tax preparation |
 | `plugins/backend/skills/` | Backend and distributed-systems correctness: webhooks, races, retry budgets, overload, locks, sagas, events and jobs |
@@ -100,8 +101,8 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the twenty-nine plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
+| `.claude-plugin/marketplace.json` | Lists the thirty plugins; each discovers its own skills |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `prune-branches.yml`, `back-merge.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
 | `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the eight catalogue checks |
@@ -277,7 +278,7 @@ blocking finding or a failing `ci` or `security` gate.
   the comment is what lets Dependabot bump it. A major-version comment goes stale
   silently the moment upstream moves the floating tag, and zizmor fails the build for it.
 - Checkouts set `persist-credentials: false`. Nothing here pushes from CI. There are
-  four bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can
+  five bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can
   enable auto-merge on a Dependabot pull request that is a patch or minor update and whose
   head branch is in this repository, which stays bounded because GitHub only completes
   that merge once the `ci` and `security` checks the branch ruleset requires have both
@@ -328,6 +329,25 @@ blocking finding or a failing `ci` or `security` gate.
   a tag already on `origin`, a version not greater than every existing tag, or a `HEAD`
   that is not `origin/main`. `release.yml` accepts that dispatch only on a `vX.Y.Z` tag
   ref, so a dispatch on a branch publishes nothing.
+  `prune-branches.yml`'s single job, `prune`, is the fifth: it runs only on `workflow_dispatch` on
+  `main`, where its first step fails on any other ref before the token is used, and it grants
+  itself `contents: write` and `pull-requests: read`. It spends the first only on deleting the
+  refs listed in `.github/prune-branches.tsv` with `git push` ref deletions, each under
+  `--force-with-lease` against the SHA recorded there, which GitHub checks atomically; it
+  pushes only ref deletions and never a commit, and the second grant is spent only on
+  skipping the head or base of an open pull request. It skips `main`, `dev` and `stage` by name, the
+  default branch, a branch the API reports as protected and the head or base of an open pull
+  request, and a ruleset refusal fails that row without deleting anything. It validates every row before any API call,
+  fails closed when it cannot list open pull requests, and defaults to a dry run; its
+  checkout fetches that one file with `persist-credentials: false`, and the token reaches
+  `git` only through the environment, masked, never in an argument.
+  `back-merge.yml`'s single job runs only on a push to `stage` or `main`, and its script
+  acts only when the pushed commit is the `merge_commit_sha` of a merged
+  `release/promote-*` pull request from this repository into that branch. Its
+  `GITHUB_TOKEN` is `contents: read`; a GitHub App token, never `GITHUB_TOKEN`, creates
+  one `chore/back-merge-*` branch at the pushed commit with `POST git/refs`, never
+  moving, forcing, reusing or deleting a ref, and opens the pull request that merges it
+  back down. It never merges or resolves a conflict.
 - `evals.yml` uses `pull_request_target` for same-repository changed-target scoring so
   the workflow and executable harness come from the immutable base SHA rather than the
   candidate checkout. The head SHA is checked out separately under `candidate/` and is

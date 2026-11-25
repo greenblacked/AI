@@ -412,6 +412,18 @@ suppressions:
       does not run it and the allowed-tools grant (Read, Grep, Glob) is not widened.
     expires: 2027-05-02
 
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["gitlab-ci-pipelines"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/refuse-gitlab-only-except.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads one stdin payload, refuses a
+      Write, Edit or MultiEdit whose new content puts an only: or except: key line in a .gitlab-ci.yml or .gitlab/ci/
+      YAML file, allows every other file and any payload it cannot parse, uses standard tools only, and has no network
+      access, secrets or eval. The skill itself does not run it and the allowed-tools grant (Read, Grep, Glob) is not
+      widened.
+    expires: 2027-05-02
+
   # Subagent and slash-command definitions, scanned as one-file skills by scripts/definition_shims.py. Cisco matches
   # `skills` on the shim's frontmatter name, which the wrapper sets to the shim id for agents and commands alike.
   - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
@@ -430,4 +442,14 @@ suppressions:
       .claude/commands/ship.md line 29 onward is the owner-run review procedure: a git fetch of the base branch and
       the contributor's head as a ref only, then a pinned detached worktree; nothing fetched is executed, and the
       paragraph says the review must never run from the contributor's checkout.
+    expires: 2027-05-02
+
+  # security-audit is vendored from cloudflare/security-audit-skill at c1c8a8c; its two test files spawn node.
+  - rule_id: COMMAND_INJECTION_JS_CHILD_PROCESS
+    skills: ["security-audit"]
+    paths: ["validate-findings.test.cjs", "validate-coverage-ledger.test.cjs"]
+    reason: >-
+      Upstream c1c8a8c tests spawn process.execPath (and mkfifo once) with fixed argv, no shell option, on temp files
+      they create; no attacker-controlled input reaches the command. Whole-file scope because the schema has no line
+      selector; re-read on any upstream bump.
     expires: 2027-05-02

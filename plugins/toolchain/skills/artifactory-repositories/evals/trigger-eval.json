@@ -1,0 +1,22 @@
+[
+  {"query": "Our npm build pulled a public package with the same name as our internal one; fix the Artifactory virtual repository", "should_trigger": true},
+  {"query": "How should we promote a tested build from staging to release in Artifactory without rebuilding it", "should_trigger": true},
+  {"query": "Someone redeployed over a released Maven version in our Artifactory release repo; how do we stop that", "should_trigger": true},
+  {"query": "CI uses a personal API key for Artifactory, move us to scoped expiring access tokens", "should_trigger": true},
+  {"query": "Artifactory disk is at 95 percent and deleting old snapshots did not free any space, why", "should_trigger": true},
+  {"query": "Design a retention rule for snapshots and dev builds in Artifactory and dry run it before deleting", "should_trigger": true},
+  {"query": "Which Artifactory permission targets should the build job and the promotion job have", "should_trigger": true},
+  {"query": "Should our Artifactory Docker repository use repository path or subdomain access, and how do we pin pulls by digest", "should_trigger": true},
+  {"query": "Lay out local, remote and virtual repositories for PyPI in Artifactory", "should_trigger": true},
+  {"query": "jf rt delete would remove which artifacts, how do I check with an AQL query first", "should_trigger": true},
+  {"query": "Which of our dependencies should we upgrade this quarter and in what order", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "A package we depend on was just reported compromised; are we exposed", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "Harden our Docker base image and remove the shell and package manager", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "Our Gradle build cache misses on every CI run", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "Check whether our dependencies' licences allow us to ship commercially", "should_trigger": false, "expected": "licence-compliance"},
+  {"query": "Rotate the leaked deploy token in our secrets store and update dependants", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "Our GitLab CI runs twice on merge requests", "should_trigger": false, "expected": "gitlab-ci-pipelines"},
+  {"query": "A Jenkins build prints our password in the console log", "should_trigger": false, "expected": "jenkins-pipelines"},
+  {"query": "Design the CI stages and caches for our monorepo regardless of tool", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "Audit who can reach our deploy secrets via pull request workflows", "should_trigger": false, "expected": "pipeline-hardening"}
+]
